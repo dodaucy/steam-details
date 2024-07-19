@@ -1,3 +1,8 @@
+function display_money(money) {
+    return `${money.toFixed(2)}€`;
+}
+
+
 async function getRequest(url) {
     const response = await fetch(url, {
         method: "GET",
@@ -25,7 +30,7 @@ async function search(mode, searchValue, progress) {
             appid = searchValue;
         }
         const game_data = await getRequest("/details?appid=" + encodeURIComponent(appid));
-        add_game({
+        addGame({
             "wishlist": {
                 "appid": appid,
                 "images": [game_data.steam.fallback.image],

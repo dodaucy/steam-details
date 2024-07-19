@@ -195,7 +195,7 @@ button {
 
     display: flex;
     flex-direction: row;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
 
     margin-bottom: 0;
@@ -203,20 +203,23 @@ button {
 
 .purchase-area > * {
     margin: 5px;
+    white-space: nowrap;
 }
 
 .historical-low {
-    flex: 2;
     text-align: center;
 }
 
+.historical-low > * {
+    white-space: nowrap;
+}
+
 .price {
-    flex: 1;
     padding: 5px 0px 5px 5px;
 }
 
 .steam-button, .keyforsteam-button {
-    flex: 3;
+    width: 125px;
     text-align: center;
     color: rgb(210, 239, 169);
     padding: 7px 15px 7px 15px;

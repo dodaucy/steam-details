@@ -47,7 +47,7 @@ function addGame(data) {
     detailsGridDiv.className = "small-font details-grid";
 
     const detailsData = [
-        { title: "Difference between lowest current price and lowest historical low", label: "PRICE DIFFERENCE:", value: "0,00€" },
+        { title: "Difference between lowest current price and lowest historical low", label: "PRICE DIFFERENCE:", value: display_money(0.0) },
         { title: "Main Story: 30,5 hours\nMain + Extras: 40,7 hours\nCompletionist: 80,0 hours\nAll Styles: 40,7 hours", label: "GAME LENGTH:", value: "40,7 hours" },
         { title: "Release date of the game", label: "RELEASE DATE:", value: "18 JUL, 2024" },
         { title: "69% of the 100,000 user reviews are positive", label: "OVERALL REVIEWS:", value: "VERY POSITIVE" },
@@ -75,7 +75,7 @@ function addGame(data) {
     const purchaseData = [
         {
             historicalLowTitle: "From steamdb.info",
-            historicalLowPrice: "9,99€",
+            historicalLowPrice: 0.0,
             priceTitle: null,
             price: data.game.price,
             buttonText: "Buy on Steam",
@@ -84,9 +84,9 @@ function addGame(data) {
         },
         {
             historicalLowTitle: "Shop: Kinguin",
-            historicalLowPrice: "9,99€",
+            historicalLowPrice: 0.0,
             priceTitle: "Form: GIFT EU\nShop: Kinguin\nEdition: Early Access",
-            price: "9,99€",
+            price: 0.0,
             buttonText: "Buy Key or Gift",
             buttonURL: "https://example.com",
             buttonClass: "keyforsteam-button"
@@ -110,7 +110,7 @@ function addGame(data) {
 
         const historicalLowValueDiv = document.createElement("div");
         historicalLowValueDiv.className = "small-font historical-low-value";
-        historicalLowValueDiv.textContent = `${purchase.historicalLowPrice}€`;
+        historicalLowValueDiv.textContent = display_money(purchase.historicalLowPrice);
         historicalLowDiv.appendChild(historicalLowValueDiv);
 
         purchaseAreaDiv.appendChild(historicalLowDiv);
@@ -120,7 +120,7 @@ function addGame(data) {
         if (purchase.priceTitle !== null) {
             priceDiv.title = purchase.priceTitle;
         }
-        priceDiv.textContent = `${purchase.price}€`;
+        priceDiv.textContent = display_money(purchase.price);
         purchaseAreaDiv.appendChild(priceDiv);
 
         const purchaseButton = document.createElement("a");
