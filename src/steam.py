@@ -29,7 +29,7 @@ async def wishlist_data(profile_id: str) -> Union[List[WishlistItem], None]:
     j = r.json()
     items: List[WishlistItem] = []
     for appid, data in j.items():
-        screenshots = [data["capsule"]]
+        screenshots = []
         for screenshot in data["screenshots"]:
             screenshots.append(f"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{appid}/{screenshot}")
         items.append(
