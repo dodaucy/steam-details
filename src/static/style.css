@@ -58,6 +58,19 @@ a {
 
 
 
+#error-message {
+    color: #ff0000;
+}
+
+#progress-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+
+
 #result {
     display: flex;
     flex-direction: column;

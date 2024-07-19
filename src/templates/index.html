@@ -8,7 +8,18 @@
 </head>
 <body>
     <div id="page-content">
-        <input type="text" id="wishlist-search" placeholder="Steam ID / Profile">
+        <div>
+            <input type="text" id="wishlist-search" placeholder="Steam ID / Profile">
+        </div>
+        <div id="error-message">
+            Test error message
+        </div>
+        <div id="progress-container">
+            <div>
+                Loading...
+            </div>
+            <progress id="progress" value="50" max="100"></progress>
+        </div>
         <div id="result">
             <div class="result-item">
                 <a href="https://example.com" target="_blank" class="images">
