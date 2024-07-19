@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", function() {
-    const containers = document.getElementsByClassName("images");
-
-    Array.from(containers).forEach(function(container) {
+    // Images
+    Array.from(document.getElementsByClassName("images")).forEach(function(container) {
         const images = container.getElementsByClassName("image");
         let currentIndex = 0;
         let nextImageTimeout;
@@ -37,5 +36,18 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             }, 50);
         });
+    });
+
+    // Search button
+    document.getElementById("search-button").addEventListener("click", function() {
+        const mode = document.getElementById("mode-select").value;
+        const searchValue = document.getElementById("wishlist-search").value;
+        alert(`Mode: ${mode}\nSearch Value: ${searchValue}`);
+    });
+    // Search with Enter
+    document.getElementById("wishlist-search").addEventListener("keydown", function(event) {
+        if (event.key === "Enter") {
+            document.getElementById("search-button").click();
+        }
     });
 });

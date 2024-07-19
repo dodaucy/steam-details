@@ -8,8 +8,13 @@
 </head>
 <body>
     <div id="page-content">
-        <div>
+        <div id="search-bar">
+            <select id="mode-select">
+                <option value="wishlist">Wishlist</option>
+                <option value="single-game">Single Game</option>
+            </select>
             <input type="text" id="wishlist-search" placeholder="Steam ID / Profile">
+            <button id="search-button">Search</button>
         </div>
         <div id="error-message">
             Test error message
