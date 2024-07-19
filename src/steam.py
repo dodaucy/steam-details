@@ -53,6 +53,7 @@ class SteamData(BaseModel):
     released: bool
     price: Union[float, None]
     release_date_string: str
+    external_url: str
 
 
 class SteamDetails(BaseModel):
@@ -85,6 +86,7 @@ async def get_steam_details(appid: str) -> SteamDetails:
             description=steam_data["short_description"],
             released=released,
             price=price,
-            release_date_string=steam_data["release_date"]["date"]
+            release_date_string=steam_data["release_date"]["date"],
+            external_url=f"https://store.steampowered.com/app/{appid}/{steam_data['name']}/"
         )
     )

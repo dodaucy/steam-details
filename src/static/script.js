@@ -1,9 +1,4 @@
-function add_game(game_data) {
-    console.log(game_data);
-}
-
-
-async function get_request(url) {
+async function getRequest(url) {
     const response = await fetch(url, {
         method: "GET",
         headers: {
@@ -12,11 +7,11 @@ async function get_request(url) {
     })
     if (response.status !== 200) {
         try {
-            error_message = (await response.json()).detail;
+            errorMessage = (await response.json()).detail;
         } catch (error) {
-            error_message = response.statusText;
+            errorMessage = response.statusText;
         }
-        throw new Error(error_message);
+        throw new Error(errorMessage);
     }
     return response.json();
 }
@@ -29,26 +24,26 @@ async function search(mode, searchValue, progress) {
         } else {
             appid = searchValue;
         }
-        const game_data = await get_request("/details?appid=" + encodeURIComponent(appid));
+        const game_data = await getRequest("/details?appid=" + encodeURIComponent(appid));
         add_game({
-            "wishlist_data": {
+            "wishlist": {
                 "appid": appid,
                 "images": [game_data.steam.fallback.image],
                 "review_score": null,
                 "review_count": null
             },
-            "game_data": game_data.steam.data
+            "game": game_data.steam.data
         })
     } else if (mode === "wishlist") {
         progress.value = 0;
         progress.max = 100;
-        const wishlist = await await get_request("/wishlist?profile_id=" + encodeURIComponent(searchValue));
+        const wishlist = await await getRequest("/wishlist?profile_id=" + encodeURIComponent(searchValue));
         for (i = 0; i < wishlist.length; i++) {
             progress.value = (i / wishlist.length) * 100;
             const game = wishlist[i];
-            add_game({
-                "wishlist_data": game,
-                "game_data": (await get_request("/details?appid=" + encodeURIComponent(game.appid))).steam.data
+            addGame({
+                "wishlist": game,
+                "game": (await getRequest("/details?appid=" + encodeURIComponent(game.appid))).steam.data
             })
         }
     }
@@ -56,45 +51,6 @@ async function search(mode, searchValue, progress) {
 
 
 document.addEventListener("DOMContentLoaded", function() {
-    // Images
-    Array.from(document.getElementsByClassName("images")).forEach(function(container) {
-        const images = container.getElementsByClassName("image");
-        let currentIndex = 0;
-        let nextImageTimeout;
-        let mouseIsOver = false;
-
-        function showImage(index) {
-            images[currentIndex].classList.remove("active");
-            currentIndex = index;
-            images[currentIndex].classList.add("active");
-        }
-
-        function showNextImage() {
-            showImage((currentIndex + 1) % images.length);
-        }
-
-        // Show the first image initially
-        showImage(0);
-
-        container.addEventListener("mouseover", () => {
-            mouseIsOver = true;
-            // Start the rotation when the mouse enters the container
-            nextImageTimeout = setTimeout(showNextImage, 1000);  // Change image every 1 second
-        });
-
-        container.addEventListener("mouseout", () => {
-            mouseIsOver = false;
-            setTimeout(() => {
-                if (!mouseIsOver) {
-                    // Stop the rotation when the mouse leaves the container
-                    clearTimeout(nextImageTimeout)
-                    // Reset the image to the first one
-                    showImage(0);
-                }
-            }, 50);
-        });
-    });
-
     // Search
     document.getElementById("search-button").addEventListener("click", async function() {
         const mode = document.getElementById("mode-select").value;
