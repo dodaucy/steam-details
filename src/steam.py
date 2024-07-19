@@ -7,11 +7,9 @@ from utils import http_client
 
 class WishlistItem(BaseModel):
     appid: str
-    name: str
     images: List[str]
     review_score: float
     review_count: str
-    release_date_string: str
 
 
 async def wishlist_data(profile_id: str) -> List[WishlistItem]:
@@ -35,11 +33,9 @@ async def wishlist_data(profile_id: str) -> List[WishlistItem]:
         items.append(
             WishlistItem(
                 appid=appid,
-                name=data["name"],
                 images=[data["capsule"]] + screenshots,
                 review_score=data["reviews_percent"],
-                review_count=data["reviews_total"],
-                release_date_string=data["release_string"]
+                review_count=data["reviews_total"]
             )
         )
     return items
@@ -48,7 +44,9 @@ async def wishlist_data(profile_id: str) -> List[WishlistItem]:
 class SteamDetails(BaseModel):
     name: str
     description: str
+    released: bool
     price: float
+    release_date_string: str
 
 
 async def get_steam_details(appid: int) -> SteamDetails:
@@ -66,5 +64,7 @@ async def get_steam_details(appid: int) -> SteamDetails:
     return SteamDetails(
         name=steam_data["name"],
         description=steam_data["short_description"],
+        released=steam_data["release_date"]["coming_soon"] is False,
         price=price,
+        release_date_string=steam_data["release_date"]["date"]
     )
