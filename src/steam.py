@@ -87,6 +87,6 @@ async def get_steam_details(appid: str) -> SteamDetails:
             released=released,
             price=price,
             release_date_string=steam_data["release_date"]["date"],
-            external_url=f"https://store.steampowered.com/app/{appid}/{steam_data['name']}/"
+            external_url=f"https://store.steampowered.com/app/{appid}/{'_'.join(steam_data['name'].split(' '))}/"
         )
     )
