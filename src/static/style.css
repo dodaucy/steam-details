@@ -70,7 +70,7 @@ button {
     background-color: #4F5565;
 }
 
-#wishlist-search {
+#search-input {
     width: 100%;
     border-style: solid;
     border-width: 1px;
@@ -79,7 +79,7 @@ button {
     box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 3px 0px inset, rgba(255, 255, 255, 0.2) 1px 1px 0px 0px;
 }
 
-#wishlist-search:hover {
+#search-input:hover {
     border-color: rgba(255, 255, 255, 0.2);
     box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 3px 0px inset;
 }
