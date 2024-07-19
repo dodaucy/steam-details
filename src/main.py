@@ -24,4 +24,7 @@ async def index(request: Request):
 
 @app.get("/wishlist")
 async def wishlist(profile_id: str):
-    return [item.model_dump() for item in await wishlist_data(profile_id)]
+    items = []
+    for item in await wishlist_data(profile_id):
+        items.append(item.model_dump())
+    return items
