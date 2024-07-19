@@ -38,11 +38,43 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-    // Search button
-    document.getElementById("search-button").addEventListener("click", function() {
+    // Search
+    document.getElementById("search-button").addEventListener("click", async function() {
         const mode = document.getElementById("mode-select").value;
         const searchValue = document.getElementById("wishlist-search").value;
-        alert(`Mode: ${mode}\nSearch Value: ${searchValue}`);
+        const errorMessage = document.getElementById("error-message");
+        const progress = document.getElementById("progress");
+
+        // Disable search bar
+        Array.from(document.getElementById("search-bar").children).forEach(function(element) {
+            console.log(element);
+            element.disabled = true;
+        })
+
+        // Hide error message
+        errorMessage.style.display = "none";
+
+        // Show search progress
+        progress.value = 0;
+        document.getElementById("progress-container").style.display = "flex";
+
+        // Search
+        try {
+            await search(mode, searchValue, progress);
+        } catch (error) {
+            console.error(error);
+            // Show error message
+            errorMessage.style.display = "block";
+            errorMessage.innerText = error.message;
+        }
+
+        // Hide search progress
+        document.getElementById("progress-container").style.display = "none";
+
+        // Enable search bar
+        Array.from(document.getElementById("search-bar").children).forEach(function(element) {
+            element.disabled = false;
+        })
     });
     // Search with Enter
     document.getElementById("wishlist-search").addEventListener("keydown", function(event) {
