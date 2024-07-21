@@ -49,7 +49,6 @@ class SteamFallback(BaseModel):
 
 class SteamData(BaseModel):
     name: str
-    description: str
     released: bool
     price: Union[float, None]
     release_date_string: str
@@ -83,7 +82,6 @@ async def get_steam_details(appid: str) -> SteamDetails:
         ),
         data=SteamData(
             name=steam_data["name"],
-            description=steam_data["short_description"],
             released=released,
             price=price,
             release_date_string=steam_data["release_date"]["date"],

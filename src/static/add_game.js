@@ -32,12 +32,6 @@ function addGame(data, appendToTop) {
     titleAnchor.textContent = data.game.name
     contentDiv.appendChild(titleAnchor);
 
-    // Create the description
-    const descriptionDiv = document.createElement("div");
-    descriptionDiv.className = "small-font";
-    descriptionDiv.textContent = data.game.description
-    contentDiv.appendChild(descriptionDiv);
-
     // Create the details div
     const detailsDiv = document.createElement("div");
     detailsDiv.className = "details";
