@@ -38,18 +38,23 @@ async function search(mode, searchValue, progress) {
                 "review_count": null
             },
             "game": game_data.steam.data
-        })
+        }, true)
     } else if (mode === "wishlist") {
+        // Clear results
+        document.getElementById("result").innerHTML = "";
+        // Set progress bar to use percentage
         progress.value = 0;
         progress.max = 100;
+        // Get wishlist
         const wishlist = await await getRequest("/wishlist?profile_id=" + encodeURIComponent(searchValue));
+        // Add games
         for (i = 0; i < wishlist.length; i++) {
             progress.value = (i / wishlist.length) * 100;
             const game = wishlist[i];
             addGame({
                 "wishlist": game,
                 "game": (await getRequest("/details?appid=" + encodeURIComponent(game.appid))).steam.data
-            })
+            }, false)
         }
     }
 }

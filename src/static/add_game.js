@@ -1,4 +1,4 @@
-function addGame(data) {
+function addGame(data, appendToTop) {
     console.log(data);
 
     // Create the result-item div
@@ -179,5 +179,9 @@ function addGame(data) {
 
 
     // Append the result-item to the #result div
-    document.getElementById("result").appendChild(resultItem);
+    if (appendToTop) {
+        document.getElementById("result").prepend(resultItem);
+    } else {
+        document.getElementById("result").appendChild(resultItem);
+    }
 }
