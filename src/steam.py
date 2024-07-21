@@ -7,7 +7,6 @@ from utils import http_client
 
 class WishlistItem(BaseModel):
     appid: str
-    images: List[str]
     review_score: int
     review_count: str
 
@@ -35,7 +34,6 @@ async def wishlist_data(profile_id: str) -> Union[List[WishlistItem], None]:
         items.append(
             WishlistItem(
                 appid=appid,
-                images=[data["capsule"]] + screenshots,
                 review_score=data["reviews_percent"],
                 review_count=data["reviews_total"]
             )
@@ -43,21 +41,14 @@ async def wishlist_data(profile_id: str) -> Union[List[WishlistItem], None]:
     return items
 
 
-class SteamFallback(BaseModel):
-    image: str
-
-
-class SteamData(BaseModel):
+class SteamDetails(BaseModel):
+    appid: str
     name: str
-    released: bool
-    price: Union[float, None]
-    release_date_string: str
+    images: List[str]
     external_url: str
 
-
-class SteamDetails(BaseModel):
-    fallback: SteamFallback
-    data: SteamData
+    price: Union[float, None]
+    release_date: str
 
 
 async def get_steam_details(appid: str) -> SteamDetails:
@@ -67,8 +58,14 @@ async def get_steam_details(appid: str) -> SteamDetails:
     r.raise_for_status()
     j = r.json()
     steam_data = j[appid]["data"]
-    released = steam_data["release_date"]["coming_soon"] is False
-    if released:
+
+    # Get images
+    images = [steam_data["header_image"]]
+    for screenshot in steam_data["screenshots"]:
+        images.append(screenshot['path_thumbnail'])
+
+    # Get price
+    if steam_data["release_date"]["coming_soon"] is False:
         if steam_data['is_free'] is True:
             price = 0.0
         else:
@@ -76,15 +73,13 @@ async def get_steam_details(appid: str) -> SteamDetails:
             price = float(steam_data["price_overview"]["final"] / 100)
     else:
         price = None
+
     return SteamDetails(
-        fallback=SteamFallback(
-            image=steam_data["header_image"]
-        ),
-        data=SteamData(
-            name=steam_data["name"],
-            released=released,
-            price=price,
-            release_date_string=steam_data["release_date"]["date"],
-            external_url=f"https://store.steampowered.com/app/{appid}/{'_'.join(steam_data['name'].split(' '))}/"
-        )
+        appid=appid,
+        name=steam_data["name"],
+        images=images,
+        external_url=f"https://store.steampowered.com/app/{appid}/{'_'.join(steam_data['name'].split(' '))}/",
+
+        price=price,
+        release_date=steam_data["release_date"]["date"]
     )

@@ -1,5 +1,5 @@
-function addGame(data, appendToTop) {
-    console.log(data);
+function addGame(game, appendToTop) {
+    console.log(game);
 
     // Create the result-item div
     const resultItem = document.createElement("div");
@@ -7,11 +7,11 @@ function addGame(data, appendToTop) {
 
     // Create the anchor element with images
     const anchorWithImages = document.createElement("a");
-    anchorWithImages.href = data.game.external_url;
+    anchorWithImages.href = game.steam.external_url;
     anchorWithImages.target = "_blank";
     anchorWithImages.className = "images";
 
-    Array.from(data.wishlist.images).forEach((image_url) => {
+    Array.from(game.steam.images).forEach((image_url) => {
         const image = document.createElement("img");
         image.className = "image";
         image.src = image_url;
@@ -26,10 +26,10 @@ function addGame(data, appendToTop) {
 
     // Create the title anchor
     const titleAnchor = document.createElement("a");
-    titleAnchor.href = data.game.external_url;
+    titleAnchor.href = game.steam.external_url;
     titleAnchor.target = "_blank";
     titleAnchor.className = "title";
-    titleAnchor.textContent = data.game.name
+    titleAnchor.textContent = game.steam.name
     contentDiv.appendChild(titleAnchor);
 
     // Create the details div
@@ -71,9 +71,9 @@ function addGame(data, appendToTop) {
             historicalLowTitle: "From steamdb.info",
             historicalLowPrice: 0.0,
             priceTitle: null,
-            price: data.game.price,
+            price: game.steam.price,
             buttonText: "Buy on Steam",
-            buttonURL: data.game.external_url,
+            buttonURL: game.steam.external_url,
             buttonClass: "steam-button"
         },
         {
