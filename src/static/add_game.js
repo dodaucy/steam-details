@@ -56,7 +56,7 @@ function addGame(game, appendToTop) {
     // Price difference
     detailsData.push({
         label: "PRICE DIFFERENCE:",
-        value: display_money(0.0),
+        value: display_price(0.0),
         title: "Difference between lowest current price and lowest historical low"
     })
 
@@ -269,7 +269,7 @@ function addGame(game, appendToTop) {
 
                 const historicalLowValueDiv = document.createElement("div");
                 historicalLowValueDiv.className = "small-font historical-low-value";
-                historicalLowValueDiv.textContent = display_money(purchase.historicalLowPrice);
+                historicalLowValueDiv.textContent = display_price(purchase.historicalLowPrice);
                 historicalLowDiv.appendChild(historicalLowValueDiv);
 
                 purchaseAreaDiv.appendChild(historicalLowDiv);
@@ -279,7 +279,7 @@ function addGame(game, appendToTop) {
                 if (purchase.priceTitle !== null) {
                     priceDiv.title = purchase.priceTitle;
                 }
-                priceDiv.textContent = display_money(purchase.price);
+                priceDiv.textContent = display_price(purchase.price);
                 purchaseAreaDiv.appendChild(priceDiv);
 
                 const purchaseButton = document.createElement("a");

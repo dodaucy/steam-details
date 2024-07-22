@@ -1,5 +1,5 @@
-function display_money(money) {
-    return `${money.toFixed(2)}€`;
+function display_price(price_float) {
+    return `${price_float.toFixed(2)}€`;
 }
 
 
