@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from how_long_to_beat import get_game_length
 from protondb import get_linux_support
 from steam import download_app_list, get_app, get_steam_details, wishlist_data
 
@@ -44,10 +45,12 @@ async def details(appid_or_name: str):
     if steam.released:
         return {
             "steam": steam.model_dump(),
-            "linux_support": None if steam.native_linux_support else await get_linux_support(steam.appid)
+            "linux_support": None if steam.native_linux_support else await get_linux_support(steam.appid),
+            "game_length": await get_game_length(steam.appid, steam.name)
         }
     else:
         return {
             "steam": steam.model_dump(),
-            "linux_support": None
+            "linux_support": None,
+            "game_length": None
         }

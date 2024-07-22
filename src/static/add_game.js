@@ -76,11 +76,54 @@ function addGame(game, appendToTop) {
     });
 
     // Game length
-    detailsData.push({
-        label: "GAME LENGTH:",
-        value: "40,7 hours",
-        title: "Main Story: 30,5 hours\nMain + Extras: 40,7 hours\nCompletionist: 80,0 hours\nAll Styles: 40,7 hours"
-    });
+    if (game.game_length === null){
+        detailsData.push({
+            label: "GAME LENGTH:",
+            value: null
+        });
+    } else {
+        let title_list = [];
+        if (game.game_length.main !== null) {
+            title_list.push(`Main Story: ${display_time(game.game_length.main)}`);
+        }
+        if (game.game_length.plus !== null) {
+            title_list.push(`Main + Extras: ${display_time(game.game_length.plus)}`);
+        }
+        if (game.game_length.completionist !== null) {
+            title_list.push(`Completionist: ${display_time(game.game_length.completionist)}`);
+        }
+        if (title_list.length > 0) {
+            if (game.game_length.plus === null) {
+                detailsData.push({
+                    label: "GAME LENGTH:",
+                    value: "Hover for info",
+                    title: `${title_list.join("\n")}\nFrom: howlongtobeat.com`
+                });
+            } else {
+                const hours = game.game_length.plus / 3600;
+                if (hours >= 10) {
+                    class_name = "green";
+                } else if (hours >= 5) {
+                    class_name = "yellow";
+                } else if (hours >= 1) {
+                    class_name = "orange";
+                } else {
+                    class_name = "red";
+                }
+                detailsData.push({
+                    label: "GAME LENGTH:",
+                    value: display_time_as_float(game.game_length.plus),
+                    title: `${title_list.join("\n")}\nFrom: howlongtobeat.com`,
+                    color_class: class_name
+                });
+            }
+        } else {
+            detailsData.push({
+                label: "GAME LENGTH:",
+                value: null
+            });
+        }
+    }
 
     // Achievements
     if (game.steam.released) {
@@ -156,7 +199,9 @@ function addGame(game, appendToTop) {
             valueDiv.title = "Not available";
         } else {
             valueDiv.textContent = detail.value;
-            valueDiv.classList.add(detail.color_class);
+            if (detail.color_class !== undefined) {
+                valueDiv.classList.add(detail.color_class);
+            }
             labelDiv.title = detail.title;
             valueDiv.title = detail.title;
         }

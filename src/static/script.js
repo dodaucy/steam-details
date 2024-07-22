@@ -3,6 +3,18 @@ function display_money(money) {
 }
 
 
+function display_time_as_float(seconds) {
+    return `${(seconds / 3600).toFixed(1).replace(".", ",")}h`
+}
+
+
+function display_time(seconds) {
+    hours = Math.floor(seconds / 3600)
+    minutes = Math.floor((seconds % 3600) / 60)
+    return `${hours}h ${minutes}m`
+}
+
+
 async function getRequest(url) {
     const response = await fetch(url, {
         method: "GET",
