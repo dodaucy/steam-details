@@ -69,12 +69,11 @@ async def get_steam_details(appid: str) -> SteamDetails:
         images.append(screenshot['path_thumbnail'])
 
     # Get price
-    if "price_overview" in steam_data:
-        if steam_data['is_free'] is True:
-            price = 0.0
-        else:
-            assert steam_data["price_overview"]['currency'] == "EUR"
-            price = float(steam_data["price_overview"]["final"] / 100)
+    if steam_data['is_free'] is True:
+        price = 0.0
+    elif "price_overview" in steam_data:
+        assert steam_data["price_overview"]['currency'] == "EUR"
+        price = float(steam_data["price_overview"]["final"] / 100)
     else:
         price = None
 
