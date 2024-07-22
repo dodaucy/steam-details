@@ -70,8 +70,10 @@ document.addEventListener("DOMContentLoaded", function() {
         document.getElementById("progress-container").style.display = "flex";
 
         // Search
+        let success = false;
         try {
             await search(mode, searchInput.value, progress);
+            success = true;
         } catch (error) {
             console.error(error);
             // Show error message
@@ -81,6 +83,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Hide search progress
         document.getElementById("progress-container").style.display = "none";
+
+        // Clear search bar
+        if (success) {
+            searchInput.value = "";
+        }
 
         // Enable search bar
         Array.from(document.getElementById("search-bar").children).forEach(function(element) {
