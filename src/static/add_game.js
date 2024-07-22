@@ -134,69 +134,97 @@ function addGame(game, appendToTop) {
     const purchaseAreaContainerDiv = document.createElement("div");
     purchaseAreaContainerDiv.className = "purchase-area-container";
 
-    if (game.steam.price !== null) {
+    if (game.steam.released) {
 
-        const purchaseData = [
-            {
-                historicalLowTitle: "From steamdb.info",
-                historicalLowPrice: 0.0,
-                priceTitle: null,
-                price: game.steam.price,
-                buttonText: "Buy on Steam",
-                buttonURL: game.steam.external_url,
-                buttonClass: "steam-button"
-            },
-            {
-                historicalLowTitle: "Shop: Kinguin",
-                historicalLowPrice: 0.0,
-                priceTitle: "Form: GIFT EU\nShop: Kinguin\nEdition: Early Access",
-                price: 0.0,
-                buttonText: "Buy Key or Gift",
-                buttonURL: "https://example.com",
-                buttonClass: "keyforsteam-button"
-            }
-        ];
+        if (game.steam.price === null) {
 
-        purchaseData.forEach(purchase => {
             const purchaseAreaDiv = document.createElement("div");
             purchaseAreaDiv.className = "purchase-area";
 
-            const historicalLowDiv = document.createElement("div");
-            if (purchase.historicalLowTitle !== null) {
-                historicalLowDiv.title = purchase.historicalLowTitle;
-            }
-            historicalLowDiv.className = "historical-low";
-
-            const historicalLowLabelDiv = document.createElement("div");
-            historicalLowLabelDiv.className = "small-font historical-low-label";
-            historicalLowLabelDiv.textContent = "Historical low";
-            historicalLowDiv.appendChild(historicalLowLabelDiv);
-
-            const historicalLowValueDiv = document.createElement("div");
-            historicalLowValueDiv.className = "small-font historical-low-value";
-            historicalLowValueDiv.textContent = display_money(purchase.historicalLowPrice);
-            historicalLowDiv.appendChild(historicalLowValueDiv);
-
-            purchaseAreaDiv.appendChild(historicalLowDiv);
-
             const priceDiv = document.createElement("div");
             priceDiv.className = "price";
-            if (purchase.priceTitle !== null) {
-                priceDiv.title = purchase.priceTitle;
-            }
-            priceDiv.textContent = display_money(purchase.price);
+            priceDiv.textContent = "Not available";
+
             purchaseAreaDiv.appendChild(priceDiv);
 
-            const purchaseButton = document.createElement("a");
-            purchaseButton.href = purchase.buttonURL;
-            purchaseButton.target = "_blank";
-            purchaseButton.className = purchase.buttonClass;
-            purchaseButton.textContent = purchase.buttonText;
-            purchaseAreaDiv.appendChild(purchaseButton);
-
             purchaseAreaContainerDiv.appendChild(purchaseAreaDiv);
-        });
 
+        } else {
+
+            const purchaseData = [
+                {
+                    historicalLowTitle: "From steamdb.info",
+                    historicalLowPrice: 0.0,
+                    priceTitle: null,
+                    price: game.steam.price,
+                    buttonText: "Buy on Steam",
+                    buttonURL: game.steam.external_url,
+                    buttonClass: "steam-button"
+                },
+                {
+                    historicalLowTitle: "Shop: Kinguin",
+                    historicalLowPrice: 0.0,
+                    priceTitle: "Form: GIFT EU\nShop: Kinguin\nEdition: Early Access",
+                    price: 0.0,
+                    buttonText: "Buy Key or Gift",
+                    buttonURL: "https://example.com",
+                    buttonClass: "keyforsteam-button"
+                }
+            ];
+
+            purchaseData.forEach(purchase => {
+                const purchaseAreaDiv = document.createElement("div");
+                purchaseAreaDiv.className = "purchase-area";
+
+                const historicalLowDiv = document.createElement("div");
+                if (purchase.historicalLowTitle !== null) {
+                    historicalLowDiv.title = purchase.historicalLowTitle;
+                }
+                historicalLowDiv.className = "historical-low";
+
+                const historicalLowLabelDiv = document.createElement("div");
+                historicalLowLabelDiv.className = "small-font historical-low-label";
+                historicalLowLabelDiv.textContent = "Historical low";
+                historicalLowDiv.appendChild(historicalLowLabelDiv);
+
+                const historicalLowValueDiv = document.createElement("div");
+                historicalLowValueDiv.className = "small-font historical-low-value";
+                historicalLowValueDiv.textContent = display_money(purchase.historicalLowPrice);
+                historicalLowDiv.appendChild(historicalLowValueDiv);
+
+                purchaseAreaDiv.appendChild(historicalLowDiv);
+
+                const priceDiv = document.createElement("div");
+                priceDiv.className = "price";
+                if (purchase.priceTitle !== null) {
+                    priceDiv.title = purchase.priceTitle;
+                }
+                priceDiv.textContent = display_money(purchase.price);
+                purchaseAreaDiv.appendChild(priceDiv);
+
+                const purchaseButton = document.createElement("a");
+                purchaseButton.href = purchase.buttonURL;
+                purchaseButton.target = "_blank";
+                purchaseButton.className = purchase.buttonClass;
+                purchaseButton.textContent = purchase.buttonText;
+                purchaseAreaDiv.appendChild(purchaseButton);
+
+                purchaseAreaContainerDiv.appendChild(purchaseAreaDiv);
+            });
+
+        }
+
+    } else {
+        const purchaseAreaDiv = document.createElement("div");
+        purchaseAreaDiv.className = "purchase-area";
+
+        const priceDiv = document.createElement("div");
+        priceDiv.className = "price";
+        priceDiv.textContent = "Coming soon";
+
+        purchaseAreaDiv.appendChild(priceDiv);
+
+        purchaseAreaContainerDiv.appendChild(purchaseAreaDiv);
     }
 
     detailsDiv.appendChild(purchaseAreaContainerDiv);

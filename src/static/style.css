@@ -215,13 +215,14 @@ button {
 }
 
 .price {
-    padding: 5px 0px 5px 5px;
+    padding: 5px;
 }
 
 .steam-button, .keyforsteam-button {
     width: 125px;
     text-align: center;
     color: rgb(210, 239, 169);
+    margin-left: 0;
     padding: 7px 15px 7px 15px;
     border-radius: 2px;
 }
