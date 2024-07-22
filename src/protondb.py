@@ -11,5 +11,4 @@ async def get_linux_support(appid: str) -> str:
         "tier": data["tier"].upper(),  # str
         "confidence": data["confidence"],  # str
         "report_count": data["total"],  # int
-        "external_url": f"https://www.protondb.com/app/{appid}/"  # str
     }
