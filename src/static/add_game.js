@@ -154,7 +154,7 @@ function addGame(game, appendToTop) {
             color_class = "green";
         } else if (game.steam.achievement_count >= 10) {
             color_class = "yellow";
-        } else if (game.steam.achievement_count > 1) {
+        } else if (game.steam.achievement_count >= 1) {
             color_class = "orange";
         } else {
             color_class = "red";
