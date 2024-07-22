@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from protondb import get_linux_support
 from steam import get_steam_details, wishlist_data
 
 
@@ -35,7 +36,8 @@ async def wishlist(profile_id: str):
 
 @app.get("/details")
 async def details(appid: str):
-    steam_data = await get_steam_details(appid)
+    steam = await get_steam_details(appid)
     return {
-        "steam": steam_data.model_dump()
+        "steam": steam.model_dump(),
+        "linux_support": None if steam.native_linux_support else await get_linux_support(appid)
     }

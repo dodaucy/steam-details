@@ -49,6 +49,7 @@ class SteamDetails(BaseModel):
 
     price: Union[float, None]
     release_date: str
+    native_linux_support: bool
 
 
 async def get_steam_details(appid: str) -> SteamDetails:
@@ -81,5 +82,6 @@ async def get_steam_details(appid: str) -> SteamDetails:
         external_url=f"https://store.steampowered.com/app/{appid}/{'_'.join(steam_data['name'].split(' '))}/",
 
         price=price,
-        release_date=steam_data["release_date"]["date"]
+        release_date=steam_data["release_date"]["date"],
+        native_linux_support=steam_data["platforms"]["linux"]
     )

@@ -40,23 +40,66 @@ function addGame(game, appendToTop) {
     const detailsGridDiv = document.createElement("div");
     detailsGridDiv.className = "small-font details-grid";
 
-    const detailsData = [
-        { title: "Difference between lowest current price and lowest historical low", label: "PRICE DIFFERENCE:", value: display_money(0.0) },
-        { title: "Main Story: 30,5 hours\nMain + Extras: 40,7 hours\nCompletionist: 80,0 hours\nAll Styles: 40,7 hours", label: "GAME LENGTH:", value: "40,7 hours" },
-        { title: "Release date of the game", label: "RELEASE DATE:", value: "18 JUL, 2024" },
-        { title: "69% of the 100,000 user reviews are positive", label: "OVERALL REVIEWS:", value: "VERY POSITIVE" },
-        { title: "From protondb.com", label: "LINUX SUPPORT:", value: "PLATINUM" }
+    let detailsData = [
+        { label: "PRICE DIFFERENCE:", value: display_money(0.0), title: "Difference between lowest current price and lowest historical low" },
+        { label: "GAME LENGTH:", value: "40,7 hours", title: "Main Story: 30,5 hours\nMain + Extras: 40,7 hours\nCompletionist: 80,0 hours\nAll Styles: 40,7 hours" },
+        { label: "RELEASE DATE:", value: "18 JUL, 2024", title: "Release date of the game" },
+        { label: "OVERALL REVIEWS:", value: "VERY POSITIVE", title: "69% of the 100,000 user reviews are positive" }
     ];
+
+    // Linux support
+    if (game.steam.native_linux_support) {
+        detailsData.push({
+            label: "LINUX SUPPORT:",
+            value: "NATIVE",
+            title: "The game is natively supported on Linux",
+            color_class: "green"
+        });
+    } else {
+        if (game.linux_support == null || game.linux_support.tier == "PENDING") {
+            detailsData.push({
+                label: "LINUX SUPPORT:",
+                value: null
+            });
+        } else {
+            let color_class = "grey";
+            if (["moderate", "good", "strong"].includes(game.linux_support.confidence)) {
+                if (game.linux_support.tier == "PLATINUM" || game.linux_support.tier == "GOLD") {
+                    color_class = "green";
+                } else if (game.linux_support.tier == "SILVER") {
+                    color_class = "yellow";
+                } else if (game.linux_support.tier == "BRONZE") {
+                    color_class = "orange";
+                } else if (game.linux_support.tier == "BORKED") {
+                    color_class = "red";
+                }
+            }
+            detailsData.push({
+                label: "LINUX SUPPORT:",
+                value: game.linux_support.tier,
+                title: `Confidence: ${game.linux_support.confidence}\nReports: ${game.linux_support.report_count}\nFrom: protondb.com`,
+                color_class: color_class
+            });
+        }
+    }
 
     detailsData.forEach(detail => {
         const labelDiv = document.createElement("div");
-        labelDiv.title = detail.title;
         labelDiv.textContent = detail.label;
         detailsGridDiv.appendChild(labelDiv);
 
         const valueDiv = document.createElement("div");
-        valueDiv.title = detail.title;
-        valueDiv.textContent = detail.value;
+        if (detail.value === null) {
+            valueDiv.textContent = "N/A";
+            valueDiv.classList.add("grey");
+            labelDiv.title = "Not available";
+            valueDiv.title = "Not available";
+        } else {
+            valueDiv.textContent = detail.value;
+            valueDiv.classList.add(detail.color_class);
+            labelDiv.title = detail.title;
+            valueDiv.title = detail.title;
+        }
         detailsGridDiv.appendChild(valueDiv);
     });
 
