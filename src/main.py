@@ -3,10 +3,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from protondb import get_linux_support
-from steam import get_steam_details, wishlist_data
+from steam import download_app_list, get_app, get_steam_details, wishlist_data
 
 
-app = FastAPI(openapi_url=None)
+app = FastAPI(openapi_url=None, on_startup=[download_app_list])
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -32,12 +32,17 @@ async def wishlist(profile_id: str):
 
 
 @app.get("/details")
-async def details(appid: str):
-    steam = await get_steam_details(appid)
+async def details(appid_or_name: str):
+    steam = await get_steam_details(appid_or_name)
+    if steam is None:
+        appid = await get_app(appid_or_name)
+        if appid is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="App not found")
+        steam = await get_steam_details(appid)
     if steam.released:
         return {
             "steam": steam.model_dump(),
-            "linux_support": None if steam.native_linux_support else await get_linux_support(appid)
+            "linux_support": None if steam.native_linux_support else await get_linux_support(steam.appid)
         }
     else:
         return {

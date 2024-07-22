@@ -1,8 +1,31 @@
-from typing import List, Union
+from typing import Dict, List, Union
 
 from pydantic import BaseModel
 
 from utils import http_client
+
+
+app_list: Union[Dict[str, int], None] = None
+
+
+async def download_app_list():
+    global app_list
+    print("Downloading app list")
+    r = await http_client.get("https://api.steampowered.com/ISteamApps/GetAppList/v2/", timeout=300)
+    print(f"Response status: {r.status_code}")
+    r.raise_for_status()
+    print("Processing app list")
+    j = r.json()
+    app_list = {}
+    for app in j["applist"]["apps"]:
+        app_list[app["name"].lower()] = app["appid"]
+    print("App list ready")
+
+
+async def get_app(name: str) -> Union[str, None]:
+    appid = app_list.get(name.lower())
+    if appid is not None:
+        return str(appid)
 
 
 async def wishlist_data(profile_id: str) -> Union[List[str], None]:
@@ -45,10 +68,15 @@ class SteamDetails(BaseModel):
     native_linux_support: bool
 
 
-async def get_steam_details(appid: str) -> SteamDetails:
+async def get_steam_details(appid: str) -> Union[SteamDetails, None]:
+    if not appid.isdigit():
+        print(f"Not a valid appid: {appid}")
+        return None
     print(f"Getting steam details for {appid}")
     r = await http_client.get(f"https://store.steampowered.com/api/appdetails?appids={appid}&cc=de")
     print(f"Response: {r.text}")
+    if r.status_code == 404:
+        return None
     r.raise_for_status()
     j = r.json()
     steam_data = j[appid]["data"]

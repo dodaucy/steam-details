@@ -25,11 +25,11 @@ async function getRequest(url) {
 async function search(mode, searchValue, progress) {
     if (mode === "single-game") {
         if (searchValue.startsWith("https://store.steampowered.com/app/")) {
-            appid = searchValue.split("https://store.steampowered.com/app/")[1].split("/")[0];
+            appid_or_name = searchValue.split("https://store.steampowered.com/app/")[1].split("/")[0];
         } else {
-            appid = searchValue;
+            appid_or_name = searchValue;
         }
-        addGame(await getRequest("/details?appid=" + encodeURIComponent(appid)), true);
+        addGame(await getRequest("/details?appid_or_name=" + encodeURIComponent(appid_or_name)), true);
     } else if (mode === "wishlist") {
         // Clear results
         document.getElementById("result").innerHTML = "";
@@ -42,7 +42,7 @@ async function search(mode, searchValue, progress) {
         for (i = 0; i < wishlist.length; i++) {
             progress.value = (i / wishlist.length) * 100;
             const appid = wishlist[i];
-            addGame(await getRequest("/details?appid=" + encodeURIComponent(appid)), false);
+            addGame(await getRequest("/details?appid_or_name=" + encodeURIComponent(appid)), false);
         }
     }
 }
@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (this.value === "wishlist") {
             search_input.placeholder = "Steam ID / Profile";
         } else {
-            search_input.placeholder = "Enter Game ID / URL";
+            search_input.placeholder = "Name / ID / URL";
         }
         // Reset search bar
         search_input.value = "";
