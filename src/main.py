@@ -33,6 +33,8 @@ async def wishlist(profile_id: str):
 
 @app.get("/details")
 async def details(appid_or_name: str):
+    if appid_or_name.strip() == "":
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Empty search")
     steam = await get_steam_details(appid_or_name)
     if steam is None:
         appid = await get_app(appid_or_name)
