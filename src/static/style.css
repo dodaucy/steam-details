@@ -181,6 +181,8 @@ button {
 .details-grid > * {
     margin: 2px;
     text-align: left;
+    white-space: nowrap;
+    overflow-x: hidden;
 }
 
 

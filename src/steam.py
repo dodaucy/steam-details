@@ -60,6 +60,12 @@ class ReleaseDate(BaseModel):
     iso_date: Union[str, None]
 
 
+class OverallReviews(BaseModel):
+    desc: str
+    score: int
+    total_reviews: int
+
+
 class SteamDetails(BaseModel):
     appid: str
     name: str
@@ -70,6 +76,7 @@ class SteamDetails(BaseModel):
     price: Union[float, None]
 
     release_date: ReleaseDate
+    overall_reviews: OverallReviews
     achievement_count: int
     native_linux_support: bool
 
@@ -116,6 +123,22 @@ async def get_steam_details(appid: str) -> Union[SteamDetails, None]:
         iso_date=iso_date
     )
 
+    # Get reviews
+    print(f"Getting reviews for {appid}")
+    r = await http_client.get(f"https://store.steampowered.com/appreviews/{appid}?json=1&num_per_page=0&l=english")
+    print(f"Response: {r.text}")
+    r.raise_for_status()
+    review_data = r.json()["query_summary"]
+    if review_data["total_reviews"] > 0:
+        score = round(review_data["total_positive"] / review_data["total_reviews"] * 100)
+    else:
+        score = 0
+    overall_reviews = OverallReviews(
+        desc=review_data["review_score_desc"],
+        score=score,
+        total_reviews=review_data["total_reviews"]
+    )
+
     # Achievement count
     if "achievements" in steam_data:
         achievement_count = steam_data["achievements"]["total"]
@@ -132,6 +155,7 @@ async def get_steam_details(appid: str) -> Union[SteamDetails, None]:
         price=price,
 
         release_date=release_date,
+        overall_reviews=overall_reviews,
         achievement_count=achievement_count,
         native_linux_support=steam_data["platforms"]["linux"]
     )

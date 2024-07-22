@@ -75,6 +75,29 @@ function addGame(game, appendToTop) {
         title: title
     });
 
+    // Reviews
+    if (game.steam.released) {
+        let color_class = "red";
+        if (game.steam.overall_reviews.score >= 75) {
+            color_class = "green";
+        } else if (game.steam.overall_reviews.score >= 50) {
+            color_class = "yellow";
+        } else if (game.steam.overall_reviews.score >= 25) {
+            color_class = "orange";
+        }
+        detailsData.push({
+            label: "OVERALL REVIEWS:",
+            value: `${game.steam.overall_reviews.desc} (${game.steam.overall_reviews.score}%)`,
+            title: `${game.steam.overall_reviews.score}% of ${game.steam.overall_reviews.total_reviews} reviews are positive`,
+            color_class: color_class
+        });
+    } else {
+        detailsData.push({
+            label: "OVERALL REVIEWS:",
+            value: null
+        });
+    }
+
     // Game length
     if (game.game_length === null){
         detailsData.push({
