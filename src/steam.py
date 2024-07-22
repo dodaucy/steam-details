@@ -77,14 +77,16 @@ class SteamDetails(BaseModel):
 async def get_steam_details(appid: str) -> Union[SteamDetails, None]:
     if not appid.isdigit():
         print(f"Not a valid appid: {appid}")
-        return None
+        return
     print(f"Getting steam details for {appid}")
     r = await http_client.get(f"https://store.steampowered.com/api/appdetails?appids={appid}&cc=de&l=english")
     print(f"Response: {r.text}")
     if r.status_code == 404:
-        return None
+        return
     r.raise_for_status()
     j = r.json()
+    if j[appid]["success"] is False:
+        return
     steam_data = j[appid]["data"]
 
     # Get images
