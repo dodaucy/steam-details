@@ -49,7 +49,9 @@ class SteamDetails(BaseModel):
 
     released: bool
     price: Union[float, None]
+
     release_date: str
+    achievement_count: int
     native_linux_support: bool
 
 
@@ -76,6 +78,12 @@ async def get_steam_details(appid: str) -> SteamDetails:
     else:
         price = None
 
+    # Achievement count
+    if "achievements" in steam_data:
+        achievement_count = steam_data["achievements"]["total"]
+    else:
+        achievement_count = 0
+
     return SteamDetails(
         appid=appid,
         name=steam_data["name"],
@@ -84,6 +92,8 @@ async def get_steam_details(appid: str) -> SteamDetails:
 
         released=steam_data["release_date"]["coming_soon"] is False,
         price=price,
+
         release_date=steam_data["release_date"]["date"],
+        achievement_count=achievement_count,
         native_linux_support=steam_data["platforms"]["linux"]
     )

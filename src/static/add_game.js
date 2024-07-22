@@ -47,6 +47,30 @@ function addGame(game, appendToTop) {
         { label: "OVERALL REVIEWS:", value: "VERY POSITIVE", title: "69% of the 100,000 user reviews are positive" }
     ];
 
+    // Achievements
+    if (game.steam.released) {
+        if (game.steam.achievement_count >= 20) {
+            color_class = "green";
+        } else if (game.steam.achievement_count >= 10) {
+            color_class = "yellow";
+        } else if (game.steam.achievement_count > 1) {
+            color_class = "orange";
+        } else {
+            color_class = "red";
+        }
+        detailsData.push({
+            label: "ACHIEVEMENTS:",
+            value: game.steam.achievement_count,
+            title: "Number of achievements in the game",
+            color_class: color_class
+        });
+    } else {
+        detailsData.push({
+            label: "ACHIEVEMENTS:",
+            value: null
+        });
+    }
+
     // Linux support
     if (game.steam.native_linux_support) {
         detailsData.push({
@@ -83,6 +107,7 @@ function addGame(game, appendToTop) {
         }
     }
 
+    // Add details
     detailsData.forEach(detail => {
         const labelDiv = document.createElement("div");
         labelDiv.textContent = detail.label;
