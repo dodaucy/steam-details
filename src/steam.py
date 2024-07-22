@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Dict, List, Union
 
 from pydantic import BaseModel
@@ -54,6 +55,11 @@ async def wishlist_data(profile_id: str) -> Union[List[str], None]:
     return sorted_items + unsorted_items
 
 
+class ReleaseDate(BaseModel):
+    display_string: str
+    iso_date: Union[str, None]
+
+
 class SteamDetails(BaseModel):
     appid: str
     name: str
@@ -63,7 +69,7 @@ class SteamDetails(BaseModel):
     released: bool
     price: Union[float, None]
 
-    release_date: str
+    release_date: ReleaseDate
     achievement_count: int
     native_linux_support: bool
 
@@ -86,6 +92,9 @@ async def get_steam_details(appid: str) -> Union[SteamDetails, None]:
     for screenshot in steam_data["screenshots"]:
         images.append(screenshot['path_thumbnail'])
 
+    # Check if released
+    released = steam_data["release_date"]["coming_soon"] is False
+
     # Get price
     if steam_data['is_free'] is True:
         price = 0.0
@@ -94,6 +103,16 @@ async def get_steam_details(appid: str) -> Union[SteamDetails, None]:
         price = float(steam_data["price_overview"]["final"] / 100)
     else:
         price = None
+
+    # Get release date
+    if released:
+        iso_date = datetime.strptime(steam_data["release_date"]["date"], "%d %b, %Y").date().isoformat()
+    else:
+        iso_date = None
+    release_date = ReleaseDate(
+        display_string=steam_data["release_date"]["date"],
+        iso_date=iso_date
+    )
 
     # Achievement count
     if "achievements" in steam_data:
@@ -107,10 +126,10 @@ async def get_steam_details(appid: str) -> Union[SteamDetails, None]:
         images=images,
         external_url=f"https://store.steampowered.com/app/{appid}/{'_'.join(steam_data['name'].split(' '))}/",
 
-        released=steam_data["release_date"]["coming_soon"] is False,
+        released=released,
         price=price,
 
-        release_date=steam_data["release_date"]["date"],
+        release_date=release_date,
         achievement_count=achievement_count,
         native_linux_support=steam_data["platforms"]["linux"]
     )

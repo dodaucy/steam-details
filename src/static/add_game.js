@@ -40,11 +40,47 @@ function addGame(game, appendToTop) {
     const detailsGridDiv = document.createElement("div");
     detailsGridDiv.className = "small-font details-grid";
 
-    let detailsData = [
-        { label: "PRICE DIFFERENCE:", value: display_money(0.0), title: "Difference between lowest current price and lowest historical low" },
-        { label: "GAME LENGTH:", value: "40,7 hours", title: "Main Story: 30,5 hours\nMain + Extras: 40,7 hours\nCompletionist: 80,0 hours\nAll Styles: 40,7 hours" },
-        { label: "RELEASE DATE:", value: "18 JUL, 2024", title: "Release date of the game" }
-    ];
+    let detailsData = [];
+
+    // Get release difference
+    let releaseDifferenceInDays = null;
+    let releaseDifferenceInYears = null;
+    if (game.steam.released) {
+        const date = new Date(game.steam.release_date.iso_date);
+        const now = new Date();
+        const dateDiff = now - date;
+        releaseDifferenceInDays = Math.floor(dateDiff / (1000 * 60 * 60 * 24));
+        releaseDifferenceInYears = Math.floor(releaseDifferenceInDays / 365 * 10) / 10;
+    }
+
+    // Price difference
+    detailsData.push({
+        label: "PRICE DIFFERENCE:",
+        value: display_money(0.0),
+        title: "Difference between lowest current price and lowest historical low"
+    })
+
+    // Release date
+    let title = "Release date of the game";
+    if (game.steam.released) {
+        if (releaseDifferenceInYears >= 1) {
+            title = `Released ${releaseDifferenceInYears} year${releaseDifferenceInYears !== 1 ? "s" : ""} ago`;
+        } else if (releaseDifferenceInDays >= 0) {
+            title = `Released ${releaseDifferenceInDays} day${releaseDifferenceInDays !== 1 ? "s" : ""} ago`;
+        }
+    }
+    detailsData.push({
+        label: "RELEASE DATE:",
+        value: game.steam.release_date.display_string,
+        title: title
+    });
+
+    // Game length
+    detailsData.push({
+        label: "GAME LENGTH:",
+        value: "40,7 hours",
+        title: "Main Story: 30,5 hours\nMain + Extras: 40,7 hours\nCompletionist: 80,0 hours\nAll Styles: 40,7 hours"
+    });
 
     // Achievements
     if (game.steam.released) {
