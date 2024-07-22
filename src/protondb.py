@@ -2,6 +2,7 @@ from utils import http_client
 
 
 async def get_linux_support(appid: str) -> str:
+    print(f"Getting linux support state for {appid}")
     r = await http_client.get(f"https://www.protondb.com/api/v1/reports/summaries/{appid}.json")
     if r.status_code == 404:
         return
