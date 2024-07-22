@@ -42,6 +42,8 @@ async def details(appid_or_name: str):
         if appid is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="App not found")
         steam = await get_steam_details(appid)
+        if steam is None:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get steam details")
     if steam.released:
         return {
             "steam": steam.model_dump(),
