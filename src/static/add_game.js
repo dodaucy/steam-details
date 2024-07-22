@@ -43,8 +43,7 @@ function addGame(game, appendToTop) {
     let detailsData = [
         { label: "PRICE DIFFERENCE:", value: display_money(0.0), title: "Difference between lowest current price and lowest historical low" },
         { label: "GAME LENGTH:", value: "40,7 hours", title: "Main Story: 30,5 hours\nMain + Extras: 40,7 hours\nCompletionist: 80,0 hours\nAll Styles: 40,7 hours" },
-        { label: "RELEASE DATE:", value: "18 JUL, 2024", title: "Release date of the game" },
-        { label: "OVERALL REVIEWS:", value: "VERY POSITIVE", title: "69% of the 100,000 user reviews are positive" }
+        { label: "RELEASE DATE:", value: "18 JUL, 2024", title: "Release date of the game" }
     ];
 
     // Achievements
