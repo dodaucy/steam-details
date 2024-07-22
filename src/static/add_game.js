@@ -125,19 +125,19 @@ function addGame(game, appendToTop) {
             } else {
                 const hours = game.game_length.plus / 3600;
                 if (hours >= 10) {
-                    class_name = "green";
+                    color_class = "green";
                 } else if (hours >= 5) {
-                    class_name = "yellow";
+                    color_class = "yellow";
                 } else if (hours >= 1) {
-                    class_name = "orange";
+                    color_class = "orange";
                 } else {
-                    class_name = "red";
+                    color_class = "red";
                 }
                 detailsData.push({
                     label: "GAME LENGTH:",
                     value: display_time_as_float(game.game_length.plus),
                     title: `${title_list.join("\n")}\nFrom: howlongtobeat.com`,
-                    color_class: class_name
+                    color_class: color_class
                 });
             }
         } else {
