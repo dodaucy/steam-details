@@ -34,11 +34,11 @@ async def wishlist_data(profile_id: str) -> Union[List[str], None]:
     Get the wishlist data for the given profile id
     """
     print(f"Getting wishlist data for {profile_id}")
-    r = await http_client.get(f"https://store.steampowered.com/wishlist/profiles/{profile_id}/wishlistdata/")
+    r = await http_client.get(f"https://store.steampowered.com/wishlist/profiles/{profile_id}/wishlistdata/?l=english")
     print(f"Response: {r.text}")
     if r.status_code != 200:
         print("It seems the profile id is not a valid id, trying with id name")
-        r = await http_client.get(f"https://store.steampowered.com/wishlist/id/{profile_id}/wishlistdata/")
+        r = await http_client.get(f"https://store.steampowered.com/wishlist/id/{profile_id}/wishlistdata/?l=english")
         print(f"Response: {r.text}")
         if r.status_code != 200:
             return None
@@ -79,7 +79,7 @@ async def get_steam_details(appid: str) -> Union[SteamDetails, None]:
         print(f"Not a valid appid: {appid}")
         return None
     print(f"Getting steam details for {appid}")
-    r = await http_client.get(f"https://store.steampowered.com/api/appdetails?appids={appid}&cc=de")
+    r = await http_client.get(f"https://store.steampowered.com/api/appdetails?appids={appid}&cc=de&l=english")
     print(f"Response: {r.text}")
     if r.status_code == 404:
         return None
