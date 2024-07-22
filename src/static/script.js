@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // Search
     document.getElementById("search-button").addEventListener("click", async function() {
         const mode = document.getElementById("mode-select").value;
-        const searchValue = document.getElementById("search-input").value;
+        const searchInput = document.getElementById("search-input");
         const errorMessage = document.getElementById("error-message");
         const progress = document.getElementById("progress");
 
@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Search
         try {
-            await search(mode, searchValue, progress);
+            await search(mode, searchInput.value, progress);
         } catch (error) {
             console.error(error);
             // Show error message
@@ -86,6 +86,9 @@ document.addEventListener("DOMContentLoaded", function() {
         Array.from(document.getElementById("search-bar").children).forEach(function(element) {
             element.disabled = false;
         })
+
+        // Focus search input
+        searchInput.focus();
     });
 
     // Search with Enter
@@ -97,15 +100,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // On mode change
     document.getElementById("mode-select").addEventListener("change", function() {
-        search_input = document.getElementById("search-input");
+        searchInput = document.getElementById("search-input");
         // Change placeholder
         if (this.value === "wishlist") {
-            search_input.placeholder = "Steam ID / Profile";
+            searchInput.placeholder = "Steam ID / Profile";
         } else {
-            search_input.placeholder = "Name / ID / URL";
+            searchInput.placeholder = "Name / ID / URL";
         }
         // Reset search bar
-        search_input.value = "";
+        searchInput.value = "";
     });
     document.getElementById("mode-select").dispatchEvent(new Event("change"));
 });
