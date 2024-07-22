@@ -64,7 +64,7 @@ function addGame(game, appendToTop) {
     let title = "Release date of the game";
     if (game.steam.released) {
         if (releaseDifferenceInYears >= 1) {
-            title = `Released ${releaseDifferenceInYears} year${releaseDifferenceInYears !== 1 ? "s" : ""} ago`;
+            title = `Released ${releaseDifferenceInYears.toString().replace(".", ",")} year${releaseDifferenceInYears !== 1 ? "s" : ""} ago`;
         } else if (releaseDifferenceInDays >= 0) {
             title = `Released ${releaseDifferenceInDays} day${releaseDifferenceInDays !== 1 ? "s" : ""} ago`;
         }
@@ -88,7 +88,7 @@ function addGame(game, appendToTop) {
         detailsData.push({
             label: "OVERALL REVIEWS:",
             value: `${game.steam.overall_reviews.desc} (${game.steam.overall_reviews.score}%)`,
-            title: `${game.steam.overall_reviews.score}% of ${game.steam.overall_reviews.total_reviews} reviews are positive`,
+            title: `${game.steam.overall_reviews.score}% of ${game.steam.overall_reviews.total_reviews.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} reviews are positive`,
             color_class: color_class
         });
     } else {
