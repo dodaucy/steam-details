@@ -47,6 +47,7 @@ class SteamDetails(BaseModel):
     images: List[str]
     external_url: str
 
+    released: bool
     price: Union[float, None]
     release_date: str
     native_linux_support: bool
@@ -66,7 +67,7 @@ async def get_steam_details(appid: str) -> SteamDetails:
         images.append(screenshot['path_thumbnail'])
 
     # Get price
-    if steam_data["release_date"]["coming_soon"] is False:
+    if "price_overview" in steam_data:
         if steam_data['is_free'] is True:
             price = 0.0
         else:
@@ -81,6 +82,7 @@ async def get_steam_details(appid: str) -> SteamDetails:
         images=images,
         external_url=f"https://store.steampowered.com/app/{appid}/{'_'.join(steam_data['name'].split(' '))}/",
 
+        released=steam_data["release_date"]["coming_soon"] is False,
         price=price,
         release_date=steam_data["release_date"]["date"],
         native_linux_support=steam_data["platforms"]["linux"]

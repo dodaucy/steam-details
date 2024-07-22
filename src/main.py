@@ -37,7 +37,13 @@ async def wishlist(profile_id: str):
 @app.get("/details")
 async def details(appid: str):
     steam = await get_steam_details(appid)
-    return {
-        "steam": steam.model_dump(),
-        "linux_support": None if steam.native_linux_support else await get_linux_support(appid)
-    }
+    if steam.released:
+        return {
+            "steam": steam.model_dump(),
+            "linux_support": None if steam.native_linux_support else await get_linux_support(appid)
+        }
+    else:
+        return {
+            "steam": steam.model_dump(),
+            "linux_support": None
+        }
