@@ -5,13 +5,7 @@ from pydantic import BaseModel
 from utils import http_client
 
 
-class WishlistItem(BaseModel):
-    appid: str
-    review_score: int
-    review_count: str
-
-
-async def wishlist_data(profile_id: str) -> Union[List[WishlistItem], None]:
+async def wishlist_data(profile_id: str) -> Union[List[str], None]:
     """
     Get the wishlist data for the given profile id
     """
@@ -26,19 +20,15 @@ async def wishlist_data(profile_id: str) -> Union[List[WishlistItem], None]:
             return None
     r.raise_for_status()
     j = r.json()
-    items: List[WishlistItem] = []
+    sorted_items: List[str] = []
+    unsorted_items: List[str] = []
     for appid, data in j.items():
-        screenshots = []
-        for screenshot in data["screenshots"]:
-            screenshots.append(f"https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/{appid}/{screenshot}")
-        items.append(
-            WishlistItem(
-                appid=appid,
-                review_score=data["reviews_percent"],
-                review_count=data["reviews_total"]
-            )
-        )
-    return items
+        if data["priority"] == 0:
+            unsorted_items.append(appid)
+        else:
+            sorted_items.append(appid)
+    sorted_items.sort(key=lambda x: j[x]["priority"])
+    return sorted_items + unsorted_items
 
 
 class SteamDetails(BaseModel):

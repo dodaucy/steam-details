@@ -41,8 +41,8 @@ async function search(mode, searchValue, progress) {
         // Add games
         for (i = 0; i < wishlist.length; i++) {
             progress.value = (i / wishlist.length) * 100;
-            const game = wishlist[i];
-            addGame(await getRequest("/details?appid=" + encodeURIComponent(game.appid)), false);
+            const appid = wishlist[i];
+            addGame(await getRequest("/details?appid=" + encodeURIComponent(appid)), false);
         }
     }
 }

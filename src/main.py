@@ -25,13 +25,10 @@ async def index(request: Request):
 
 @app.get("/wishlist")
 async def wishlist(profile_id: str):
-    data = await wishlist_data(profile_id)
-    if data is None:
+    game_appids = await wishlist_data(profile_id)
+    if game_appids is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Steam ID / Profile not found")
-    items = []
-    for item in data:
-        items.append(item.model_dump())
-    return items
+    return game_appids
 
 
 @app.get("/details")
