@@ -23,7 +23,15 @@ async def get_key_and_gift_sellers_data(name: str) -> Union[dict, None]:
     assert internal_id is not None
 
     print(f"Getting price offers for {internal_id}")
-    r = await http_client.get(f"https://www.keyforsteam.de/wp-admin/admin-ajax.php?action=get_offers&product={internal_id}&currency=eur&locale=de-DE")
+    r = await http_client.get(
+        "https://www.keyforsteam.de/wp-admin/admin-ajax.php",
+        params={
+            "action": "get_offers",
+            "product": internal_id,
+            "currency": "eur",
+            "locale": "de-DE",
+        }
+    )
     print(f"Response: {r.text}")
     r.raise_for_status()
     data = r.json()
@@ -41,7 +49,15 @@ async def get_key_and_gift_sellers_data(name: str) -> Union[dict, None]:
     assert cheapest_offer is not None
 
     print(f"Getting price history for {internal_id}")
-    r = await http_client.get(f"https://www.allkeyshop.com/api/price_history_api.php?normalised_name={internal_id}&currency=EUR&database=keyforsteam.de&v2=1")
+    r = await http_client.get(
+        "https://www.allkeyshop.com/api/price_history_api.php",
+        params={
+            "normalised_name": internal_id,
+            "currency": "EUR",
+            "database": "keyforsteam.de",
+            "v2": 1
+        }
+    )
     print(f"Response: {r.text}")
     r.raise_for_status()
     data = r.json()
