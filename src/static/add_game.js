@@ -56,19 +56,13 @@ function addGame(game, appendToTop) {
     // Price difference
     let lowest_price_color_class = null;
     let lowest_price = null;
-    if (game.steam_historical_low !== null || game.key_and_gift_sellers !== null) {  // ProtonDB OR KeyForSteam data available
-        if (game.steam_historical_low !== null && game.key_and_gift_sellers !== null) {  // ProtonDB AND KeyForSteam dara available
+    if (game.steam_historical_low !== null) {  // SteamDB data available
+        if ( game.key_and_gift_sellers !== null) {  // KeyForSteam data also available
             lowest_price = Math.min(game.steam.price, game.key_and_gift_sellers.cheapest_offer.price);
             var lowest_historical_low = Math.min(game.steam_historical_low, game.key_and_gift_sellers.historical_low.price);
-
-        } else if (game.steam_historical_low !== null) {  // ProtonDB data available
+        } else {  // Only SteamDB data available
             lowest_price = game.steam.price;
             var lowest_historical_low = game.steam_historical_low;
-
-        } else if (game.key_and_gift_sellers !== null) {  // KeyForSteam data available
-            lowest_price = game.key_and_gift_sellers.cheapest_offer.price;
-            var lowest_historical_low = game.key_and_gift_sellers.historical_low.price;
-
         }
 
         const price_difference = lowest_price - lowest_historical_low;
