@@ -99,16 +99,16 @@ async def get_steam_details(appid: str) -> Union[SteamDetails, None]:
     # Get images
     images = [steam_data["header_image"]]
     for screenshot in steam_data["screenshots"]:
-        images.append(screenshot['path_thumbnail'])
+        images.append(screenshot["path_thumbnail"])
 
     # Check if released
     released = steam_data["release_date"]["coming_soon"] is False
 
     # Get price
-    if steam_data['is_free'] is True:
+    if steam_data["is_free"] is True:
         price = 0.0
     elif "price_overview" in steam_data:
-        assert steam_data["price_overview"]['currency'] == "EUR"
+        assert steam_data["price_overview"]["currency"] == "EUR"
         price = float(steam_data["price_overview"]["final"] / 100)
     else:
         price = None
