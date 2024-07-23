@@ -34,16 +34,16 @@ async def get_key_and_gift_sellers_data(name: str) -> Union[dict, None]:
     )
     print(f"Response: {r.text}")
     r.raise_for_status()
-    data = r.json()
+    offers_data = r.json()
 
     cheapest_offer = None
-    for offer in data["offers"]:
+    for offer in offers_data["offers"]:
         if all((
             cheapest_offer is None or offer["price"]["eur"]["priceCard"] < cheapest_offer["price"]["eur"]["priceCard"],
             offer["isActive"],
             offer["stock"] == "InStock",
-            "ACCOUNT" not in data["regions"][offer["region"]]["name"],
-            "GLOBAL" not in data["regions"][offer["region"]]["name"]
+            "ACCOUNT" not in offers_data["regions"][offer["region"]]["name"],
+            "GLOBAL" not in offers_data["regions"][offer["region"]]["name"]
         )):
             cheapest_offer = offer
     assert cheapest_offer is not None
@@ -60,18 +60,18 @@ async def get_key_and_gift_sellers_data(name: str) -> Union[dict, None]:
     )
     print(f"Response: {r.text}")
     r.raise_for_status()
-    data = r.json()
+    price_history_data = r.json()
 
     return {
         "cheapest_offer": {
             "price": round(cheapest_offer["price"]["eur"]["priceCard"], 2),
-            "form": data["regions"][cheapest_offer["region"]]["name"],
-            "seller": data["merchants"][str(cheapest_offer["merchant"])]["name"],
-            "edition": data["editions"][cheapest_offer["edition"]]["name"]
+            "form": offers_data["regions"][cheapest_offer["region"]]["name"],
+            "seller": offers_data["merchants"][str(cheapest_offer["merchant"])]["name"],
+            "edition": offers_data["editions"][cheapest_offer["edition"]]["name"]
         },
         "historical_low": {
-            "price": price_string_to_float(data["lower_keyshops_price"]["price"]),
-            "seller": data["merchants"][data["lower_keyshops_price"]["merchant_id"]]["name"]
+            "price": price_string_to_float(price_history_data["lower_keyshops_price"]["price"]),
+            "seller": price_history_data["merchants"][price_history_data["lower_keyshops_price"]["merchant_id"]]["name"]
         },
         "external_url": f"https://www.keyforsteam.de/{'-'.join(name.lower().split(' '))}-key-kaufen-preisvergleich/"
     }
