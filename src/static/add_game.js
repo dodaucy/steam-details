@@ -254,26 +254,31 @@ function addGame(game, appendToTop) {
 
         } else {
 
-            const purchaseData = [
-                {
-                    historicalLowTitle: "From steamdb.info",
-                    historicalLowPrice: 0.0,
-                    priceTitle: null,
-                    price: game.steam.price,
-                    buttonText: "Buy on Steam",
-                    buttonURL: game.steam.external_url,
-                    buttonClass: "steam-button"
-                },
-                {
-                    historicalLowTitle: "Shop: Kinguin",
-                    historicalLowPrice: 0.0,
-                    priceTitle: "Form: GIFT EU\nShop: Kinguin\nEdition: Early Access",
-                    price: 0.0,
+            let purchaseData = [{
+                historicalLowPrice: 0.0,
+                historicalLowTitle: "From steamdb.info",
+
+                price: game.steam.price,
+                priceTitle: null,
+
+                buttonText: "Buy on Steam",
+                buttonClass: "steam-button",
+                buttonURL: game.steam.external_url,
+            }];
+
+            if (game.key_and_gift_sellers !== null) {
+                purchaseData.push({
+                    historicalLowPrice: game.key_and_gift_sellers.historical_low.price,
+                    historicalLowTitle: `Seller: ${game.key_and_gift_sellers.historical_low.seller}`,
+
+                    price: game.key_and_gift_sellers.cheapest_offer.price,
+                    priceTitle: `Form: ${game.key_and_gift_sellers.cheapest_offer.form}\nSeller: ${game.key_and_gift_sellers.cheapest_offer.seller}\nEdition: ${game.key_and_gift_sellers.cheapest_offer.edition}`,
+
                     buttonText: "Buy Key or Gift",
-                    buttonURL: "https://example.com",
-                    buttonClass: "keyforsteam-button"
-                }
-            ];
+                    buttonClass: "keyforsteam-button",
+                    buttonURL: game.key_and_gift_sellers.external_url
+                })
+            }
 
             purchaseData.forEach(purchase => {
                 const purchaseAreaDiv = document.createElement("div");

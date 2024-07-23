@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from how_long_to_beat import get_game_length
+from keyforsteam import get_key_and_gift_sellers_data
 from protondb import get_linux_support
 from steam import download_app_list, get_app, get_steam_details, wishlist_data
 
@@ -48,11 +49,13 @@ async def details(appid_or_name: str):
         return {
             "steam": steam.model_dump(),
             "linux_support": None if steam.native_linux_support else await get_linux_support(steam.appid),
+            "key_and_gift_sellers": await get_key_and_gift_sellers_data(steam.name) if steam.price is not None and steam.price > 0 else None,
             "game_length": await get_game_length(steam.appid, steam.name)
         }
     else:
         return {
             "steam": steam.model_dump(),
             "linux_support": None,
+            "key_and_gift_sellers": None,
             "game_length": None
         }
