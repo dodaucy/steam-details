@@ -1,7 +1,7 @@
 import httpx
 
 
-http_client = httpx.AsyncClient()
+http_client = httpx.AsyncClient(timeout=15)
 http_client.headers["User-Agent"] = "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0"
 
 
