@@ -76,20 +76,20 @@ function addGame(game, appendToTop) {
         let title = `How much money you could save if you wait longer\n\nHow this is calculated:\nlowest price (${display_price(lowest_price)}) - lowest historical low (${display_price(lowest_historical_low)})`;
         if (releaseDifferenceInYears >= 1) {
             if (price_difference > 10) {
-                var color_class = "red";
+                var color_class = "red-text";
             } else if (price_difference > 5) {
-                var color_class = "orange";
+                var color_class = "orange-text";
             } else if (price_difference > 3) {
-                var color_class = "yellow";
+                var color_class = "yellow-text";
             } else if (price_difference > 0.5) {
-                var color_class = "green";
+                var color_class = "green-text";
                 lowest_price_color_class = "green-purchase-area";
             } else {
-                var color_class = "rainbow";
+                var color_class = "rainbow-text";
                 lowest_price_color_class = "rainbow-purchase-area";
             }
         } else {
-            var color_class = "grey";
+            var color_class = "grey-text";
             title += "\n\nThe game was released less than a year ago:\nYou might be able to save more money if you wait longer!!";
         }
 
@@ -123,13 +123,13 @@ function addGame(game, appendToTop) {
 
     // Reviews
     if (game.steam.released) {
-        let color_class = "red";
+        let color_class = "red-text";
         if (game.steam.overall_reviews.score >= 75) {
-            color_class = "green";
+            color_class = "green-text";
         } else if (game.steam.overall_reviews.score >= 50) {
-            color_class = "yellow";
+            color_class = "yellow-text";
         } else if (game.steam.overall_reviews.score >= 25) {
-            color_class = "orange";
+            color_class = "orange-text";
         }
         detailsData.push({
             label: "OVERALL REVIEWS:",
@@ -171,13 +171,13 @@ function addGame(game, appendToTop) {
             } else {
                 const hours = game.game_length.plus / 3600;
                 if (hours >= 10) {
-                    color_class = "green";
+                    color_class = "green-text";
                 } else if (hours >= 5) {
-                    color_class = "yellow";
+                    color_class = "yellow-text";
                 } else if (hours >= 1) {
-                    color_class = "orange";
+                    color_class = "orange-text";
                 } else {
-                    color_class = "red";
+                    color_class = "red-text";
                 }
                 detailsData.push({
                     label: "GAME LENGTH:",
@@ -197,13 +197,13 @@ function addGame(game, appendToTop) {
     // Achievements
     if (game.steam.released) {
         if (game.steam.achievement_count >= 20) {
-            color_class = "green";
+            color_class = "green-text";
         } else if (game.steam.achievement_count >= 10) {
-            color_class = "yellow";
+            color_class = "yellow-text";
         } else if (game.steam.achievement_count >= 1) {
-            color_class = "orange";
+            color_class = "orange-text";
         } else {
-            color_class = "red";
+            color_class = "red-text";
         }
         detailsData.push({
             label: "ACHIEVEMENTS:",
@@ -224,7 +224,7 @@ function addGame(game, appendToTop) {
             label: "LINUX SUPPORT:",
             value: "NATIVE",
             title: "The game is natively supported on Linux",
-            color_class: "green"
+            color_class: "green-text"
         });
     } else {
         if (game.linux_support == null || game.linux_support.tier == "PENDING") {
@@ -233,16 +233,16 @@ function addGame(game, appendToTop) {
                 value: null
             });
         } else {
-            let color_class = "grey";
+            let color_class = "grey-text";
             if (["moderate", "good", "strong"].includes(game.linux_support.confidence)) {
                 if (game.linux_support.tier == "PLATINUM" || game.linux_support.tier == "GOLD") {
-                    color_class = "green";
+                    color_class = "green-text";
                 } else if (game.linux_support.tier == "SILVER") {
-                    color_class = "yellow";
+                    color_class = "yellow-text";
                 } else if (game.linux_support.tier == "BRONZE") {
-                    color_class = "orange";
+                    color_class = "orange-text";
                 } else if (game.linux_support.tier == "BORKED") {
-                    color_class = "red";
+                    color_class = "red-text";
                 }
             }
             detailsData.push({
@@ -263,7 +263,7 @@ function addGame(game, appendToTop) {
         const valueDiv = document.createElement("div");
         if (detail.value === null) {
             valueDiv.textContent = "N/A";
-            valueDiv.classList.add("grey");
+            valueDiv.classList.add("grey-text");
             labelDiv.title = "Not available";
             valueDiv.title = "Not available";
         } else {
@@ -348,7 +348,7 @@ function addGame(game, appendToTop) {
                 historicalLowValueDiv.className = "small-font historical-low-value";
                 if (purchase.historicalLowPrice === null) {
                     historicalLowValueDiv.textContent = "N/A";
-                    historicalLowDiv.classList.add("grey");
+                    historicalLowDiv.classList.add("grey-text");
                 } else {
                     historicalLowValueDiv.textContent = display_price(purchase.historicalLowPrice);
                 }

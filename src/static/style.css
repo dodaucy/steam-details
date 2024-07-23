@@ -247,27 +247,27 @@ button {
 
 
 
-.green {
+.green-text {
     color: #75b022;
 }
 
-.yellow {
+.yellow-text {
     color: #CFB53B;
 }
 
-.orange {
+.orange-text {
     color: #ff6600;
 }
 
-.red {
+.red-text {
     color: #ff0000;
 }
 
-.grey {
+.grey-text {
     color: #aaaaaa;
 }
 
-.rainbow {
+.rainbow-text {
     animation: rainbow-text-animation 3s ease-in-out infinite;
 }
 
