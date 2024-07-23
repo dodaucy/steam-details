@@ -54,11 +54,57 @@ function addGame(game, appendToTop) {
     }
 
     // Price difference
-    detailsData.push({
-        label: "PRICE DIFFERENCE:",
-        value: display_price(0.0),
-        title: "Difference between lowest current price and lowest historical low"
-    })
+    let lowest_price_color_class = null;
+    let lowest_price = null;
+    if (game.steam_historical_low !== null || game.key_and_gift_sellers !== null) {  // ProtonDB OR KeyForSteam data available
+        if (game.steam_historical_low !== null && game.key_and_gift_sellers !== null) {  // ProtonDB AND KeyForSteam dara available
+            lowest_price = Math.min(game.steam.price, game.key_and_gift_sellers.cheapest_offer.price);
+            var lowest_historical_low = Math.min(game.steam_historical_low, game.key_and_gift_sellers.historical_low.price);
+
+        } else if (game.steam_historical_low !== null) {  // ProtonDB data available
+            lowest_price = game.steam.price;
+            var lowest_historical_low = game.steam_historical_low;
+
+        } else if (game.key_and_gift_sellers !== null) {  // KeyForSteam data available
+            lowest_price = game.key_and_gift_sellers.cheapest_offer.price;
+            var lowest_historical_low = game.key_and_gift_sellers.historical_low.price;
+
+        }
+
+        const price_difference = lowest_price - lowest_historical_low;
+
+        let title = `How much money you could save if you wait longer\n\nHow this is calculated:\nlowest price (${display_price(lowest_price)}) - lowest historical low (${display_price(lowest_historical_low)})`;
+        if (releaseDifferenceInYears >= 1) {
+            if (price_difference > 10) {
+                var color_class = "red";
+            } else if (price_difference > 5) {
+                var color_class = "orange";
+            } else if (price_difference > 3) {
+                var color_class = "yellow";
+            } else if (price_difference > 0.5) {
+                var color_class = "green";
+                lowest_price_color_class = "green-purchase-area";
+            } else {
+                var color_class = "rainbow";
+                lowest_price_color_class = "rainbow-purchase-area";
+            }
+        } else {
+            var color_class = "grey";
+            title += "\n\nThe game was released less than a year ago:\nYou might be able to save more money if you wait longer!!";
+        }
+
+        detailsData.push({
+            label: "PRICE DIFFERENCE:",
+            value: display_price(price_difference),
+            title: title,
+            color_class: color_class
+        });
+    } else {
+        detailsData.push({
+            label: "PRICE DIFFERENCE:",
+            value: null
+        });
+    }
 
     // Release date
     let title = "Release date of the game";
@@ -255,8 +301,8 @@ function addGame(game, appendToTop) {
         } else {
 
             let purchaseData = [{
-                historicalLowPrice: 0.0,
-                historicalLowTitle: "From steamdb.info",
+                historicalLowPrice: game.steam_historical_low,
+                historicalLowTitle: game.steam_historical_low === null ? "Not available" : "From steamdb.info",
 
                 price: game.steam.price,
                 priceTitle: null,
@@ -283,6 +329,9 @@ function addGame(game, appendToTop) {
             purchaseData.forEach(purchase => {
                 const purchaseAreaDiv = document.createElement("div");
                 purchaseAreaDiv.className = "purchase-area";
+                if (lowest_price !== null && purchase.price == lowest_price && lowest_price_color_class !== null) {
+                    purchaseAreaDiv.classList.add(lowest_price_color_class);
+                }
 
                 const historicalLowDiv = document.createElement("div");
                 if (purchase.historicalLowTitle !== null) {
@@ -297,7 +346,12 @@ function addGame(game, appendToTop) {
 
                 const historicalLowValueDiv = document.createElement("div");
                 historicalLowValueDiv.className = "small-font historical-low-value";
-                historicalLowValueDiv.textContent = display_price(purchase.historicalLowPrice);
+                if (purchase.historicalLowPrice === null) {
+                    historicalLowValueDiv.textContent = "N/A";
+                    historicalLowDiv.classList.add("grey");
+                } else {
+                    historicalLowValueDiv.textContent = display_price(purchase.historicalLowPrice);
+                }
                 historicalLowDiv.appendChild(historicalLowValueDiv);
 
                 purchaseAreaDiv.appendChild(historicalLowDiv);

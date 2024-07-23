@@ -266,3 +266,35 @@ button {
 .grey {
     color: #aaaaaa;
 }
+
+.rainbow {
+    animation: rainbow-text-animation 3s ease-in-out infinite;
+}
+
+@keyframes rainbow-text-animation {
+    0% { color: #FF0000; }
+    20% { color: #FF7F00; }
+    40% { color: #FFFF00; }
+    60% { color: #00FF00; }
+    80% { color: #fa5eff; }
+    100% { color: #FF0000; }
+}
+
+
+
+.green-purchase-area {
+    background: rgba(100, 255, 0, 0.2);
+}
+
+.rainbow-purchase-area {
+    animation: rainbow-purchase-area-animation 3s ease-in-out infinite;
+}
+
+@keyframes rainbow-purchase-area-animation {
+    0% { background-color: rgb(255, 0, 0, 0.2); }
+    20% { background-color: rgb(255, 127, 0, 0.2); }
+    40% { background-color: rgb(255, 255, 0, 0.2); }
+    60% { background-color: rgb(0, 255, 0, 0.2); }
+    80% { background-color: rgb(250, 94, 255, 0.2); }
+    100% { background-color: rgb(255, 0, 0, 0.2); }
+}

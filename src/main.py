@@ -50,12 +50,14 @@ async def details(appid_or_name: str):
             "steam": steam.model_dump(),
             "linux_support": None if steam.native_linux_support else await get_linux_support(steam.appid),
             "key_and_gift_sellers": await get_key_and_gift_sellers_data(steam.name) if steam.price is not None and steam.price > 0 else None,
-            "game_length": await get_game_length(steam.appid, steam.name)
+            "game_length": await get_game_length(steam.appid, steam.name),
+            "steam_historical_low": None
         }
     else:
         return {
             "steam": steam.model_dump(),
             "linux_support": None,
             "key_and_gift_sellers": None,
-            "game_length": None
+            "game_length": None,
+            "steam_historical_low": None
         }
