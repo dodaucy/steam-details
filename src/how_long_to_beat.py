@@ -3,7 +3,7 @@ from typing import Union
 from utils import http_client
 
 
-async def get_game_length(appid: str, name: str) -> Union[str, None]:
+async def get_game_length(appid: str, name: str) -> Union[dict, None]:
     print(f"Getting how long to beat for {name}")
     r = await http_client.post(
         "https://howlongtobeat.com/api/search",

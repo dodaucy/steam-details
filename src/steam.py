@@ -9,7 +9,7 @@ from utils import http_client
 app_list: Union[Dict[str, int], None] = None
 
 
-async def download_app_list():
+async def download_app_list() -> None:
     global app_list
     print("Downloading app list")
     r = await http_client.get("https://api.steampowered.com/ISteamApps/GetAppList/v2/", timeout=300)
