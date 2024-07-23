@@ -173,7 +173,7 @@ button {
 .details-grid {
     display: grid;
     grid-template-columns: auto 1fr;
-    grid-column-gap: 20px;
+    grid-column-gap: 30px;
     text-align: left;
 }
 
