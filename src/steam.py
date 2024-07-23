@@ -125,7 +125,17 @@ async def get_steam_details(appid: str) -> Union[SteamDetails, None]:
 
     # Get reviews
     print(f"Getting reviews for {appid}")
-    r = await http_client.get(f"https://store.steampowered.com/appreviews/{appid}?json=1&num_per_page=0&l=english")
+    r = await http_client.get(
+        f"https://store.steampowered.com/appreviews/{appid}",
+        params={
+            "json": 1,
+            "num_per_page": 0,
+            "l": "english",
+            "language": "all",
+            "review_type": "all",
+            "purchase_type": "all"
+        }
+    )
     print(f"Response: {r.text}")
     r.raise_for_status()
     review_data = r.json()["query_summary"]
