@@ -56,12 +56,15 @@ async def _parse_page_content(content: str) -> Union[Tag, None]:
                 for tr in tbody.find_all("tr"):
                     tds = tr.find_all("td")
                     if len(tds) == 5:
-                        td = tds[4]
-                        if td.has_attr("class") and "muted" in td["class"]:
-                            print(f"Found element: {td}")
-                            return td
+                        if tds[0].text.strip() == "Euro":
+                            td = tds[4]
+                            if td.has_attr("class") and "muted" in td["class"]:
+                                print(f"Found element: {td}")
+                                return td
+                            else:
+                                print("Muted class not found")
                         else:
-                            print("Muted class not found")
+                            print(f"Currency column didn't match: {tds[0].text.strip()}")
                     else:
                         print(f"tbody columns count didn't match: {tds}")
             else:
