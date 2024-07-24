@@ -36,6 +36,12 @@ async def _captcha(appid: str, timeout: int) -> None:
             print(f"Waiting for captcha to be solved (remaining time: {remaining_time:.0f}s)")
             await page.wait_for_url(f"https://steamdb.info/app/{appid}/", timeout=remaining_time)
 
+    # Close
+    if browser._loop.is_running():
+        await browser.close()
+    if play._loop.is_running():
+        await play.stop()
+
 
 async def _parse_page_content(content: str) -> Union[Tag, None]:
     soup = BeautifulSoup(content, "html.parser")
