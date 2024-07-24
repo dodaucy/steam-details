@@ -44,7 +44,7 @@ async def get_key_and_gift_sellers_data(name: str) -> Union[dict, None]:
             offer["isActive"],
             offer["stock"] == "InStock",
             "ACCOUNT" not in offers_data["regions"][offer["region"]]["name"],
-            "GLOBAL" not in offers_data["regions"][offer["region"]]["name"]
+            "ONLY" not in offers_data["regions"][offer["region"]]["name"]
         )):
             cheapest_offer = offer
     assert cheapest_offer is not None
