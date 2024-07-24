@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Union
 
 from bs4 import BeautifulSoup
@@ -66,9 +67,11 @@ async def get_key_and_gift_sellers_data(name: str) -> Union[dict, None]:
     cheapest_offer_seller = offers_data["merchants"][str(cheapest_offer["merchant"])]["name"]
     historical_low_price = price_string_to_float(price_history_data["lower_keyshops_price"]["price"])
     historical_low_seller = price_history_data["merchants"][price_history_data["lower_keyshops_price"]["merchant_id"]]["name"]
+    historical_low_iso_date = datetime.strptime(price_history_data["lower_keyshops_price"]["last_update"], "%Y-%m-%d %H:%M:%S").isoformat()
     if cheapest_offer_price < historical_low_price:
         historical_low_price = cheapest_offer_price
         historical_low_seller = cheapest_offer_seller
+        historical_low_iso_date = None
 
     return {
         "cheapest_offer": {
@@ -79,7 +82,8 @@ async def get_key_and_gift_sellers_data(name: str) -> Union[dict, None]:
         },
         "historical_low": {
             "price": historical_low_price,  # float
-            "seller": historical_low_seller  # str
+            "seller": historical_low_seller,  # str
+            "iso_date": historical_low_iso_date
         },
         "external_url": f"https://www.keyforsteam.de/{'-'.join(name.lower().split(' '))}-key-kaufen-preisvergleich/"
     }

@@ -108,10 +108,13 @@ function addGame(game, appendToTop) {
         } else if (releaseDifferenceInDays >= 0) {
             title = `Released ${releaseDifferenceInDays} day${releaseDifferenceInDays !== 1 ? "s" : ""} ago`;
         }
+        var value = display_date(game.steam.release_date.iso_date);
+    } else {
+        var value = game.steam.release_date.display_string;
     }
     detailsData.push({
         label: "RELEASE DATE:",
-        value: game.steam.release_date.display_string,
+        value: value,
         title: title
     });
 
@@ -299,7 +302,7 @@ function addGame(game, appendToTop) {
             let historicalLowTitle = null;
             if (game.steam_historical_low !== null) {
                 historicalLowPrice = game.steam_historical_low.price;
-                historicalLowTitle = `Date: ${game.steam_historical_low.date_display_string}\nFrom steamdb.info`;
+                historicalLowTitle = `Date: ${display_date(game.steam_historical_low.iso_date)}\nFrom steamdb.info`;
             }
             let purchaseData = [{
                 historicalLowPrice: historicalLowPrice,
@@ -317,7 +320,7 @@ function addGame(game, appendToTop) {
             if (game.key_and_gift_sellers !== null) {
                 purchaseData.push({
                     historicalLowPrice: game.key_and_gift_sellers.historical_low.price,
-                    historicalLowTitle: `Seller: ${game.key_and_gift_sellers.historical_low.seller}`,
+                    historicalLowTitle: `Date: ${display_date(game.key_and_gift_sellers.historical_low.iso_date)}\nSeller: ${game.key_and_gift_sellers.historical_low.seller}`,
 
                     price: game.key_and_gift_sellers.cheapest_offer.price,
                     priceTitle: `Form: ${game.key_and_gift_sellers.cheapest_offer.form}\nSeller: ${game.key_and_gift_sellers.cheapest_offer.seller}\nEdition: ${game.key_and_gift_sellers.cheapest_offer.edition}`,

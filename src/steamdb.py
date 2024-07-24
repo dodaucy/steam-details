@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 from tempfile import TemporaryDirectory
 from typing import Union
 
@@ -98,7 +99,7 @@ async def get_steam_historical_low(appid: str, steam_price: float, allow_captcha
         assert element is not None, "Element not found"
         historical_low = {
             "price": min(price_string_to_float(element.text.split("at")[0]), steam_price),  # float
-            "date_display_string": element["title"].strip()  # str
+            "iso_date": datetime.strptime(element["title"].strip(), "%d %B %Y").date().isoformat()  # str
         }
         print(f"Historical low: {historical_low}")
 

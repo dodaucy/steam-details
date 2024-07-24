@@ -15,6 +15,17 @@ function display_time(seconds) {
 }
 
 
+function display_date(optional_iso_date) {
+    if (optional_iso_date) {
+        var date = new Date(optional_iso_date);
+    } else {
+        var date = new Date();
+    }
+    let month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][date.getMonth()];
+    return `${date.getDate()} ${month}, ${date.getFullYear()}`
+}
+
+
 async function getRequest(url) {
     const response = await fetch(url, {
         method: "GET",
