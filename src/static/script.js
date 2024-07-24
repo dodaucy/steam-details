@@ -52,12 +52,12 @@ async function search(mode, searchValue, progress) {
         } else {
             appid_or_name = searchValue;
         }
-        addGame(await getRequest("/details?appid_or_name=" + encodeURIComponent(appid_or_name)), true);
+        addGame(await getRequest("/details?appid_or_name=" + encodeURIComponent(appid_or_name.trim())), true);
     } else if (mode === "wishlist") {
         // Clear results
         document.getElementById("result").innerHTML = "";
         // Get wishlist
-        const wishlist = await await getRequest("/wishlist?profile_id=" + encodeURIComponent(searchValue));
+        const wishlist = await await getRequest("/wishlist?profile_id=" + encodeURIComponent(searchValue.trim()));
         // Set progress bar to use percentage
         progress.value = 0;
         progress.max = 100;
@@ -65,7 +65,7 @@ async function search(mode, searchValue, progress) {
         for (i = 0; i < wishlist.length; i++) {
             progress.value = (i / wishlist.length) * 100;
             const appid = wishlist[i];
-            addGame(await getRequest("/details?appid_or_name=" + encodeURIComponent(appid)), false);
+            addGame(await getRequest("/details?appid_or_name=" + encodeURIComponent(appid.trim())), false);
         }
     }
 }
