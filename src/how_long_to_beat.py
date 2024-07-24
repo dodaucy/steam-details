@@ -42,6 +42,8 @@ async def get_game_length(appid: str, name: str) -> Union[dict, None]:
         }
     )
     print(f"Response: {r.text}")
+    if r.status_code == 404:
+        return
     r.raise_for_status()
     j = r.json()
     for game_data in j["data"]:
