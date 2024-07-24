@@ -106,10 +106,17 @@ async def get_steam_historical_low(appid: str, steam_price: float, allow_captcha
         # Parse response
         element = await _parse_page_content(page_content)
         assert element is not None, "Element not found"
-        historical_low = {
-            "price": min(price_string_to_float(element.text.split("at")[0]), steam_price),  # float
-            "iso_date": datetime.strptime(element["title"].strip(), "%d %B %Y").date().isoformat()  # str
-        }
+        historical_low_price = price_string_to_float(element.text.split("at")[0])
+        if historical_low_price < steam_price:
+            historical_low = {
+                "price": historical_low_price,  # float
+                "iso_date": datetime.strptime(element["title"].strip(), "%d %B %Y").date().isoformat()  # Union[str, None]
+            }
+        else:
+            historical_low = {
+                "price": steam_price,  # float
+                "iso_date": None  # Union[str, None]
+            }
         print(f"Historical low: {historical_low}")
 
         # Close
