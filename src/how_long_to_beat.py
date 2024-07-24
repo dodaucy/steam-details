@@ -47,7 +47,7 @@ async def get_game_length(appid: str, name: str) -> Union[dict, None]:
     for game_data in j["data"]:
         if appid == str(game_data["profile_steam"]):
             return {
-                "main": game_data["comp_main"] if game_data["comp_main"] != 0 else None,
-                "plus": game_data["comp_plus"] if game_data["comp_plus"] != 0 else None,
-                "completionist": game_data["comp_100"] if game_data["comp_100"] != 0 else None
+                "main": game_data["comp_main"] if game_data["comp_main"] != 0 else None,  # Union[int, None]
+                "plus": game_data["comp_plus"] if game_data["comp_plus"] != 0 else None,  # Union[int, None]
+                "completionist": game_data["comp_100"] if game_data["comp_100"] != 0 else None  # Union[int, None]
             }

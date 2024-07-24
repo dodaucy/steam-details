@@ -72,14 +72,14 @@ async def get_key_and_gift_sellers_data(name: str) -> Union[dict, None]:
 
     return {
         "cheapest_offer": {
-            "price": cheapest_offer_price,
-            "form": offers_data["regions"][cheapest_offer["region"]]["name"],
-            "seller": cheapest_offer_seller,
-            "edition": offers_data["editions"][cheapest_offer["edition"]]["name"]
+            "price": cheapest_offer_price,  # float
+            "form": offers_data["regions"][cheapest_offer["region"]]["name"],  # str
+            "seller": cheapest_offer_seller,  # str
+            "edition": offers_data["editions"][cheapest_offer["edition"]]["name"]  # str
         },
         "historical_low": {
-            "price": historical_low_price,
-            "seller": historical_low_seller
+            "price": historical_low_price,  # float
+            "seller": historical_low_seller  # str
         },
         "external_url": f"https://www.keyforsteam.de/{'-'.join(name.lower().split(' '))}-key-kaufen-preisvergleich/"
     }
