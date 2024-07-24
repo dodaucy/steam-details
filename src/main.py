@@ -55,7 +55,7 @@ async def details(appid_or_name: str):
         if steam.native_linux_support:
             linux_support = None
         else:
-            await get_linux_support(steam.appid)
+            linux_support = await get_linux_support(steam.appid)
 
         # Key and gift sellers
         if steam.price is not None and steam.price > 0:
