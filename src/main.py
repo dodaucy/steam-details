@@ -1,3 +1,6 @@
+import asyncio
+from typing import Any, Dict
+
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -51,39 +54,44 @@ async def details(appid_or_name: str):
 
     if steam.released:
 
-        # Linux support
-        if steam.native_linux_support:
-            linux_support = None
-        else:
-            linux_support = await get_linux_support(steam.appid)
+        details: Dict[str, Any] = {
+            "steam": steam.model_dump()
+        }
 
-        # Key and gift sellers
-        if steam.price is not None and steam.price > 0:
-            key_and_gift_sellers = await get_key_and_gift_sellers_data(steam.name)
-        else:
-            key_and_gift_sellers = None
-
-        # Game length
-        game_length = await get_game_length(steam.appid, steam.name)
+        tasks: Dict[str, asyncio.Task] = {}
 
         # Steam historical low
         if steam.price is None:
-            steam_historical_low = None
+            details["steam_historical_low"] = None
         elif steam.price > 0:
-            steam_historical_low = await get_steam_historical_low(steam.appid, steam.price)
+            tasks["steam_historical_low"] = asyncio.create_task(get_steam_historical_low(steam.appid, steam.price))
         else:
-            steam_historical_low = {
+            details["steam_historical_low"] = {
                 "price": 0.0,
                 "iso_date": None
             }
 
-        return {
-            "steam": steam.model_dump(),
-            "steam_historical_low": steam_historical_low,
-            "key_and_gift_sellers": key_and_gift_sellers,
-            "game_length": game_length,
-            "linux_support": linux_support
-        }
+        # Key and gift sellers
+        if steam.price is not None and steam.price > 0:
+            tasks["key_and_gift_sellers"] = asyncio.create_task(get_key_and_gift_sellers_data(steam.name))
+        else:
+            details["key_and_gift_sellers"] = None
+
+        # Game length
+        tasks["game_length"] = asyncio.create_task(get_game_length(steam.appid, steam.name))
+
+        # Linux support
+        if steam.native_linux_support:
+            details["linux_support"] = None
+        else:
+            tasks["linux_support"] = asyncio.create_task(get_linux_support(steam.appid))
+
+        # Run tasks
+        results = await asyncio.gather(*tasks.values())
+        for task, result in zip(tasks.keys(), results):
+            details[task] = result
+
+        return details
 
     else:
 
