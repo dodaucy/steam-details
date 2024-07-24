@@ -38,6 +38,8 @@ async def wishlist(profile_id: str):
 async def details(appid_or_name: str):
     if appid_or_name.strip() == "":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Empty search")
+
+    # Get steam details
     steam = await get_steam_details(appid_or_name)
     if steam is None:
         appid = await get_app(appid_or_name)
@@ -46,19 +48,49 @@ async def details(appid_or_name: str):
         steam = await get_steam_details(appid)
         if steam is None:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get steam details")
+
     if steam.released:
+
+        # Linux support
+        if steam.native_linux_support:
+            linux_support = None
+        else:
+            await get_linux_support(steam.appid)
+
+        # Key and gift sellers
+        if steam.price is not None and steam.price > 0:
+            key_and_gift_sellers = await get_key_and_gift_sellers_data(steam.name)
+        else:
+            key_and_gift_sellers = None
+
+        # Game length
+        game_length = await get_game_length(steam.appid, steam.name)
+
+        # Steam historical low
+        if steam.price is None:
+            steam_historical_low = None
+        elif steam.price > 0:
+            steam_historical_low = await get_steam_historical_low(steam.appid, steam.price)
+        else:
+            steam_historical_low = {
+                "price": 0.0,
+                "iso_date": None
+            }
+
         return {
             "steam": steam.model_dump(),
-            "linux_support": None if steam.native_linux_support else await get_linux_support(steam.appid),
-            "key_and_gift_sellers": await get_key_and_gift_sellers_data(steam.name) if steam.price is not None and steam.price > 0 else None,
-            "game_length": await get_game_length(steam.appid, steam.name),
-            "steam_historical_low": (await get_steam_historical_low(steam.appid, steam.price) if steam.price > 0 else {"price": 0.0, "date_display_string": None}) if steam.price is not None else None
+            "steam_historical_low": steam_historical_low,
+            "key_and_gift_sellers": key_and_gift_sellers,
+            "game_length": game_length,
+            "linux_support": linux_support
         }
+
     else:
+
         return {
             "steam": steam.model_dump(),
-            "linux_support": None,
+            "steam_historical_low": None,
             "key_and_gift_sellers": None,
             "game_length": None,
-            "steam_historical_low": None
+            "linux_support": None
         }
