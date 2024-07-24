@@ -68,7 +68,10 @@ function addGame(game, appendToTop) {
         const price_difference = lowest_price - lowest_historical_low;
 
         let title = `How much money you could save if you wait longer\n\nHow this is calculated:\nlowest price (${display_price(lowest_price)}) - lowest historical low (${display_price(lowest_historical_low)})`;
-        if (releaseDifferenceInYears >= 1) {
+        if (game.steam.price === 0.0) {
+            var color_class = "rainbow-text";
+            lowest_price_color_class = "rainbow-purchase-area";
+        } else if (releaseDifferenceInYears >= 1) {
             if (price_difference > 10) {
                 var color_class = "red-text";
             } else if (price_difference > 5) {
