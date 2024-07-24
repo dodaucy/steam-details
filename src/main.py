@@ -6,6 +6,7 @@ from how_long_to_beat import get_game_length
 from keyforsteam import get_key_and_gift_sellers_data
 from protondb import get_linux_support
 from steam import download_app_list, get_app, get_steam_details, wishlist_data
+from steamdb import get_steam_historical_low
 
 
 app = FastAPI(openapi_url=None, on_startup=[download_app_list])
@@ -51,7 +52,7 @@ async def details(appid_or_name: str):
             "linux_support": None if steam.native_linux_support else await get_linux_support(steam.appid),
             "key_and_gift_sellers": await get_key_and_gift_sellers_data(steam.name) if steam.price is not None and steam.price > 0 else None,
             "game_length": await get_game_length(steam.appid, steam.name),
-            "steam_historical_low": None
+            "steam_historical_low": (await get_steam_historical_low(steam.appid, steam.price) if steam.price > 0 else 0) if steam.price is not None else None
         }
     else:
         return {
