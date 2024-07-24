@@ -59,10 +59,10 @@ function addGame(game, appendToTop) {
     if (game.steam_historical_low !== null) {  // SteamDB data available
         if ( game.key_and_gift_sellers !== null) {  // KeyForSteam data also available
             lowest_price = Math.min(game.steam.price, game.key_and_gift_sellers.cheapest_offer.price);
-            var lowest_historical_low = Math.min(game.steam_historical_low, game.key_and_gift_sellers.historical_low.price);
+            var lowest_historical_low = Math.min(game.steam_historical_low.price, game.key_and_gift_sellers.historical_low.price);
         } else {  // Only SteamDB data available
             lowest_price = game.steam.price;
-            var lowest_historical_low = game.steam_historical_low;
+            var lowest_historical_low = game.steam_historical_low.price;
         }
 
         const price_difference = lowest_price - lowest_historical_low;
@@ -294,9 +294,16 @@ function addGame(game, appendToTop) {
 
         } else {
 
+            // Steam price
+            let historicalLowPrice = null;
+            let historicalLowTitle = null;
+            if (game.steam_historical_low !== null) {
+                historicalLowPrice = game.steam_historical_low.price;
+                historicalLowTitle = `Date: ${game.steam_historical_low.date_display_string}\nFrom steamdb.info`;
+            }
             let purchaseData = [{
-                historicalLowPrice: game.steam_historical_low,
-                historicalLowTitle: game.steam_historical_low === null ? "Not available" : "From steamdb.info",
+                historicalLowPrice: historicalLowPrice,
+                historicalLowTitle: historicalLowTitle,
 
                 price: game.steam.price,
                 priceTitle: null,
@@ -306,6 +313,7 @@ function addGame(game, appendToTop) {
                 buttonURL: game.steam.external_url,
             }];
 
+            // Key and gift sellers price
             if (game.key_and_gift_sellers !== null) {
                 purchaseData.push({
                     historicalLowPrice: game.key_and_gift_sellers.historical_low.price,
