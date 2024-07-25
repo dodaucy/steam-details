@@ -94,6 +94,10 @@ button {
     justify-content: center;
     align-items: center;
 }
+#wait_for_seconds {
+    color: #ffc2c2;
+    cursor: pointer;
+}
 
 /* Result */
 #result {

@@ -26,6 +26,17 @@ function display_date(optional_iso_date) {
 }
 
 
+function change_wait_for_seconds() {
+    const new_wait_for_seconds = prompt(
+        "Enter number of seconds to wait to avoid rate limits and captchas:",
+        localStorage.getItem("wait_for_seconds") || "3"
+    )
+    if (new_wait_for_seconds) {
+        localStorage.setItem("wait_for_seconds", new_wait_for_seconds);
+    }
+}
+
+
 async function getRequest(url) {
     const response = await fetch(url, {
         method: "GET",
@@ -47,42 +58,66 @@ async function getRequest(url) {
 
 async function search(mode, searchValue, progress) {
     const progressText = document.getElementById("progress-text");
+
     if (mode === "single-game") {
+
+        // Try to get appid from url
         if (searchValue.startsWith("https://store.steampowered.com/app/")) {
             appid_or_name = searchValue.split("https://store.steampowered.com/app/")[1].split("/")[0];
         } else {
             appid_or_name = searchValue;
         }
+
+        // Get details
         progressText.innerText = `Getting details for '${appid_or_name}'...`;
         addGame(await getRequest("/details?appid_or_name=" + encodeURIComponent(appid_or_name)), true);
+
     } else if (mode === "wishlist") {
+
+        // Try to get profile name from url
         if (searchValue.startsWith("https://steamcommunity.com/id/")) {
             profile_name_or_id = searchValue.split("https://steamcommunity.com/id/")[1].split("/")[0];
         } else {
             profile_name_or_id = searchValue;
         }
+
         // Clear results
         document.getElementById("result").innerHTML = "";
+
         // Get wishlist
         progressText.innerText = `Getting wishlist for '${profile_name_or_id}'...`;
         const wishlist = await await getRequest("/wishlist?profile_name_or_id=" + encodeURIComponent(profile_name_or_id));
+
         // Set progress bar to use percentage
         progress.value = 0;
         progress.max = 100;
+
         // Add games
         for (i = 0; i < wishlist.length; i++) {
             const appid = wishlist[i];
+
+            // Get details
             progressText.innerText = `Getting details for '${appid}'...`;
             addGame(await getRequest("/details?appid_or_name=" + encodeURIComponent(appid)), false);
 
-            progress.value = (i + 1 / wishlist.length) * 100;
+            // Update progress
+            progress.value = ((i + 1) / wishlist.length) * 100;
 
             // Wait a bit
             if (i < wishlist.length - 1) {
-                progressText.innerText = `Waiting for ${5} seconds...`;
-                await new Promise(resolve => setTimeout(resolve, 5 * 1000));  // Feel free to adjust this in your own project
+                let wait_for_seconds = parseInt(localStorage.getItem("wait_for_seconds"));
+                if (isNaN(wait_for_seconds)) {
+                    wait_for_seconds = 3;
+                    localStorage.setItem("wait_for_seconds", wait_for_seconds);
+                } else if (wait_for_seconds < 1) {
+                    wait_for_seconds = 1;
+                }
+
+                progressText.innerHTML = `Waiting for <span id="wait_for_seconds" onclick="change_wait_for_seconds();">${wait_for_seconds}</span> seconds...`;
+                await new Promise(resolve => setTimeout(resolve, wait_for_seconds * 1000));  // Feel free to adjust this in your own project
             }
         }
+
     }
 }
 
