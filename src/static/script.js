@@ -54,10 +54,15 @@ async function search(mode, searchValue, progress) {
         }
         addGame(await getRequest("/details?appid_or_name=" + encodeURIComponent(appid_or_name)), true);
     } else if (mode === "wishlist") {
+        if (searchValue.startsWith("https://steamcommunity.com/id/")) {
+            profile_name_or_id = searchValue.split("https://steamcommunity.com/id/")[1].split("/")[0];
+        } else {
+            profile_name_or_id = searchValue;
+        }
         // Clear results
         document.getElementById("result").innerHTML = "";
         // Get wishlist
-        const wishlist = await await getRequest("/wishlist?profile_name_or_id=" + encodeURIComponent(searchValue));
+        const wishlist = await await getRequest("/wishlist?profile_name_or_id=" + encodeURIComponent(profile_name_or_id));
         // Set progress bar to use percentage
         progress.value = 0;
         progress.max = 100;
@@ -135,7 +140,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (this.value === "single-game") {
             searchInput.placeholder = "Game: Name / ID / URL";
         } else {
-            searchInput.placeholder = "Profile: Name / ID";
+            searchInput.placeholder = "Profile: Name / ID / URL";
         }
         // Reset search bar
         searchInput.value = "";
