@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 from typing import Any, Dict
 
 from fastapi import FastAPI, HTTPException, Request, status
@@ -28,6 +29,8 @@ logging.basicConfig(
 
 details_lock = asyncio.Lock()
 
+details_cache: Dict[float, dict] = {}
+
 
 @app.get("/")
 async def index(request: Request):
@@ -55,7 +58,7 @@ async def details(appid_or_name: str):
     async with details_lock:
 
         if appid_or_name.strip() == "":
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Empty search")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty search")
 
         # Get steam details
         steam = await get_steam_details(appid_or_name)
@@ -66,6 +69,19 @@ async def details(appid_or_name: str):
             steam = await get_steam_details(appid)
             if steam is None:
                 raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get steam details")
+
+        # Remove old cache entries
+        for cache_time in list(details_cache.keys()):
+            if time.time() - cache_time > 60 * 15:
+                logging.info(f"Removing old cache entry: {cache_time}")
+                del details_cache[cache_time]
+
+        # Check if already in cache
+        for details in details_cache.values():
+            if details["steam"]["appid"] == steam.appid:
+                logging.debug(f"App {steam.appid} already in cache")
+                details["from_cache"] = True
+                return details
 
         if steam.released:
 
@@ -106,16 +122,20 @@ async def details(appid_or_name: str):
             for task, result in zip(tasks.keys(), results):
                 details[task] = result
 
-            logging.debug(f"Details from released app: {details}")
-
-            return details
-
         else:
 
-            return {
+            details = {
                 "steam": steam.model_dump(),
                 "steam_historical_low": None,
                 "key_and_gift_sellers": None,
                 "game_length": None,
                 "linux_support": None
             }
+
+        logging.info(f"Details: {details}")
+
+        # Add to cache
+        details_cache[time.time()] = details
+
+        details["from_cache"] = False
+        return details
