@@ -52,7 +52,8 @@ async def get_key_and_gift_sellers_data(steam: SteamDetails) -> Union[dict, None
             "Steam" != offers_data["merchants"][str(offer["merchant"])]["name"]
         )):
             cheapest_offer = offer
-    assert cheapest_offer is not None
+    if cheapest_offer is None:
+        return
 
     logging.info(f"Getting price history for internal id {internal_id}")
     r = await http_client.get(
