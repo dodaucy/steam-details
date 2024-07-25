@@ -46,12 +46,14 @@ async function getRequest(url) {
 
 
 async function search(mode, searchValue, progress) {
+    const progressText = document.getElementById("progress-text");
     if (mode === "single-game") {
         if (searchValue.startsWith("https://store.steampowered.com/app/")) {
             appid_or_name = searchValue.split("https://store.steampowered.com/app/")[1].split("/")[0];
         } else {
             appid_or_name = searchValue;
         }
+        progressText.innerText = `Getting details for '${appid_or_name}'...`;
         addGame(await getRequest("/details?appid_or_name=" + encodeURIComponent(appid_or_name)), true);
     } else if (mode === "wishlist") {
         if (searchValue.startsWith("https://steamcommunity.com/id/")) {
@@ -62,18 +64,22 @@ async function search(mode, searchValue, progress) {
         // Clear results
         document.getElementById("result").innerHTML = "";
         // Get wishlist
+        progressText.innerText = `Getting wishlist for '${profile_name_or_id}'...`;
         const wishlist = await await getRequest("/wishlist?profile_name_or_id=" + encodeURIComponent(profile_name_or_id));
         // Set progress bar to use percentage
         progress.value = 0;
         progress.max = 100;
         // Add games
         for (i = 0; i < wishlist.length; i++) {
-            progress.value = (i / wishlist.length) * 100;
             const appid = wishlist[i];
+            progressText.innerText = `Getting details for '${appid}'...`;
             addGame(await getRequest("/details?appid_or_name=" + encodeURIComponent(appid)), false);
+
+            progress.value = (i + 1 / wishlist.length) * 100;
 
             // Wait a bit
             if (i < wishlist.length - 1) {
+                progressText.innerText = `Waiting for ${5} seconds...`;
                 await new Promise(resolve => setTimeout(resolve, 5 * 1000));  // Feel free to adjust this in your own project
             }
         }
@@ -98,6 +104,7 @@ document.addEventListener("DOMContentLoaded", function() {
         errorMessage.style.display = "none";
 
         // Show search progress
+        document.getElementById("progress-text").innerText = "Loading...";
         progress.removeAttribute("value");
         progress.removeAttribute("max");
         document.getElementById("progress-container").style.display = "flex";
