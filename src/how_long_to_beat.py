@@ -1,10 +1,12 @@
+import logging
 from typing import Union
 
+from steam import SteamDetails
 from utils import http_client
 
 
-async def get_game_length(appid: str, name: str) -> Union[dict, None]:
-    print(f"Getting how long to beat for {name}")
+async def get_game_length(steam: SteamDetails) -> Union[dict, None]:
+    logging.info(f"Getting how long to beat for {repr(steam.name)} ({steam.appid})")
     r = await http_client.post(
         "https://howlongtobeat.com/api/search",
         headers={
@@ -18,7 +20,7 @@ async def get_game_length(appid: str, name: str) -> Union[dict, None]:
         },
         json={
             "searchType": "games",
-            "searchTerms": [name],
+            "searchTerms": [steam.name],
             "searchPage": 1,
             "size": 10,
             "searchOptions": {
@@ -41,13 +43,14 @@ async def get_game_length(appid: str, name: str) -> Union[dict, None]:
             "useCache": True,
         }
     )
-    print(f"Response: {r.text}")
+    logging.info(f"Response (100 chars): {repr(r.text[:100])}")
+    logging.debug(f"Response: (all): {r.text}")
     if r.status_code == 404:
         return
     r.raise_for_status()
     j = r.json()
     for game_data in j["data"]:
-        if appid == str(game_data["profile_steam"]):
+        if steam.appid == str(game_data["profile_steam"]):
             return {
                 "main": game_data["comp_main"] if game_data["comp_main"] != 0 else None,  # Union[int, None]
                 "plus": game_data["comp_plus"] if game_data["comp_plus"] != 0 else None,  # Union[int, None]

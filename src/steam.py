@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from typing import Dict, List, Union
 
@@ -11,16 +12,20 @@ app_list: Union[Dict[str, int], None] = None
 
 async def download_app_list() -> None:
     global app_list
-    print("Downloading app list")
+
+    logging.info("Downloading app list")
     r = await http_client.get("https://api.steampowered.com/ISteamApps/GetAppList/v2/", timeout=300)
-    print(f"Response status: {r.status_code}")
+    logging.info(f"Response (100 chars): {repr(r.text[:100])}")
+    logging.debug(f"Response: (all): {r.text}")
     r.raise_for_status()
-    print("Processing app list")
+
+    logging.info("Processing app list")
     j = r.json()
     app_list = {}
     for app in j["applist"]["apps"]:
         app_list[app["name"].lower()] = app["appid"]
-    print("App list ready")
+
+    logging.info("App list ready")
 
 
 async def get_app(name: str) -> Union[str, None]:
@@ -29,27 +34,29 @@ async def get_app(name: str) -> Union[str, None]:
         return str(appid)
 
 
-async def wishlist_data(profile_id: str) -> Union[List[str], None]:
+async def wishlist_data(profile_name_or_id: str) -> Union[List[str], None]:
     """
     Get the wishlist data for the given profile id
     """
-    print(f"Getting wishlist data for {profile_id}")
+    logging.info(f"Getting wishlist data for {repr(profile_name_or_id)}")
     r = await http_client.get(
-        f"https://store.steampowered.com/wishlist/profiles/{profile_id}/wishlistdata/",
+        f"https://store.steampowered.com/wishlist/profiles/{profile_name_or_id}/wishlistdata/",
         params={
             "l": "english"
         }
     )
-    print(f"Response: {r.text}")
+    logging.info(f"Response (100 chars): {repr(r.text[:100])}")
+    logging.debug(f"Response: (all): {r.text}")
     if r.status_code != 200:
-        print("It seems the profile id is not a valid id, trying with id name")
+        logging.info(f"It seems the profile id {repr(profile_name_or_id)} is not a valid id, trying with profile name")
         r = await http_client.get(
-            f"https://store.steampowered.com/wishlist/id/{profile_id}/wishlistdata/",
+            f"https://store.steampowered.com/wishlist/id/{profile_name_or_id}/wishlistdata/",
             params={
                 "l": "english"
             }
         )
-        print(f"Response: {r.text}")
+        logging.info(f"Response (100 chars): {repr(r.text[:100])}")
+        logging.debug(f"Response: (all): {r.text}")
         if r.status_code != 200:
             return None
     r.raise_for_status()
@@ -93,9 +100,9 @@ class SteamDetails(BaseModel):
 
 async def get_steam_details(appid: str) -> Union[SteamDetails, None]:
     if not appid.isdigit():
-        print(f"Not a valid appid: {appid}")
+        logging.info(f"Not a valid appid: {repr(appid)}")
         return
-    print(f"Getting steam details for {appid}")
+    logging.info(f"Getting steam details for {appid}")
     r = await http_client.get(
         "https://store.steampowered.com/api/appdetails",
         params={
@@ -104,7 +111,8 @@ async def get_steam_details(appid: str) -> Union[SteamDetails, None]:
             "l": "english"
         }
     )
-    print(f"Response: {r.text}")
+    logging.info(f"Response (100 chars): {repr(r.text[:100])}")
+    logging.debug(f"Response: (all): {r.text}")
     if r.status_code == 404:
         return
     r.raise_for_status()
@@ -141,7 +149,7 @@ async def get_steam_details(appid: str) -> Union[SteamDetails, None]:
     )
 
     # Get reviews
-    print(f"Getting reviews for {appid}")
+    logging.info(f"Getting reviews for {appid}")
     r = await http_client.get(
         f"https://store.steampowered.com/appreviews/{appid}",
         params={
@@ -153,7 +161,8 @@ async def get_steam_details(appid: str) -> Union[SteamDetails, None]:
             "purchase_type": "all"
         }
     )
-    print(f"Response: {r.text}")
+    logging.info(f"Response (100 chars): {repr(r.text[:100])}")
+    logging.debug(f"Response: (all): {r.text}")
     r.raise_for_status()
     review_data = r.json()["query_summary"]
     if review_data["total_reviews"] > 0:

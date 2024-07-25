@@ -1,6 +1,8 @@
 import asyncio
+import logging
 from typing import Any, Dict
 
+import httpx
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -19,6 +21,12 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(filename)s:%(lineno)d %(message)s"
+)
+
+
 @app.get("/")
 async def index(request: Request):
     return templates.TemplateResponse(
@@ -30,8 +38,8 @@ async def index(request: Request):
 
 
 @app.get("/wishlist")
-async def wishlist(profile_id: str):
-    game_appids = await wishlist_data(profile_id)
+async def wishlist(profile_name_or_id: str):
+    game_appids = await wishlist_data(profile_name_or_id)
     if game_appids is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Steam ID / Profile not found")
     return game_appids
@@ -64,7 +72,7 @@ async def details(appid_or_name: str):
         if steam.price is None:
             details["steam_historical_low"] = None
         elif steam.price > 0:
-            tasks["steam_historical_low"] = asyncio.create_task(get_steam_historical_low(steam.appid, steam.price))
+            tasks["steam_historical_low"] = asyncio.create_task(get_steam_historical_low(steam))
         else:
             details["steam_historical_low"] = {
                 "price": 0.0,
@@ -73,23 +81,25 @@ async def details(appid_or_name: str):
 
         # Key and gift sellers
         if steam.price is not None and steam.price > 0:
-            tasks["key_and_gift_sellers"] = asyncio.create_task(get_key_and_gift_sellers_data(steam.name))
+            tasks["key_and_gift_sellers"] = asyncio.create_task(get_key_and_gift_sellers_data(steam))
         else:
             details["key_and_gift_sellers"] = None
 
         # Game length
-        tasks["game_length"] = asyncio.create_task(get_game_length(steam.appid, steam.name))
+        tasks["game_length"] = asyncio.create_task(get_game_length(steam))
 
         # Linux support
         if steam.native_linux_support:
             details["linux_support"] = None
         else:
-            tasks["linux_support"] = asyncio.create_task(get_linux_support(steam.appid))
+            tasks["linux_support"] = asyncio.create_task(get_linux_support(steam))
 
         # Run tasks
         results = await asyncio.gather(*tasks.values())
         for task, result in zip(tasks.keys(), results):
             details[task] = result
+
+        logging.debug(f"Details from released app: {details}")
 
         return details
 

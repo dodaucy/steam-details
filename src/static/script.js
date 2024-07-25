@@ -57,7 +57,7 @@ async function search(mode, searchValue, progress) {
         // Clear results
         document.getElementById("result").innerHTML = "";
         // Get wishlist
-        const wishlist = await await getRequest("/wishlist?profile_id=" + encodeURIComponent(searchValue));
+        const wishlist = await await getRequest("/wishlist?profile_name_or_id=" + encodeURIComponent(searchValue));
         // Set progress bar to use percentage
         progress.value = 0;
         progress.max = 100;
@@ -132,10 +132,10 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("mode-select").addEventListener("change", function() {
         searchInput = document.getElementById("search-input");
         // Change placeholder
-        if (this.value === "wishlist") {
-            searchInput.placeholder = "Steam ID / Profile";
+        if (this.value === "single-game") {
+            searchInput.placeholder = "Game: Name / ID / URL";
         } else {
-            searchInput.placeholder = "Name / ID / URL";
+            searchInput.placeholder = "Profile: Name / ID";
         }
         // Reset search bar
         searchInput.value = "";

@@ -1,15 +1,18 @@
+import logging
 from datetime import datetime
 from typing import Union
 
 from bs4 import BeautifulSoup
 
+from steam import SteamDetails
 from utils import http_client, price_string_to_float
 
 
-async def get_key_and_gift_sellers_data(name: str) -> Union[dict, None]:
-    print(f"Getting keyforsteam for {name}")
-    r = await http_client.get(f"https://www.keyforsteam.de/{'-'.join(name.lower().split(' '))}-key-kaufen-preisvergleich/")
-    print(f"Response: {r.text}")
+async def get_key_and_gift_sellers_data(steam: SteamDetails) -> Union[dict, None]:
+    logging.info(f"Getting KeyForSteam data for {repr(steam.name)} ({steam.appid})")
+    r = await http_client.get(f"https://www.keyforsteam.de/{'-'.join(steam.name.lower().split(' '))}-key-kaufen-preisvergleich/")
+    logging.info(f"Response (100 chars): {repr(r.text[:100])}")
+    logging.debug(f"Response: (all): {r.text}")
     if r.status_code == 404:
         return
     r.raise_for_status()
@@ -19,11 +22,11 @@ async def get_key_and_gift_sellers_data(name: str) -> Union[dict, None]:
     for script_tag in soup.find_all("script"):
         if script_tag.text.startswith("var game_id=\"") and script_tag.text.endswith("\""):
             internal_id = int(script_tag.text.split("var game_id=\"")[-1].split("\"")[0])
-            print(f"Internal KeyForSteam ID: {internal_id}")
+            logging.info(f"Internal KeyForSteam ID: {internal_id}")
             break
     assert internal_id is not None
 
-    print(f"Getting price offers for {internal_id}")
+    logging.info(f"Getting price offers for internal id {internal_id}")
     r = await http_client.get(
         "https://www.keyforsteam.de/wp-admin/admin-ajax.php",
         params={
@@ -33,7 +36,8 @@ async def get_key_and_gift_sellers_data(name: str) -> Union[dict, None]:
             "locale": "de-DE",
         }
     )
-    print(f"Response: {r.text}")
+    logging.info(f"Response (100 chars): {repr(r.text[:100])}")
+    logging.debug(f"Response: (all): {r.text}")
     r.raise_for_status()
     offers_data = r.json()
 
@@ -50,7 +54,7 @@ async def get_key_and_gift_sellers_data(name: str) -> Union[dict, None]:
             cheapest_offer = offer
     assert cheapest_offer is not None
 
-    print(f"Getting price history for {internal_id}")
+    logging.info(f"Getting price history for internal id {internal_id}")
     r = await http_client.get(
         "https://www.allkeyshop.com/api/price_history_api.php",
         params={
@@ -60,7 +64,8 @@ async def get_key_and_gift_sellers_data(name: str) -> Union[dict, None]:
             "v2": 1
         }
     )
-    print(f"Response: {r.text}")
+    logging.info(f"Response (100 chars): {repr(r.text[:100])}")
+    logging.debug(f"Response: (all): {r.text}")
     r.raise_for_status()
     price_history_data = r.json()
 
@@ -86,5 +91,5 @@ async def get_key_and_gift_sellers_data(name: str) -> Union[dict, None]:
             "seller": historical_low_seller,  # str
             "iso_date": historical_low_iso_date
         },
-        "external_url": f"https://www.keyforsteam.de/{'-'.join(name.lower().split(' '))}-key-kaufen-preisvergleich/"
+        "external_url": f"https://www.keyforsteam.de/{'-'.join(steam.name.lower().split(' '))}-key-kaufen-preisvergleich/"
     }
