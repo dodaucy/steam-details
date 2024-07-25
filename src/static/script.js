@@ -98,23 +98,33 @@ async function search(mode, searchValue, progress) {
 
             // Get details
             progressText.innerText = `Getting details for '${appid}'...`;
-            addGame(await getRequest("/details?appid_or_name=" + encodeURIComponent(appid)), false);
+            const details = await getRequest("/details?appid_or_name=" + encodeURIComponent(appid));
+            addGame(details, false);
 
             // Update progress
             progress.value = ((i + 1) / wishlist.length) * 100;
 
             // Wait a bit
             if (i < wishlist.length - 1) {
-                let wait_for_seconds = parseInt(localStorage.getItem("wait_for_seconds"));
-                if (isNaN(wait_for_seconds)) {
-                    wait_for_seconds = 3;
-                    localStorage.setItem("wait_for_seconds", wait_for_seconds);
-                } else if (wait_for_seconds < 1) {
-                    wait_for_seconds = 1;
-                }
+                if (details.from_cache) {
 
-                progressText.innerHTML = `Waiting for <span id="wait_for_seconds" onclick="change_wait_for_seconds();">${wait_for_seconds}</span> seconds...`;
-                await new Promise(resolve => setTimeout(resolve, wait_for_seconds * 1000));  // Feel free to adjust this in your own project
+                    progressText.innerText = `Waiting only 0.5 seconds due to cache...`;
+                    await new Promise(resolve => setTimeout(resolve, 500));
+
+                } else {
+
+                    let wait_for_seconds = parseInt(localStorage.getItem("wait_for_seconds"));
+                    if (isNaN(wait_for_seconds)) {
+                        wait_for_seconds = 3;
+                        localStorage.setItem("wait_for_seconds", wait_for_seconds);
+                    } else if (wait_for_seconds < 1) {
+                        wait_for_seconds = 1;
+                    }
+
+                    progressText.innerHTML = `Waiting for <span id="wait_for_seconds" onclick="change_wait_for_seconds();">${wait_for_seconds}</span> seconds...`;
+                    await new Promise(resolve => setTimeout(resolve, wait_for_seconds * 1000));
+
+                }
             }
         }
 
