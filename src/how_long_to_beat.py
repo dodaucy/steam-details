@@ -8,7 +8,7 @@ from utils import http_client
 async def get_game_length(steam: SteamDetails) -> Union[dict, None]:
     logging.info(f"Getting how long to beat for {repr(steam.name)} ({steam.appid})")
     r = await http_client.post(
-        "https://howlongtobeat.com/api/search",
+        "https://howlongtobeat.com/api/find",
         headers={
             "Origin": "https://howlongtobeat.com",
             "Priority": "u=4",
@@ -45,8 +45,6 @@ async def get_game_length(steam: SteamDetails) -> Union[dict, None]:
     )
     logging.info(f"Response (100 chars): {repr(r.text[:100])}")
     logging.debug(f"Response: (all): {r.text}")
-    if r.status_code == 404:
-        return
     r.raise_for_status()
     j = r.json()
     for game_data in j["data"]:
