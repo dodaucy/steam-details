@@ -71,6 +71,11 @@ async function search(mode, searchValue, progress) {
             progress.value = (i / wishlist.length) * 100;
             const appid = wishlist[i];
             addGame(await getRequest("/details?appid_or_name=" + encodeURIComponent(appid)), false);
+
+            // Wait a bit
+            if (i < wishlist.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, 5 * 1000));  // Feel free to adjust this in your own project
+            }
         }
     }
 }
