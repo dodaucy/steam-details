@@ -1,0 +1,12 @@
+# FastAPI
+uvicorn[standard]
+fastapi
+jinja2
+
+# Misc
+pydantic
+httpx
+
+# Scraping
+beautifulsoup4
+playwright
