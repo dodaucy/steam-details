@@ -17,6 +17,9 @@ You can hover over almost anything to see more details.
 ## Installation
 
 ```bash
+git clone https://github.com/dodaucy/steam-details.git
+cd steam-details
+
 python3 -m pip install -Ur requirements.txt
 ```
 
