@@ -73,7 +73,7 @@ async def details(appid_or_name: str):
         # Remove old cache entries
         for cache_time in list(details_cache.keys()):
             if time.time() - cache_time > 60 * 15:
-                logging.info(f"Removing old cache entry: {cache_time}")
+                logging.debug(f"Removing old cache entry: {cache_time}")
                 del details_cache[cache_time]
 
         # Check if already in cache
