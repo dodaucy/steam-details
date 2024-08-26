@@ -21,10 +21,13 @@ git clone https://github.com/dodaucy/steam-details.git
 cd steam-details
 
 python3 -m pip install -Ur requirements.txt
+
+playwright install
 ```
 
 ## Usage
 
 ```bash
+cd src
 python3 -m uvicorn main:app --host 127.0.0.1 --port 8000
 ```
