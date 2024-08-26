@@ -46,7 +46,7 @@ async def index(request: Request):
 async def wishlist(profile_name_or_id: str):
     game_appids = await wishlist_data(profile_name_or_id)
     if game_appids is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Steam ID / Profile not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Steam ID / Profile not found (your wishlist must be public)")
     return game_appids
 
 
