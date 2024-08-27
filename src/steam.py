@@ -185,7 +185,7 @@ async def get_steam_details(appid: str) -> Union[SteamDetails, None]:
         appid=appid,
         name=steam_data["name"],
         images=images,
-        external_url=f"https://store.steampowered.com/app/{appid}/{'_'.join(steam_data['name'].split(' '))}/",
+        external_url=f"https://store.steampowered.com/app/{appid}/",
 
         released=released,
         price=price,
