@@ -317,7 +317,7 @@ function addGame(game, appendToTop) {
             let historicalLowURL = undefined;
             if (game.steam_historical_low !== null) {
                 historicalLowPrice = game.steam_historical_low.price;
-                historicalLowTitle = `Date: ${display_date(game.steam_historical_low.iso_date)}\n\nFrom: steamdb.info\nClick to visit site`;
+                historicalLowTitle = `At Discount: ${game.steam_historical_low.discount}%\nDate: ${display_date(game.steam_historical_low.iso_date)}\n\nFrom: steamdb.info\nClick to visit site`;
                 historicalLowURL = game.steam_historical_low.external_url;
             }
             let purchaseData = [{
@@ -326,7 +326,7 @@ function addGame(game, appendToTop) {
                 historicalLowURL: historicalLowURL,
 
                 price: game.steam.price,
-                priceTitle: null,
+                priceTitle: `Discount: ${game.steam.discount}%`,
 
                 buttonText: "Buy on Steam",
                 buttonClass: "steam-button",
@@ -362,9 +362,7 @@ function addGame(game, appendToTop) {
                 } else {
                     var historicalLowElement = document.createElement("div");
                 }
-                if (purchase.historicalLowTitle !== null) {
-                    historicalLowElement.title = purchase.historicalLowTitle;
-                }
+                historicalLowElement.title = purchase.historicalLowTitle;
                 historicalLowElement.className = "historical-low";
 
                 const historicalLowLabelDiv = document.createElement("div");
@@ -386,9 +384,7 @@ function addGame(game, appendToTop) {
 
                 const priceDiv = document.createElement("div");
                 priceDiv.className = "price";
-                if (purchase.priceTitle !== null) {
-                    priceDiv.title = purchase.priceTitle;
-                }
+                priceDiv.title = purchase.priceTitle;
                 priceDiv.textContent = display_price(purchase.price);
                 purchaseAreaDiv.appendChild(priceDiv);
 

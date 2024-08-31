@@ -91,6 +91,7 @@ class SteamDetails(BaseModel):
 
     released: bool
     price: Union[float, None]
+    discount: Union[int, None]
 
     release_date: ReleaseDate
     overall_reviews: OverallReviews
@@ -129,14 +130,17 @@ async def get_steam_details(appid: str) -> Union[SteamDetails, None]:
     # Check if released
     released = steam_data["release_date"]["coming_soon"] is False
 
-    # Get price
+    # Get price and discount
     if steam_data["is_free"] is True:
         price = 0.0
+        discount = 0
     elif "price_overview" in steam_data:
         assert steam_data["price_overview"]["currency"] == "EUR"
         price = float(steam_data["price_overview"]["final"] / 100)
+        discount = steam_data["price_overview"]["discount_percent"]
     else:
         price = None
+        discount = None
 
     # Get release date
     if released:
@@ -189,6 +193,7 @@ async def get_steam_details(appid: str) -> Union[SteamDetails, None]:
 
         released=released,
         price=price,
+        discount=discount,
 
         release_date=release_date,
         overall_reviews=overall_reviews,
