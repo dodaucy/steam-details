@@ -362,10 +362,10 @@ async def get_key_and_gift_sellers_data(steam: SteamDetails) -> Union[dict, None
             logging.warning(f"KeyForSteam warning: {repr(warning)}")
 
     # Check for errors
-    if "errors" in search_result and isinstance(search_result["errors"], list) and len(search_result["errors"]) > 0:
-        for error in search_result["errors"]:
+    if "errors" in offers_data and isinstance(offers_data["errors"], list) and len(offers_data["errors"]) > 0:
+        for error in offers_data["errors"]:
             logging.error(f"KeyForSteam error: {repr(error)}")
-        raise Exception(f"KeyForSteam errors: {repr(search_result['errors'])}")
+        raise Exception(f"KeyForSteam errors: {repr(offers_data['errors'])}")
 
     # Get cheapest offer
     cheapest_offer = None
