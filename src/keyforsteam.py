@@ -376,6 +376,7 @@ async def get_key_and_gift_sellers_data(steam: SteamDetails) -> Union[dict, None
             offer["stock"] == "InStock",
             "ACCOUNT" not in offers_data["regions"][offer["region"]]["name"],
             "ONLY" not in offers_data["regions"][offer["region"]]["name"],
+            "AUF" not in offers_data["regions"][offer["region"]]["name"],
             "Steam" != offers_data["merchants"][str(offer["merchant"])]["name"]
         )):
             cheapest_offer = offer
