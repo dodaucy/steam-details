@@ -166,7 +166,8 @@ function addGame(game, appendToTop) {
                 detailsData.push({
                     label: "GAME LENGTH:",
                     value: "Hover for info",
-                    title: `${title_list.join("\n")}\nFrom: howlongtobeat.com`
+                    title: `${title_list.join("\n")}\n\nFrom: howlongtobeat.com\nClick to visit site`,
+                    url: game.game_length.external_url
                 });
             } else {
                 const hours = game.game_length.plus / 3600;
@@ -182,8 +183,9 @@ function addGame(game, appendToTop) {
                 detailsData.push({
                     label: "GAME LENGTH:",
                     value: display_time_as_float(game.game_length.plus),
-                    title: `${title_list.join("\n")}\nFrom: howlongtobeat.com`,
-                    color_class: color_class
+                    title: `${title_list.join("\n")}\n\nFrom: howlongtobeat.com\nClick to visit site`,
+                    color_class: color_class,
+                    url: game.game_length.external_url
                 });
             }
         } else {
@@ -248,33 +250,42 @@ function addGame(game, appendToTop) {
             detailsData.push({
                 label: "LINUX SUPPORT:",
                 value: game.linux_support.tier,
-                title: `Confidence: ${game.linux_support.confidence}\nReports: ${game.linux_support.report_count}\nFrom: protondb.com`,
-                color_class: color_class
+                title: `Confidence: ${game.linux_support.confidence}\nReports: ${game.linux_support.report_count}\n\nFrom: protondb.com\nClick to visit site`,
+                color_class: color_class,
+                url: game.linux_support.external_url
             });
         }
     }
 
     // Add details
     detailsData.forEach(detail => {
-        const labelDiv = document.createElement("div");
-        labelDiv.textContent = detail.label;
-        detailsGridDiv.appendChild(labelDiv);
-
-        const valueDiv = document.createElement("div");
-        if (detail.value === null) {
-            valueDiv.textContent = "N/A";
-            valueDiv.classList.add("grey-text");
-            labelDiv.title = "Not available";
-            valueDiv.title = "Not available";
+        if (detail.url !== undefined) {
+            var base_element = document.createElement("a");
+            base_element.href = detail.url;
+            base_element.target = "_blank";
         } else {
-            valueDiv.textContent = detail.value;
-            if (detail.color_class !== undefined) {
-                valueDiv.classList.add(detail.color_class);
-            }
-            labelDiv.title = detail.title;
-            valueDiv.title = detail.title;
+            var base_element = document.createElement("div");
         }
-        detailsGridDiv.appendChild(valueDiv);
+
+        const labelElement = base_element.cloneNode(false);
+        labelElement.textContent = detail.label;
+        detailsGridDiv.appendChild(labelElement);
+
+        const valueElement = base_element.cloneNode(false);
+        if (detail.value === null) {
+            valueElement.textContent = "N/A";
+            valueElement.classList.add("grey-text");
+            labelElement.title = "Not available";
+            valueElement.title = "Not available";
+        } else {
+            valueElement.textContent = detail.value;
+            if (detail.color_class !== undefined) {
+                valueElement.classList.add(detail.color_class);
+            }
+            labelElement.title = detail.title;
+            valueElement.title = detail.title;
+        }
+        detailsGridDiv.appendChild(valueElement);
     });
 
     detailsDiv.appendChild(detailsGridDiv);
@@ -303,20 +314,23 @@ function addGame(game, appendToTop) {
             // Steam price
             let historicalLowPrice = null;
             let historicalLowTitle = null;
+            let historicalLowURL = undefined;
             if (game.steam_historical_low !== null) {
                 historicalLowPrice = game.steam_historical_low.price;
-                historicalLowTitle = `Date: ${display_date(game.steam_historical_low.iso_date)}\nFrom steamdb.info`;
+                historicalLowTitle = `Date: ${display_date(game.steam_historical_low.iso_date)}\n\nFrom: steamdb.info\nClick to visit site`;
+                historicalLowURL = game.steam_historical_low.external_url;
             }
             let purchaseData = [{
                 historicalLowPrice: historicalLowPrice,
                 historicalLowTitle: historicalLowTitle,
+                historicalLowURL: historicalLowURL,
 
                 price: game.steam.price,
                 priceTitle: null,
 
                 buttonText: "Buy on Steam",
                 buttonClass: "steam-button",
-                buttonURL: game.steam.external_url,
+                buttonURL: game.steam.external_url
             }];
 
             // Key and gift sellers price
@@ -341,28 +355,34 @@ function addGame(game, appendToTop) {
                     purchaseAreaDiv.classList.add(lowest_price_color_class);
                 }
 
-                const historicalLowDiv = document.createElement("div");
-                if (purchase.historicalLowTitle !== null) {
-                    historicalLowDiv.title = purchase.historicalLowTitle;
+                if (purchase.historicalLowURL !== undefined) {
+                    var historicalLowElement = document.createElement("a");
+                    historicalLowElement.href = purchase.historicalLowURL;
+                    historicalLowElement.target = "_blank";
+                } else {
+                    var historicalLowElement = document.createElement("div");
                 }
-                historicalLowDiv.className = "historical-low";
+                if (purchase.historicalLowTitle !== null) {
+                    historicalLowElement.title = purchase.historicalLowTitle;
+                }
+                historicalLowElement.className = "historical-low";
 
                 const historicalLowLabelDiv = document.createElement("div");
                 historicalLowLabelDiv.className = "small-font historical-low-label";
                 historicalLowLabelDiv.textContent = "Historical low";
-                historicalLowDiv.appendChild(historicalLowLabelDiv);
+                historicalLowElement.appendChild(historicalLowLabelDiv);
 
                 const historicalLowValueDiv = document.createElement("div");
                 historicalLowValueDiv.className = "small-font historical-low-value";
                 if (purchase.historicalLowPrice === null) {
                     historicalLowValueDiv.textContent = "N/A";
-                    historicalLowDiv.classList.add("grey-text");
+                    historicalLowElement.classList.add("grey-text");
                 } else {
                     historicalLowValueDiv.textContent = display_price(purchase.historicalLowPrice);
                 }
-                historicalLowDiv.appendChild(historicalLowValueDiv);
+                historicalLowElement.appendChild(historicalLowValueDiv);
 
-                purchaseAreaDiv.appendChild(historicalLowDiv);
+                purchaseAreaDiv.appendChild(historicalLowElement);
 
                 const priceDiv = document.createElement("div");
                 priceDiv.className = "price";

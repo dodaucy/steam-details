@@ -169,5 +169,6 @@ async def get_game_length(steam: SteamDetails) -> Union[dict, None]:
                 return {
                     "main": game_data["comp_main"] if game_data["comp_main"] != 0 else None,  # Union[int, None]
                     "plus": game_data["comp_plus"] if game_data["comp_plus"] != 0 else None,  # Union[int, None]
-                    "completionist": game_data["comp_100"] if game_data["comp_100"] != 0 else None  # Union[int, None]
+                    "completionist": game_data["comp_100"] if game_data["comp_100"] != 0 else None,  # Union[int, None]
+                    "external_url": f"https://howlongtobeat.com/game/{game_data['game_id']}"  # str
                 }

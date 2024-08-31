@@ -117,12 +117,14 @@ async def get_steam_historical_low(steam: SteamDetails, allow_captcha: bool = Tr
         if historical_low_price < steam.price:
             historical_low = {
                 "price": historical_low_price,  # float
-                "iso_date": datetime.strptime(element["title"].strip(), "%d %B %Y").date().isoformat()  # Union[str, None]
+                "iso_date": datetime.strptime(element["title"].strip(), "%d %B %Y").date().isoformat(),  # Union[str, None]
+                "external_url": f"https://steamdb.info/app/{steam.appid}/",  # Union[str, None]
             }
         else:
             historical_low = {
                 "price": steam.price,  # float
-                "iso_date": None  # Union[str, None]
+                "iso_date": None,  # Union[str, None]
+                "external_url": f"https://steamdb.info/app/{steam.appid}/",
             }
         logging.info(f"Historical low: {historical_low}")
 
