@@ -7,14 +7,13 @@ from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from how_long_to_beat import get_game_length
-from keyforsteam import get_key_and_gift_sellers_data
-from protondb import get_linux_support
-from steam import download_app_list, get_app, get_steam_details, wishlist_data
-from steamdb import get_steam_historical_low
+from service_manager import ServiceManager
 
 
-app = FastAPI(openapi_url=None, on_startup=[download_app_list])
+service_manager = ServiceManager()
+
+
+app = FastAPI(openapi_url=None, on_startup=[service_manager.load_services])
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -44,7 +43,7 @@ async def index(request: Request):
 
 @app.get("/wishlist")
 async def wishlist(profile_name_or_id: str):
-    game_appids = await wishlist_data(profile_name_or_id)
+    game_appids = await service_manager._steam.get_wishlist_data(profile_name_or_id)
     if game_appids is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Steam ID / Profile not found (your wishlist must be public)")
     return game_appids
@@ -61,12 +60,12 @@ async def details(appid_or_name: str):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty search")
 
         # Get steam details
-        steam = await get_steam_details(appid_or_name)
+        steam = await service_manager.get_steam_details(appid_or_name)
         if steam is None:
-            appid = await get_app(appid_or_name)
+            appid = await service_manager._steam.get_app(appid_or_name)
             if appid is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="App not found")
-            steam = await get_steam_details(appid)
+            steam = await service_manager.get_steam_details(appid)
             if steam is None:
                 raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get steam details")
 
@@ -89,13 +88,13 @@ async def details(appid_or_name: str):
                 "steam": steam.model_dump()
             }
 
-            tasks: Dict[str, asyncio.Task] = {}
+            tasks: Dict[str, asyncio.Task[object]] = {}
 
             # Steam historical low
             if steam.price is None:
                 details["steam_historical_low"] = None
             elif steam.price > 0:
-                tasks["steam_historical_low"] = asyncio.create_task(get_steam_historical_low(steam))
+                tasks["steam_historical_low"] = service_manager.get_steam_historical_low(steam)
             else:
                 details["steam_historical_low"] = {
                     "price": 0.0,
@@ -104,23 +103,26 @@ async def details(appid_or_name: str):
 
             # Key and gift sellers
             if steam.price is not None and steam.price > 0:
-                tasks["key_and_gift_sellers"] = asyncio.create_task(get_key_and_gift_sellers_data(steam))
+                tasks["key_and_gift_sellers"] = service_manager.get_key_and_gift_sellers_data(steam)
             else:
                 details["key_and_gift_sellers"] = None
 
             # Game length
-            tasks["game_length"] = asyncio.create_task(get_game_length(steam))
+            tasks["game_length"] = service_manager.get_game_length(steam)
 
             # Linux support
             if steam.native_linux_support:
                 details["linux_support"] = None
             else:
-                tasks["linux_support"] = asyncio.create_task(get_linux_support(steam))
+                tasks["linux_support"] = service_manager.get_linux_support(steam)
 
             # Run tasks
             results = await asyncio.gather(*tasks.values())
             for task, result in zip(tasks.keys(), results):
-                details[task] = result
+                if result is None:
+                    details[task] = None
+                else:
+                    details[task] = result.model_dump()
 
         else:
 
