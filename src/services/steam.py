@@ -19,7 +19,7 @@ class OverallReviews(BaseModel):
 
 
 class SteamDetails(BaseModel):
-    appid: str
+    appid: int
     name: str
     images: List[str]
     external_url: str
@@ -53,10 +53,7 @@ class Steam:
 
         logging.info("App list ready")
 
-    async def get_game_details(self, appid: str) -> Union[SteamDetails, None]:
-        if not appid.isdigit():
-            logging.info(f"Not a valid appid: {repr(appid)}")
-            return
+    async def get_game_details(self, appid: int) -> Union[SteamDetails, None]:
         logging.info(f"Getting steam details for {appid}")
         r = await http_client.get(
             "https://store.steampowered.com/api/appdetails",
@@ -72,9 +69,9 @@ class Steam:
             return
         r.raise_for_status()
         j = r.json()
-        if j[appid]["success"] is False:
+        if j[str(appid)]["success"] is False:
             return
-        steam_data = j[appid]["data"]
+        steam_data = j[str(appid)]["data"]
 
         # Get images
         images = [steam_data["header_image"]]
@@ -155,12 +152,12 @@ class Steam:
             native_linux_support=steam_data["platforms"]["linux"]
         )
 
-    async def get_app(self, name: str) -> Union[str, None]:
+    async def get_app(self, name: str) -> Union[int, None]:
         appid = self.app_list.get(name.lower())
         if appid is not None:
-            return str(appid)
+            return appid
 
-    async def get_wishlist_data(self, profile_name_or_id: str) -> Union[List[str], None]:
+    async def get_wishlist_data(self, profile_name_or_id: str) -> Union[List[int], None]:
         """
         Get the wishlist data for the given profile id
         """
@@ -187,12 +184,12 @@ class Steam:
                 return None
         r.raise_for_status()
         j = r.json()
-        sorted_items: List[str] = []
-        unsorted_items: List[str] = []
+        sorted_items: List[int] = []
+        unsorted_items: List[int] = []
         for appid, data in j.items():
             if data["priority"] == 0:
-                unsorted_items.append(appid)
+                unsorted_items.append(int(appid))
             else:
-                sorted_items.append(appid)
+                sorted_items.append(int(appid))
         sorted_items.sort(key=lambda x: j[x]["priority"])
         return sorted_items + unsorted_items

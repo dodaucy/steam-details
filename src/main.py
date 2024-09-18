@@ -60,7 +60,9 @@ async def details(appid_or_name: str):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty search")
 
         # Get steam details
-        steam = await service_manager.get_steam_details(appid_or_name)
+        steam = None
+        if appid_or_name.strip().isdigit():
+            steam = await service_manager.get_steam_details(int(appid_or_name))
         if steam is None:
             appid = await service_manager._steam.get_app(appid_or_name)
             if appid is None:

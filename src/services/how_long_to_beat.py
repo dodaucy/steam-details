@@ -179,12 +179,12 @@ class HowLongToBeat:
         for game_data in search_results["data"]:
 
             if "profile_steam" in game_data:  # Was available in the past (might be removed in the future, it's still here for stability)
-                current_appid = str(game_data["profile_steam"])
+                current_appid = int(game_data["profile_steam"])
 
             else:
                 assert isinstance(game_data["game_id"], int)
                 props = await self._get_game_props(game_data["game_id"], steam)
-                current_appid = str(props["pageProps"]["game"]["data"]["game"][0]["profile_steam"])
+                current_appid = int(props["pageProps"]["game"]["data"]["game"][0]["profile_steam"])
 
             if current_appid == steam.appid:
                 return HowLongToBeatDetails(

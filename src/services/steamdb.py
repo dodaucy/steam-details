@@ -20,7 +20,7 @@ class SteamDBDetails(BaseModel):
 
 
 class SteamDB:
-    async def _captcha(self, appid: str, timeout: int) -> None:
+    async def _captcha(self, appid: int, timeout: int) -> None:
         logging.warning("Displaying captcha or bot protection message")
         play = await async_playwright().start()
         with TemporaryDirectory() as td:
@@ -109,7 +109,7 @@ class SteamDB:
                 return
             elif response.status == 403 and allow_captcha:  # Try to bypass bot protection
                 await self._captcha(steam.appid, timeout=20)
-                return self.get_game_details(steam.appid, steam.price, allow_captcha=False)
+                return self.get_game_details(steam, allow_captcha=False)
             assert response.status == 200, f"Unexpected status: {response.status}"
 
             # Get response

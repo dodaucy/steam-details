@@ -48,7 +48,7 @@ class ServiceManager:
             asyncio.create_task(service.get_game_details(*args, **kwargs))
         ))
 
-    def get_steam_details(self, appid: str) -> asyncio.Task[Union[SteamDetails, None]]:
+    def get_steam_details(self, appid: int) -> asyncio.Task[Union[SteamDetails, None]]:
         return self.create_task(self._steam, appid)
 
     def get_steam_historical_low(self, steam: SteamDetails) -> asyncio.Task[Union[SteamDBDetails, None]]:
