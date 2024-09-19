@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import time
-from typing import Union
+from typing import Awaitable, Union
 
 from services.how_long_to_beat import HowLongToBeat, HowLongToBeatDetails
 from services.keyforsteam import KeyForSteam, KeyForSteamDetails
@@ -36,17 +36,15 @@ class ServiceManager:
 
         logging.debug("All services loaded")
 
-    async def get_service_details(self, task: asyncio.Task) -> object:
-        logging.debug(f"Starting task {task.__class__.__name__}")
+    async def get_service_details(self, service: Awaitable, *args, **kwargs) -> Union[object, None]:
+        logging.debug(f"Starting task {service.__class__.__name__}")
         start_time = time.time()
-        response = await task
-        logging.debug(f"Got response from {task.__class__.__name__} in {time.time() - start_time:.2f}s")
+        response = await service.get_game_details(*args, **kwargs)
+        logging.debug(f"Got response from {service.__class__.__name__} in {time.time() - start_time:.2f}s")
         return response
 
     def create_task(self, service: object, *args, **kwargs) -> asyncio.Task:
-        return asyncio.create_task(self.get_service_details(
-            asyncio.create_task(service.get_game_details(*args, **kwargs))
-        ))
+        return asyncio.create_task(self.get_service_details(service, *args, **kwargs))
 
     def get_steam_details(self, appid: int) -> asyncio.Task[Union[SteamDetails, None]]:
         return self.create_task(self._steam, appid)
