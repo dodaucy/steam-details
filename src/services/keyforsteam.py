@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from typing_extensions import TypedDict
 
 from services.steam import SteamDetails
-from utils import http_client, price_string_to_float
+from utils import http_client, price_string_to_float, roman_to_int
 
 
 # This add-on helped to improve the search:
@@ -280,8 +280,18 @@ class KeyForSteam:
     async def get_game_details(self, steam: SteamDetails) -> Union[KeyForSteamDetails, None]:
         logging.info(f"Getting KeyForSteam data for {repr(steam.name)} ({steam.appid})")
 
+        # Convert roman numbers to integers
+        int_name_list = []
+        for word in steam.name.split(" "):
+            int_word = roman_to_int(word)
+            if int_word is None:
+                int_name_list.append(word)
+            else:
+                int_name_list.append(str(int_word))
+        int_name = " ".join(int_name_list)
+
         # Get internal ID and link directly
-        game_url = f"https://www.keyforsteam.de/{'-'.join(steam.name.lower().split(' '))}-key-kaufen-preisvergleich/"
+        game_url = f"https://www.keyforsteam.de/{'-'.join(int_name.lower().split(' '))}-key-kaufen-preisvergleich/"
         internal_id = await self._get_internal_id(game_url)
 
         # Get internal ID and link via search
@@ -297,7 +307,7 @@ class KeyForSteam:
             # Purge name
             purged_name = re.sub(r"\s\s+", " ", self._purge_words(
                 self._purge_chars(self._purge_words(
-                    self._normalize_string(steam.name.lower()).replace("&#39;", "'"),
+                    self._normalize_string(int_name.lower()).replace("&#39;", "'"),
                     ignored_word_list
                 ), IGNORED_CHARS),
                 ignored_word_list
