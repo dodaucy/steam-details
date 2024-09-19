@@ -191,5 +191,5 @@ class Steam:
                 unsorted_items.append(int(appid))
             else:
                 sorted_items.append(int(appid))
-        sorted_items.sort(key=lambda x: j[x]["priority"])
+        sorted_items.sort(key=lambda x: j[str(x)]["priority"])
         return sorted_items + unsorted_items
