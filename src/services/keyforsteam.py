@@ -304,8 +304,8 @@ class KeyForSteam:
         title_tag = soup.find("title")
         assert title_tag is not None
         logging.debug(f"Title tag: {title_tag.text}")
-        assert title_tag.text.count(" Key kaufen Preisvergleich") == 1
-        internal_name = title_tag.text.split(" Key kaufen Preisvergleich")[0].strip()
+        assert title_tag.text.count(" Key kaufen Preisvergleich") + title_tag.text.count(" Key Kaufen Preisvergleich") == 1
+        internal_name = title_tag.text.split(" Key kaufen Preisvergleich")[0].split(" Key Kaufen Preisvergleich")[0].strip()
         logging.info(f"Internal name: {internal_name}")
 
         return internal_id, internal_name
