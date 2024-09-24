@@ -3,7 +3,6 @@ import logging
 import re
 import unicodedata
 from datetime import datetime
-from difflib import SequenceMatcher
 from typing import List, Tuple, Union
 from urllib.parse import quote
 
@@ -12,12 +11,8 @@ from pydantic import BaseModel
 from typing_extensions import TypedDict
 
 from services.steam import SteamDetails
-from utils import http_client, price_string_to_float, roman_to_int
-
-
-# This add-on helped to improve the search:
-# https://addons.mozilla.org/en-US/firefox/addon/allkeyshop-compare-game-prices/ - version 3.0.10413
-
+from utils import (http_client, price_string_to_float,
+                   roman_string_to_int_string)
 
 PLATFORMS = [
     "PlayStation 4",
@@ -255,6 +250,13 @@ class KeyForSteamDetails(BaseModel):
 
 
 class KeyForSteam:
+    def __init__(self):
+        # Get full ignored word list
+        self._ignored_word_list = IGNORED_WORDS + PLATFORMS
+        for platform in PLATFORMS:
+            for adjective in ADJECTIVES:
+                self._ignored_word_list.append(f"{adjective} {platform}")
+
     def _normalize_string(self, input_str: str) -> str:
         return (
             unicodedata.normalize("NFD", input_str)
@@ -275,6 +277,24 @@ class KeyForSteam:
         for char in chars:
             name = re.sub(re.escape(char.lower()), " ", name)
         return name
+
+    def _purge_name(self, name: str) -> str:
+        """
+        Purges a game name.
+
+        This function is based on the allkeyshop add-on:
+
+        https://addons.mozilla.org/en-US/firefox/addon/allkeyshop-compare-game-prices/ - version 3.0.10413
+        """
+        purged_name = re.sub(r"\s\s+", " ", self._purge_words(
+            self._purge_chars(self._purge_words(
+                self._normalize_string(name.lower()).replace("&#39;", "'"),
+                self._ignored_word_list
+            ), IGNORED_CHARS),
+            self._ignored_word_list
+        )).strip()
+        logging.info(f"Purged name {repr(name)} -> {repr(purged_name)}")
+        return purged_name
 
     async def _get_internal_id_and_name(self, keyforsteam_game_url: str) -> Tuple[str, int, None]:
         """
@@ -321,10 +341,8 @@ class KeyForSteam:
         Returns product details for the given internal ID, or None if the game isn't available
         """
         # Verify name
-        name_similarity = SequenceMatcher(None, internal_name.upper(), steam.name.upper()).ratio()  # TODO: Replace ratio with an 100% algorithm that uses IGNORED_CHARS and spaces - test 2965660
-        logging.info(f"Name similarity between Steam {repr(steam.name.upper())} and KeyForSteam {repr(internal_name.upper())}: {name_similarity * 100:.2f}%")
-        if name_similarity < 0.8:
-            logging.info("Name similarity too low, skipping")
+        if self._purge_name(roman_string_to_int_string(steam.name)).lower() != self._purge_name(roman_string_to_int_string(internal_name)).lower():
+            logging.debug(f"Skipping KeyForSteam ID {internal_id} due to name mismatch: {repr(steam.name)} != {repr(internal_name)}")
             return
 
         # Get offers
@@ -431,19 +449,8 @@ class KeyForSteam:
 
         products: List[Product] = []
 
-        # Convert roman numbers to integers
-        name_list = []
-        for word in steam.name.split(" "):
-            int_word = roman_to_int(word)
-            if int_word is None:
-                name_list.append(word)
-            else:
-                name_list.append(str(int_word))
-        name = " ".join(name_list)
-        logging.debug(f"Converted name: {repr(name)}")
-
         # Get internal ID and link directly
-        keyforsteam_game_url = f"https://www.keyforsteam.de/{'-'.join(name.lower().split(' '))}-key-kaufen-preisvergleich/"
+        keyforsteam_game_url = f"https://www.keyforsteam.de/{'-'.join(roman_string_to_int_string(steam.name).lower().split(' '))}-key-kaufen-preisvergleich/"
         direct_internal_id, internal_name = await self._get_internal_id_and_name(keyforsteam_game_url)
 
         if direct_internal_id is not None:
@@ -461,21 +468,7 @@ class KeyForSteam:
             # Get internal ID and link via search
             logging.info("Couldn't get internal ID, trying search")
 
-            # Get full ignored word list
-            ignored_word_list = IGNORED_WORDS + PLATFORMS
-            for platform in PLATFORMS:
-                for adjective in ADJECTIVES:
-                    ignored_word_list.append(f"{adjective} {platform}")
-
-            # Purge name
-            purged_name = re.sub(r"\s\s+", " ", self._purge_words(
-                self._purge_chars(self._purge_words(
-                    self._normalize_string(name.lower()).replace("&#39;", "'"),
-                    ignored_word_list
-                ), IGNORED_CHARS),
-                ignored_word_list
-            )).strip()
-            logging.info(f"Purged name: {purged_name}")
+            purged_name = self._purge_name(steam.name)
 
             # Search for game
             r = await http_client.get(

@@ -69,3 +69,17 @@ def roman_to_int(roman: str) -> Union[int, None]:
         return
 
     return total
+
+
+def roman_string_to_int_string(string_with_roman: str) -> str:
+    """
+    Convert a string that includes roman numbers to one that only includes integers
+    """
+    name_list = []
+    for word in string_with_roman.split(" "):
+        int_word = roman_to_int(word)
+        if int_word is None:
+            name_list.append(word)
+        else:
+            name_list.append(str(int_word))
+    return " ".join(name_list)
