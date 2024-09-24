@@ -317,7 +317,7 @@ function addGame(game, appendToTop) {
             let historicalLowURL = undefined;
             if (game.steam_historical_low !== null) {
                 historicalLowPrice = game.steam_historical_low.price;
-                historicalLowTitle = `At Discount: ${game.steam_historical_low.discount}%\nDate: ${display_date(game.steam_historical_low.iso_date)}\n\nFrom: steamdb.info\nClick to visit site`;
+                historicalLowTitle = `At Discount: ${game.steam_historical_low.discount}%\nDate: ${game.steam_historical_low.iso_date === null ? "Today": display_date(game.steam_historical_low.iso_date)}\n\nFrom: steamdb.info\nClick to visit site`;
                 historicalLowURL = game.steam_historical_low.external_url;
             }
             let purchaseData = [{
@@ -337,7 +337,7 @@ function addGame(game, appendToTop) {
             if (game.key_and_gift_sellers !== null) {
                 purchaseData.push({
                     historicalLowPrice: game.key_and_gift_sellers.historical_low.price,
-                    historicalLowTitle: `Date: ${display_date(game.key_and_gift_sellers.historical_low.iso_date)}\nSeller: ${game.key_and_gift_sellers.historical_low.seller}`,
+                    historicalLowTitle: `Date: ${game.key_and_gift_sellers.historical_low.iso_date === null ? "Today": display_date(game.key_and_gift_sellers.historical_low.iso_date)}\nSeller: ${game.key_and_gift_sellers.historical_low.seller}`,
 
                     price: game.key_and_gift_sellers.cheapest_offer.price,
                     priceTitle: `Form: ${game.key_and_gift_sellers.cheapest_offer.form}\nSeller: ${game.key_and_gift_sellers.cheapest_offer.seller}\nEdition: ${game.key_and_gift_sellers.cheapest_offer.edition}`,
