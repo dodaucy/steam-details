@@ -1,8 +1,10 @@
+import json
 import logging
 import re
 import unicodedata
 from datetime import datetime
-from typing import Union
+from difflib import SequenceMatcher
+from typing import List, Tuple, Union
 from urllib.parse import quote
 
 from bs4 import BeautifulSoup
@@ -215,6 +217,16 @@ IGNORED_WORDS = [
 IGNORED_CHARS = [":", "™", "-", "(", ")", "[", "]", "{", "}", "/", ",", "©", "®"]
 
 
+class Offer(BaseModel):
+    id: int
+    is_available: bool
+
+    price: float
+    form: str
+    seller: str
+    edition: str
+
+
 class CheapestOffer(TypedDict):
     price: float
     form: str
@@ -225,12 +237,20 @@ class CheapestOffer(TypedDict):
 class HistoricalLow(TypedDict):
     price: float
     seller: str
-    iso_date: str
+    iso_date: Union[str, None]
+
+
+class Product(BaseModel):
+    internal_id: int
+    cheapest_offer: CheapestOffer
+    id_verified: bool
+    keyforsteam_game_url: str
 
 
 class KeyForSteamDetails(BaseModel):
     cheapest_offer: CheapestOffer
     historical_low: HistoricalLow
+    id_verified: bool
     external_url: str
 
 
@@ -256,46 +276,189 @@ class KeyForSteam:
             name = re.sub(re.escape(char.lower()), " ", name)
         return name
 
-    async def _get_internal_id(self, game_url: str) -> Union[int, None]:
+    async def _get_internal_id_and_name(self, keyforsteam_game_url: str) -> Tuple[str, int, None]:
+        """
+        Returns the internal ID and name of the game on KeyForSteam or None if the game page doesn't exist
+        """
         # Get game page
-        r = await http_client.get(game_url)
+        r = await http_client.get(keyforsteam_game_url)
         logging.info(f"Response (100 chars): {repr(r.text[:100])}")
         logging.debug(f"Response: (all): {r.text}")
         if r.status_code == 404:
-            return
+            return None, None
         r.raise_for_status()
+        soup = BeautifulSoup(r.text, "html.parser")
 
         # Get internal ID
-        soup = BeautifulSoup(r.text, "html.parser")
         internal_id = None
         for script_tag in soup.find_all("script"):
             if script_tag.text.startswith("var game_id=\"") and script_tag.text.endswith("\""):
                 internal_id = int(script_tag.text.split("var game_id=\"")[-1].split("\"")[0])
                 logging.info(f"Internal KeyForSteam ID: {internal_id}")
                 break
+            else:
+                logging.debug(f"Skipping script tag: {repr(script_tag)}")
         assert internal_id is not None
 
-        return internal_id
+        # Get internal name
+        title_tag = soup.find("title")
+        assert title_tag is not None
+        logging.debug(f"Title tag: {title_tag.text}")
+        assert title_tag.text.count(" Key kaufen Preisvergleich") == 1
+        internal_name = title_tag.text.split(" Key kaufen Preisvergleich")[0].strip()
+        logging.info(f"Internal name: {internal_name}")
+
+        return internal_id, internal_name
+
+    async def _get_product(
+        self,
+        steam: SteamDetails,
+        internal_id: int,
+        internal_name: str,
+        keyforsteam_game_url: str
+    ) -> Union[Product, None]:
+        """
+        Returns product details for the given internal ID, or None if the game isn't available
+        """
+        # Verify name
+        name_similarity = SequenceMatcher(None, internal_name.upper(), steam.name.upper()).ratio()  # TODO: Replace ratio with an 100% algorithm that uses IGNORED_CHARS and spaces - test 2965660
+        logging.info(f"Name similarity between Steam {repr(steam.name.upper())} and KeyForSteam {repr(internal_name.upper())}: {name_similarity * 100:.2f}%")
+        if name_similarity < 0.8:
+            logging.info("Name similarity too low, skipping")
+            return
+
+        # Get offers
+        logging.info(f"Getting offers for internal id {internal_id}")
+        r = await http_client.get(
+            "https://www.keyforsteam.de/wp-admin/admin-ajax.php",
+            params={
+                "action": "get_offers",
+                "product": internal_id,
+                "currency": "eur",
+                "locale": "de-DE"
+            }
+        )
+        logging.info(f"Response (100 chars): {repr(r.text[:100])}")
+        logging.debug(f"Response: (all): {r.text}")
+        r.raise_for_status()
+        offers_data = r.json()
+
+        # Display warnings
+        if "warnings" in offers_data and isinstance(offers_data["warnings"], list):
+            for warning in offers_data["warnings"]:
+                logging.warning(f"KeyForSteam warning: {repr(warning)}")
+
+        # Check for errors
+        if "errors" in offers_data and isinstance(offers_data["errors"], list) and len(offers_data["errors"]) > 0:
+            for error in offers_data["errors"]:
+                logging.error(f"KeyForSteam error: {repr(error)}")
+            raise Exception(f"KeyForSteam errors: {repr(offers_data['errors'])}")
+
+        assert offers_data["success"] is True
+
+        # Evaluate offers
+        steam_offer: Union[Offer, None] = None
+        cheapest_offer: Union[Offer, None] = None
+        for offer_data in offers_data["offers"]:
+            offer = Offer(
+                id=offer_data["id"],
+                is_available=offer_data["isActive"] and offer_data["stock"] == "InStock",
+
+                price=round(offer_data["price"]["eur"]["priceCard"], 2),
+                form=offers_data["regions"][offer_data["region"]]["name"],
+                seller=offers_data["merchants"][str(offer_data["merchant"])]["name"],
+                edition=offers_data["editions"][offer_data["edition"]]["name"]
+            )
+            logging.debug(f"Offer: {offer}")
+
+            if offer.seller == "Steam":  # Get steam offer
+                logging.debug(f"Found steam offer: {offer}")
+                steam_offer = offer
+
+            elif all((  # Get cheapest offer
+                offer.is_available,
+                "ACCOUNT" not in offer.form,
+                "ONLY" not in offer.form,
+                "AUF" not in offer.form,
+                cheapest_offer is None or offer.price < cheapest_offer.price
+            )):
+                logging.debug(f"Found cheaper offer: {offer}")
+                cheapest_offer = offer
+
+        # Check if offers are available
+        if cheapest_offer is None:
+            return
+
+        # Check if steam offer is available
+        if steam_offer is not None:
+
+            # Request redirection
+            r = await http_client.get(f"https://www.allkeyshop.com/redirection/offer/eur/{steam_offer.id}")
+            logging.info(f"Response (100 chars): {repr(r.text[:100])}")
+            logging.debug(f"Response: (all): {r.text}")
+            r.raise_for_status()
+
+            # Get potential steam id
+            soup = BeautifulSoup(r.text, "html.parser")
+            redirect_data_tag = soup.find("script", {"id": "appData"})
+            assert redirect_data_tag is not None
+            redirect_data = json.loads(redirect_data_tag.text)
+            redirection_url = redirect_data["clickBody"]["redirectionUrl"]
+            assert isinstance(redirection_url, str)
+            assert redirection_url.startswith("https://store.steampowered.com/")
+            if redirection_url.startswith("https://store.steampowered.com/app/"):  # Exclude bundles and stuff
+                potential_steam_id = int(redirection_url.split("https://store.steampowered.com/app/", 1)[1].split("/", 1)[0].split("?", 1)[0])
+
+                # Verify steam id
+                if potential_steam_id != steam.appid:
+                    logging.info(f"Wrong Steam ID: Seems like {repr(internal_name)} ({potential_steam_id}) is not the same as {repr(steam.name)} ({steam.appid})")
+                    return
+
+        return Product(
+            internal_id=internal_id,
+            cheapest_offer=CheapestOffer(
+                price=cheapest_offer.price,
+                form=cheapest_offer.form,
+                seller=cheapest_offer.seller,
+                edition=cheapest_offer.edition
+            ),
+            id_verified=steam_offer is not None,
+            keyforsteam_game_url=keyforsteam_game_url
+        )
 
     async def get_game_details(self, steam: SteamDetails) -> Union[KeyForSteamDetails, None]:
         logging.info(f"Getting KeyForSteam data for {repr(steam.name)} ({steam.appid})")
 
+        products: List[Product] = []
+
         # Convert roman numbers to integers
-        int_name_list = []
+        name_list = []
         for word in steam.name.split(" "):
             int_word = roman_to_int(word)
             if int_word is None:
-                int_name_list.append(word)
+                name_list.append(word)
             else:
-                int_name_list.append(str(int_word))
-        int_name = " ".join(int_name_list)
+                name_list.append(str(int_word))
+        name = " ".join(name_list)
+        logging.debug(f"Converted name: {repr(name)}")
 
         # Get internal ID and link directly
-        game_url = f"https://www.keyforsteam.de/{'-'.join(int_name.lower().split(' '))}-key-kaufen-preisvergleich/"
-        internal_id = await self._get_internal_id(game_url)
+        keyforsteam_game_url = f"https://www.keyforsteam.de/{'-'.join(name.lower().split(' '))}-key-kaufen-preisvergleich/"
+        direct_internal_id, internal_name = await self._get_internal_id_and_name(keyforsteam_game_url)
 
-        # Get internal ID and link via search
-        if internal_id is None:
+        if direct_internal_id is not None:
+            product = await self._get_product(
+                steam=steam,
+                internal_id=direct_internal_id,
+                internal_name=internal_name,
+                keyforsteam_game_url=keyforsteam_game_url
+            )
+            if product is not None:
+                products.append(product)
+                logging.info(f"Found KeyForSteam ID: {direct_internal_id}")
+
+        if not products:
+            # Get internal ID and link via search
             logging.info("Couldn't get internal ID, trying search")
 
             # Get full ignored word list
@@ -307,7 +470,7 @@ class KeyForSteam:
             # Purge name
             purged_name = re.sub(r"\s\s+", " ", self._purge_words(
                 self._purge_chars(self._purge_words(
-                    self._normalize_string(int_name.lower()).replace("&#39;", "'"),
+                    self._normalize_string(name.lower()).replace("&#39;", "'"),
                     ignored_word_list
                 ), IGNORED_CHARS),
                 ignored_word_list
@@ -343,80 +506,51 @@ class KeyForSteam:
                     logging.error(f"KeyForSteam error: {repr(error)}")
                 raise Exception(f"KeyForSteam errors: {repr(search_result['errors'])}")
 
-            assert search_result["status"] == "success"
+            assert search_result["status"] == "success", f"KeyForSteam status: {repr(search_result['status'])}"
 
             # Filter products
-            products = []
-            for product in search_result["products"]:
+            for product_data in search_result["products"]:
+                logging.debug(f"Product: {repr(product_data)}")
+
                 # Validate link
-                if not product["link"].startswith("https://www.keyforsteam.de/") or not product["link"].endswith("-key-kaufen-preisvergleich/"):
-                    logging.debug(f"Invalid link: {repr(product['link'])}")
+                if not product_data["link"].startswith("https://www.keyforsteam.de/") or not product_data["link"].endswith("-key-kaufen-preisvergleich/"):
+                    logging.debug(f"Invalid link: {repr(product_data['link'])}")
                     continue
-                # TODO: Validate publisher, developer and release date (ONLY IF NECESSARY DUE TO MANY PRODUCTS)
-                logging.debug(f"Found product: {repr(product['name'])} ({repr(product['link'])})")
-                products.append(product)
 
-            # Check products
-            if len(products) == 0:
-                logging.info("No KeyForSteam products found")
-                return
-            elif len(products) > 1:
-                raise Exception("Too many KeyForSteam products found")
+                # TODO: Validate release date (ONLY IF NECESSARY DUE TO MANY PRODUCTS)
 
-            game_url = products[0]["link"]
-            assert isinstance(game_url, str)
-            internal_id = products[0]["id"]
-            assert isinstance(internal_id, int)
+                # Skip invalid internal id if present to optimize search
+                if direct_internal_id is not None and product_data["id"] == direct_internal_id:
+                    logging.info(f"Skipping invalid internal id: {product_data['id']}")
+                    continue
 
-        # Get price offers
-        logging.info(f"Getting price offers for internal id {internal_id}")
-        r = await http_client.get(
-            "https://www.keyforsteam.de/wp-admin/admin-ajax.php",
-            params={
-                "action": "get_offers",
-                "product": internal_id,
-                "currency": "eur",
-                "locale": "de-DE",
-            }
-        )
-        logging.info(f"Response (100 chars): {repr(r.text[:100])}")
-        logging.debug(f"Response: (all): {r.text}")
-        r.raise_for_status()
-        offers_data = r.json()
+                # Get product
+                product = await self._get_product(
+                    steam=steam,
+                    internal_id=product_data["id"],
+                    internal_name=product_data["name"],
+                    keyforsteam_game_url=product_data["link"]
+                )
+                if product is not None:
+                    logging.debug(f"Valid product: {product}")
+                    products.append(product)
 
-        # Display warnings
-        if "warnings" in offers_data and isinstance(offers_data["warnings"], list):
-            for warning in offers_data["warnings"]:
-                logging.warning(f"KeyForSteam warning: {repr(warning)}")
-
-        # Check for errors
-        if "errors" in offers_data and isinstance(offers_data["errors"], list) and len(offers_data["errors"]) > 0:
-            for error in offers_data["errors"]:
-                logging.error(f"KeyForSteam error: {repr(error)}")
-            raise Exception(f"KeyForSteam errors: {repr(offers_data['errors'])}")
-
-        # Get cheapest offer
-        cheapest_offer = None
-        for offer in offers_data["offers"]:
-            if all((
-                cheapest_offer is None or offer["price"]["eur"]["priceCard"] < cheapest_offer["price"]["eur"]["priceCard"],
-                offer["isActive"],
-                offer["stock"] == "InStock",
-                "ACCOUNT" not in offers_data["regions"][offer["region"]]["name"],
-                "ONLY" not in offers_data["regions"][offer["region"]]["name"],
-                "AUF" not in offers_data["regions"][offer["region"]]["name"],
-                "Steam" != offers_data["merchants"][str(offer["merchant"])]["name"]
-            )):
-                cheapest_offer = offer
-        if cheapest_offer is None:
+        # Check products
+        if len(products) == 0:
+            logging.info("No KeyForSteam products found")
             return
+        elif len(products) > 1:
+            raise Exception(f"Too many KeyForSteam products found: Found {len(products)}")
+
+        product = products[0]
+        logging.info(f"Found KeyForSteam product: {product}")
 
         # Get price history
-        logging.info(f"Getting price history for internal id {internal_id}")
+        logging.info(f"Getting price history for internal id {product.internal_id}")
         r = await http_client.get(
             "https://www.allkeyshop.com/api/price_history_api.php",
             params={
-                "normalised_name": internal_id,
+                "normalised_name": product.internal_id,
                 "currency": "EUR",
                 "database": "keyforsteam.de",
                 "v2": 1
@@ -426,30 +560,24 @@ class KeyForSteam:
         logging.debug(f"Response: (all): {r.text}")
         r.raise_for_status()
         price_history_data = r.json()
+        historical_low = HistoricalLow(
+            price=price_string_to_float(price_history_data["lower_keyshops_price"]["price"]),
+            seller=price_history_data["merchants"][price_history_data["lower_keyshops_price"]["merchant_id"]]["name"],
+            iso_date=datetime.strptime(price_history_data["lower_keyshops_price"]["last_update"], "%Y-%m-%d %H:%M:%S").isoformat()
+        )
 
-        # Format and bundle data
-        cheapest_offer_price = round(cheapest_offer["price"]["eur"]["priceCard"], 2)
-        cheapest_offer_seller = offers_data["merchants"][str(cheapest_offer["merchant"])]["name"]
-        historical_low_price = price_string_to_float(price_history_data["lower_keyshops_price"]["price"])
-        historical_low_seller = price_history_data["merchants"][price_history_data["lower_keyshops_price"]["merchant_id"]]["name"]
-        historical_low_iso_date = datetime.strptime(price_history_data["lower_keyshops_price"]["last_update"], "%Y-%m-%d %H:%M:%S").isoformat()
-        if cheapest_offer_price < historical_low_price:
-            historical_low_price = cheapest_offer_price
-            historical_low_seller = cheapest_offer_seller
-            historical_low_iso_date = None
+        # Overwrite historical low if outdated
+        if product.cheapest_offer["price"] < historical_low["price"]:
+            historical_low = HistoricalLow(
+                price=product.cheapest_offer["price"],
+                seller=product.cheapest_offer["seller"],
+                iso_date=None
+            )
 
         # Return data
         return KeyForSteamDetails(
-            cheapest_offer=CheapestOffer(
-                price=cheapest_offer_price,
-                form=offers_data["regions"][cheapest_offer["region"]]["name"],
-                seller=cheapest_offer_seller,
-                edition=offers_data["editions"][cheapest_offer["edition"]]["name"]
-            ),
-            historical_low=HistoricalLow(
-                price=historical_low_price,
-                seller=historical_low_seller,
-                iso_date=historical_low_iso_date
-            ),
-            external_url=game_url
+            cheapest_offer=product.cheapest_offer,
+            historical_low=historical_low,
+            id_verified=product.id_verified,
+            external_url=product.keyforsteam_game_url
         )
