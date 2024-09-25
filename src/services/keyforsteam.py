@@ -328,6 +328,8 @@ class KeyForSteam:
         assert title_tag is not None
         self.logger.debug(f"Title tag: {repr(title_tag.text)}")
         position = title_tag.text.lower().find(" key kaufen preisvergleich")
+        if position == -1:
+            position = title_tag.text.lower().find(" cd key kaufen - preisvergleich")
         assert position != -1
         internal_name = title_tag.text[:position].strip()
         self.logger.info(f"Internal name: {repr(internal_name)}")
