@@ -7,6 +7,19 @@ http_client = httpx.AsyncClient(timeout=15)
 http_client.headers["User-Agent"] = "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0"
 
 
+class ANSICodes:
+    RESET = "\033[0m"
+
+    BOLD = "\033[1m"
+
+    RED = "\033[31m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    BLUE = "\033[34m"
+    MAGENTA = "\033[35m"
+    CYAN = "\033[36m"
+
+
 def price_string_to_float(price_string: str) -> float:
     return float(price_string.replace("€", "").replace(" ", "").replace(",", ".").replace("-", "0"))
 

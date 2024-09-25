@@ -8,10 +8,13 @@ from services.keyforsteam import KeyForSteam, KeyForSteamDetails
 from services.protondb import ProtonDB, ProtonDBDetails
 from services.steam import Steam, SteamDetails
 from services.steamdb import SteamDB, SteamDBDetails
+from utils import ANSICodes
 
 
 class ServiceManager:
     def __init__(self):
+        self._logger = logging.getLogger(f"{ANSICodes.MAGENTA}service_manager{ANSICodes.RESET}")
+
         self._steam = Steam()
         self._steamdb = SteamDB()
         self._protondb = ProtonDB()
@@ -29,18 +32,18 @@ class ServiceManager:
     async def load_services(self) -> None:
         for service in self._services:
             if hasattr(service, "load"):
-                logging.debug(f"Loading {service.__class__.__name__}")
+                self._logger.debug(f"Loading {service.__class__.__name__}")
                 start_time = time.time()
                 await service.load()
-                logging.debug(f"Loaded {service.__class__.__name__} in {time.time() - start_time:.2f}s")
+                self._logger.debug(f"Loaded {service.__class__.__name__} in {time.time() - start_time:.2f}s")
 
-        logging.debug("All services loaded")
+        self._logger.debug("All services loaded")
 
     async def get_service_details(self, service: Awaitable, *args, **kwargs) -> Union[object, None]:
-        logging.debug(f"Starting task {service.__class__.__name__}")
+        self._logger.debug(f"Starting task {service.__class__.__name__}")
         start_time = time.time()
         response = await service.get_game_details(*args, **kwargs)
-        logging.debug(f"Got response from {service.__class__.__name__} in {time.time() - start_time:.2f}s")
+        self._logger.debug(f"Got response from {service.__class__.__name__} in {time.time() - start_time:.2f}s")
         return response
 
     def create_task(self, service: object, *args, **kwargs) -> asyncio.Task:

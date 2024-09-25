@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from service_manager import ServiceManager
+from utils import ANSICodes
 
 
 service_manager = ServiceManager()
@@ -20,11 +21,37 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 
+class ColorFormatter(logging.Formatter):
+    COLORS = {
+        logging.DEBUG: ANSICodes.GREEN,
+        logging.INFO: ANSICodes.BLUE,
+        logging.WARNING: ANSICodes.YELLOW,
+        logging.ERROR: ANSICodes.RED,
+        logging.CRITICAL: ANSICodes.MAGENTA
+    }
+
+    def format(self, record: logging.LogRecord) -> str:
+        return super().format(record).replace(
+            "{LEVEL_COLOR}",
+            self.COLORS.get(record.levelno, ANSICodes.RESET),
+            1
+        )
+
+
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(filename)s:%(lineno)d %(message)s"
+    format="%(asctime)s [%(levelname)s] %(name)s (%(filename)s:%(lineno)d) %(message)s",
+    handlers=[
+        logging.StreamHandler()
+    ]
 )
 
+logging.getLogger().handlers[0].setFormatter(ColorFormatter(
+    f"%(asctime)s {{LEVEL_COLOR}}{ANSICodes.BOLD}[%(levelname)s]{ANSICodes.RESET} %(name)s ({ANSICodes.BLUE}%(filename)s:%(lineno)d{ANSICodes.RESET}) %(message)s"
+))
+
+
+logger = logging.getLogger(f"{ANSICodes.MAGENTA}main{ANSICodes.RESET}")
 
 details_lock = asyncio.Lock()
 
@@ -74,13 +101,13 @@ async def details(appid_or_name: str):
         # Remove old cache entries
         for cache_time in list(details_cache.keys()):
             if time.time() - cache_time > 60 * 15:
-                logging.debug(f"Removing old cache entry: {cache_time}")
+                logger.debug(f"Removing old cache entry: {cache_time}")
                 del details_cache[cache_time]
 
         # Check if already in cache
         for details in details_cache.values():
             if details["steam"]["appid"] == steam.appid:
-                logging.debug(f"App {steam.appid} already in cache")
+                logger.debug(f"App {steam.appid} already in cache")
                 details["from_cache"] = True
                 return details
 
@@ -136,7 +163,7 @@ async def details(appid_or_name: str):
                 "linux_support": None
             }
 
-        logging.info(f"Details: {details}")
+        logger.info(f"Details: {details}")
 
         # Add to cache
         details_cache[time.time()] = details

@@ -8,7 +8,7 @@ from httpx import Response
 from pydantic import BaseModel
 
 from services.steam import SteamDetails
-from utils import http_client
+from utils import ANSICodes, http_client
 
 
 class HowLongToBeatDetails(BaseModel):
@@ -20,6 +20,9 @@ class HowLongToBeatDetails(BaseModel):
 
 class HowLongToBeat:
     def __init__(self):
+        self.logger = logging.getLogger(f"{ANSICodes.RED}howlongtobeat{ANSICodes.RESET}")
+
+        # Cache
         self._search_endpoint: Union[str, None] = None
         self._build_id: Union[str, None] = None
 
@@ -27,7 +30,7 @@ class HowLongToBeat:
         await self._update_search_endpoint_and_build_id()
 
     async def _update_search_endpoint_and_build_id(self) -> None:
-        logging.info("Try fetching new howlongtobeat search endpoint")
+        self.logger.info("Try fetching new howlongtobeat search endpoint")
 
         # Get index page
         index_response = await http_client.get(
@@ -41,8 +44,8 @@ class HowLongToBeat:
                 "Sec-GPC": "1"
             }
         )
-        logging.info(f"Response (100 chars): {repr(index_response.text[:100])}")
-        logging.debug(f"Response: (all): {index_response.text}")
+        self.logger.info(f"Response (100 chars): {repr(index_response.text[:100])}")
+        self.logger.debug(f"Response: (all): {index_response.text}")
         index_response.raise_for_status()
 
         # Parse index page
@@ -54,7 +57,7 @@ class HowLongToBeat:
         metadata = json.loads(metadata_tag.text)
         assert isinstance(metadata["buildId"], str)
         self._build_id = metadata["buildId"]
-        logging.info(f"Found howlongtobeat build ID: {repr(self._build_id)}")
+        self.logger.info(f"Found howlongtobeat build ID: {repr(self._build_id)}")
 
         # Get search endpoint
         new_search_endpoint = None
@@ -63,7 +66,7 @@ class HowLongToBeat:
                 src: str = script_tag["src"]
                 if src.startswith("/_next/static/chunks/pages/_app-") and src.endswith(".js"):
                     js_url = "https://howlongtobeat.com" + src
-                    logging.debug(f"Found howlongtobeat JS URL: {repr(js_url)}")
+                    self.logger.debug(f"Found howlongtobeat JS URL: {repr(js_url)}")
 
                     js_response = await http_client.get(
                         js_url,
@@ -75,21 +78,21 @@ class HowLongToBeat:
                             "Sec-GPC": "1"
                         }
                     )
-                    logging.info(f"Response (100 chars): {repr(js_response.text[:100])}")
-                    logging.debug(f"Response: (all): {js_response.text}")
+                    self.logger.info(f"Response (100 chars): {repr(js_response.text[:100])}")
+                    self.logger.debug(f"Response: (all): {js_response.text}")
                     js_response.raise_for_status()
 
                     for url in self._parse_fetch_urls_from_js(js_response.text):
                         if url.startswith("/api/search") or url.startswith("/api/find"):
                             url = "https://howlongtobeat.com" + url
-                            logging.info(f"Found howlongtobeat search endpoint: {repr(url)}")
+                            self.logger.info(f"Found howlongtobeat search endpoint: {repr(url)}")
                             new_search_endpoint = url
                             break
                     if new_search_endpoint is not None:
                         break
 
                 else:
-                    logging.debug(f"Skipping {repr(script_tag['src'])}")
+                    self.logger.debug(f"Skipping {repr(script_tag['src'])}")
 
         assert new_search_endpoint is not None
         self._search_endpoint = new_search_endpoint
@@ -134,8 +137,8 @@ class HowLongToBeat:
                 "useCache": True
             }
         )
-        logging.info(f"Response (100 chars): {repr(r.text[:100])}")
-        logging.debug(f"Response: (all): {r.text}")
+        self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
+        self.logger.debug(f"Response: (all): {r.text}")
 
         return r
 
@@ -156,10 +159,10 @@ class HowLongToBeat:
 
                 if depth == 0 or (depth == 1 and char == ","):  # Outside of fetch or end of first argument
                     raw_url = fetch_split[:char_counter - 1]
-                    logging.debug(f"Found raw fetch url: {repr(raw_url)}")
+                    self.logger.debug(f"Found raw fetch url: {repr(raw_url)}")
 
                     splitted_url = raw_url.split('"')
-                    logging.debug(f"Splitted fetch url: {repr(splitted_url)}")
+                    self.logger.debug(f"Splitted fetch url: {repr(splitted_url)}")
                     real_url: Union[str, None] = None
 
                     if len(splitted_url) == 3 and splitted_url[0] == "" and splitted_url[2] == "":  # "..."
@@ -168,9 +171,9 @@ class HowLongToBeat:
                         real_url = splitted_url = splitted_url[1] + splitted_url[3]
 
                     if real_url is None:
-                        logging.debug(f"Could not parse fetch url: {repr(raw_url)}")
+                        self.logger.debug(f"Could not parse fetch url: {repr(raw_url)}")
                     else:
-                        logging.debug(f"Parsed fetch url: {repr(real_url)}")
+                        self.logger.debug(f"Parsed fetch url: {repr(real_url)}")
                         yield real_url
 
                     break
@@ -209,12 +212,12 @@ class HowLongToBeat:
                 "Sec-GPC": "1"
             }
         )
-        logging.info(f"Response (100 chars): {repr(r.text[:100])}")
-        logging.debug(f"Response: (all): {r.text}")
+        self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
+        self.logger.debug(f"Response: (all): {r.text}")
 
         # Allow updating the build id if it's wrong
         if allow_wrong_build_id and r.status_code == 404:
-            logging.info(f"The howlongtobeat build id ({repr(self._build_id)}) is deprecated")
+            self.logger.info(f"The howlongtobeat build id ({repr(self._build_id)}) is deprecated")
             self._update_search_endpoint_and_build_id()
             return await self._get_game_props(internal_game_id, steam, allow_wrong_build_id=False)
 
@@ -222,12 +225,12 @@ class HowLongToBeat:
         return r.json()
 
     async def get_game_details(self, steam: SteamDetails) -> Union[HowLongToBeatDetails, None]:
-        logging.info(f"Getting how long to beat for {repr(steam.name)} ({steam.appid})")
+        self.logger.info(f"Getting how long to beat for {repr(steam.name)} ({steam.appid})")
 
         # Search
         r = await self._search(steam)
         if r.status_code == 404:
-            logging.info(f"The howlongtobeat search endpoint ({repr(self._search_endpoint)}) is not available")
+            self.logger.info(f"The howlongtobeat search endpoint ({repr(self._search_endpoint)}) is not available")
             self._update_search_endpoint_and_build_id()
             r = await self._search(steam)
 

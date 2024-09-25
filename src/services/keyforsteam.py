@@ -11,8 +11,9 @@ from pydantic import BaseModel
 from typing_extensions import TypedDict
 
 from services.steam import SteamDetails
-from utils import (http_client, price_string_to_float,
+from utils import (ANSICodes, http_client, price_string_to_float,
                    roman_string_to_int_string)
+
 
 PLATFORMS = [
     "PlayStation 4",
@@ -251,6 +252,8 @@ class KeyForSteamDetails(BaseModel):
 
 class KeyForSteam:
     def __init__(self):
+        self.logger = logging.getLogger(f"{ANSICodes.YELLOW}keyforsteam{ANSICodes.RESET}")
+
         # Get full ignored word list
         self._ignored_word_list = IGNORED_WORDS + PLATFORMS
         for platform in PLATFORMS:
@@ -293,7 +296,7 @@ class KeyForSteam:
             ), IGNORED_CHARS),
             self._ignored_word_list
         )).strip()
-        logging.info(f"Purged name {repr(name)} -> {repr(purged_name)}")
+        self.logger.info(f"Purged name {repr(name)} -> {repr(purged_name)}")
         return purged_name
 
     async def _get_internal_id_and_name(self, keyforsteam_game_url: str) -> Tuple[str, int, None]:
@@ -302,8 +305,8 @@ class KeyForSteam:
         """
         # Get game page
         r = await http_client.get(keyforsteam_game_url)
-        logging.info(f"Response (100 chars): {repr(r.text[:100])}")
-        logging.debug(f"Response: (all): {r.text}")
+        self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
+        self.logger.debug(f"Response: (all): {r.text}")
         if r.status_code == 404:
             return None, None
         r.raise_for_status()
@@ -314,20 +317,20 @@ class KeyForSteam:
         for script_tag in soup.find_all("script"):
             if script_tag.text.startswith("var game_id=\"") and script_tag.text.endswith("\""):
                 internal_id = int(script_tag.text.split("var game_id=\"")[-1].split("\"")[0])
-                logging.info(f"Internal KeyForSteam ID: {internal_id}")
+                self.logger.info(f"Internal KeyForSteam ID: {internal_id}")
                 break
             else:
-                logging.debug(f"Skipping script tag: {repr(script_tag)}")
+                self.logger.debug(f"Skipping script tag: {repr(script_tag)}")
         assert internal_id is not None
 
         # Get internal name
         title_tag = soup.find("title")
         assert title_tag is not None
-        logging.debug(f"Title tag: {repr(title_tag.text)}")
+        self.logger.debug(f"Title tag: {repr(title_tag.text)}")
         position = title_tag.text.lower().find(" key kaufen preisvergleich")
         assert position != -1
         internal_name = title_tag.text[:position].strip()
-        logging.info(f"Internal name: {repr(internal_name)}")
+        self.logger.info(f"Internal name: {repr(internal_name)}")
 
         return internal_id, internal_name
 
@@ -343,11 +346,11 @@ class KeyForSteam:
         """
         # Verify name
         if self._purge_name(roman_string_to_int_string(steam.name)).lower() != self._purge_name(roman_string_to_int_string(internal_name)).lower():
-            logging.debug(f"Skipping KeyForSteam ID {internal_id} due to name mismatch: {repr(steam.name)} != {repr(internal_name)}")
+            self.logger.debug(f"Skipping KeyForSteam ID {internal_id} due to name mismatch: {repr(steam.name)} != {repr(internal_name)}")
             return
 
         # Get offers
-        logging.info(f"Getting offers for internal id {internal_id}")
+        self.logger.info(f"Getting offers for internal id {internal_id}")
         r = await http_client.get(
             "https://www.keyforsteam.de/wp-admin/admin-ajax.php",
             params={
@@ -357,20 +360,20 @@ class KeyForSteam:
                 "locale": "de-DE"
             }
         )
-        logging.info(f"Response (100 chars): {repr(r.text[:100])}")
-        logging.debug(f"Response: (all): {r.text}")
+        self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
+        self.logger.debug(f"Response: (all): {r.text}")
         r.raise_for_status()
         offers_data = r.json()
 
         # Display warnings
         if "warnings" in offers_data and isinstance(offers_data["warnings"], list):
             for warning in offers_data["warnings"]:
-                logging.warning(f"KeyForSteam warning: {repr(warning)}")
+                self.logger.warning(f"KeyForSteam warning: {repr(warning)}")
 
         # Check for errors
         if "errors" in offers_data and isinstance(offers_data["errors"], list) and len(offers_data["errors"]) > 0:
             for error in offers_data["errors"]:
-                logging.error(f"KeyForSteam error: {repr(error)}")
+                self.logger.error(f"KeyForSteam error: {repr(error)}")
             raise Exception(f"KeyForSteam errors: {repr(offers_data['errors'])}")
 
         assert offers_data["success"] is True
@@ -388,10 +391,10 @@ class KeyForSteam:
                 seller=offers_data["merchants"][str(offer_data["merchant"])]["name"],
                 edition=offers_data["editions"][offer_data["edition"]]["name"]
             )
-            logging.debug(f"Offer: {offer}")
+            self.logger.debug(f"Offer: {offer}")
 
             if offer.seller == "Steam":  # Get steam offer
-                logging.debug(f"Found steam offer: {offer}")
+                self.logger.debug(f"Found steam offer: {offer}")
                 steam_offer = offer
 
             elif all((  # Get cheapest offer
@@ -401,7 +404,7 @@ class KeyForSteam:
                 "AUF" not in offer.form,
                 cheapest_offer is None or offer.price < cheapest_offer.price
             )):
-                logging.debug(f"Found cheaper offer: {offer}")
+                self.logger.debug(f"Found cheaper offer: {offer}")
                 cheapest_offer = offer
 
         # Check if offers are available
@@ -413,8 +416,8 @@ class KeyForSteam:
 
             # Request redirection
             r = await http_client.get(f"https://www.allkeyshop.com/redirection/offer/eur/{steam_offer.id}")
-            logging.info(f"Response (100 chars): {repr(r.text[:100])}")
-            logging.debug(f"Response: (all): {r.text}")
+            self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
+            self.logger.debug(f"Response: (all): {r.text}")
             r.raise_for_status()
 
             # Get potential steam id
@@ -430,7 +433,7 @@ class KeyForSteam:
 
                 # Verify steam id
                 if potential_steam_id != steam.appid:
-                    logging.info(f"Wrong Steam ID: Seems like {repr(internal_name)} ({potential_steam_id}) is not the same as {repr(steam.name)} ({steam.appid})")
+                    self.logger.info(f"Wrong Steam ID: Seems like {repr(internal_name)} ({potential_steam_id}) is not the same as {repr(steam.name)} ({steam.appid})")
                     return
 
         return Product(
@@ -446,7 +449,7 @@ class KeyForSteam:
         )
 
     async def get_game_details(self, steam: SteamDetails) -> Union[KeyForSteamDetails, None]:
-        logging.info(f"Getting KeyForSteam data for {repr(steam.name)} ({steam.appid})")
+        self.logger.info(f"Getting KeyForSteam data for {repr(steam.name)} ({steam.appid})")
 
         products: List[Product] = []
 
@@ -463,11 +466,11 @@ class KeyForSteam:
             )
             if product is not None:
                 products.append(product)
-                logging.info(f"Found KeyForSteam ID: {direct_internal_id}")
+                self.logger.info(f"Found KeyForSteam ID: {direct_internal_id}")
 
         if not products:
             # Get internal ID and link via search
-            logging.info("Couldn't get internal ID, trying search")
+            self.logger.info("Couldn't get internal ID, trying search")
 
             purged_name = self._purge_name(steam.name)
 
@@ -484,38 +487,38 @@ class KeyForSteam:
                     "search": quote(purged_name)
                 }
             )
-            logging.info(f"Response (100 chars): {repr(r.text[:100])}")
-            logging.debug(f"Response: (all): {r.text}")
+            self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
+            self.logger.debug(f"Response: (all): {r.text}")
             r.raise_for_status()
             search_result = r.json()
 
             # Display warnings
             if "warnings" in search_result and isinstance(search_result["warnings"], list):
                 for warning in search_result["warnings"]:
-                    logging.warning(f"KeyForSteam warning: {repr(warning)}")
+                    self.logger.warning(f"KeyForSteam warning: {repr(warning)}")
 
             # Check for errors
             if "errors" in search_result and isinstance(search_result["errors"], list) and len(search_result["errors"]) > 0:
                 for error in search_result["errors"]:
-                    logging.error(f"KeyForSteam error: {repr(error)}")
+                    self.logger.error(f"KeyForSteam error: {repr(error)}")
                 raise Exception(f"KeyForSteam errors: {repr(search_result['errors'])}")
 
             assert search_result["status"] == "success", f"KeyForSteam status: {repr(search_result['status'])}"
 
             # Filter products
             for product_data in search_result["products"]:
-                logging.debug(f"Product: {repr(product_data)}")
+                self.logger.debug(f"Product: {repr(product_data)}")
 
                 # Validate link
                 if not product_data["link"].startswith("https://www.keyforsteam.de/") or not product_data["link"].endswith("-key-kaufen-preisvergleich/"):
-                    logging.debug(f"Invalid link: {repr(product_data['link'])}")
+                    self.logger.debug(f"Invalid link: {repr(product_data['link'])}")
                     continue
 
                 # TODO: Validate release date (ONLY IF NECESSARY DUE TO MANY PRODUCTS)
 
                 # Skip invalid internal id if present to optimize search
                 if direct_internal_id is not None and product_data["id"] == direct_internal_id:
-                    logging.info(f"Skipping invalid internal id: {product_data['id']}")
+                    self.logger.info(f"Skipping invalid internal id: {product_data['id']}")
                     continue
 
                 # Get product
@@ -526,21 +529,21 @@ class KeyForSteam:
                     keyforsteam_game_url=product_data["link"]
                 )
                 if product is not None:
-                    logging.debug(f"Valid product: {product}")
+                    self.logger.debug(f"Valid product: {product}")
                     products.append(product)
 
         # Check products
         if len(products) == 0:
-            logging.info("No KeyForSteam products found")
+            self.logger.info("No KeyForSteam products found")
             return
         elif len(products) > 1:
             raise Exception(f"Too many KeyForSteam products found: Found {len(products)}")
 
         product = products[0]
-        logging.info(f"Found KeyForSteam product: {product}")
+        self.logger.info(f"Found KeyForSteam product: {product}")
 
         # Get price history
-        logging.info(f"Getting price history for internal id {product.internal_id}")
+        self.logger.info(f"Getting price history for internal id {product.internal_id}")
         r = await http_client.get(
             "https://www.allkeyshop.com/api/price_history_api.php",
             params={
@@ -550,8 +553,8 @@ class KeyForSteam:
                 "v2": 1
             }
         )
-        logging.info(f"Response (100 chars): {repr(r.text[:100])}")
-        logging.debug(f"Response: (all): {r.text}")
+        self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
+        self.logger.debug(f"Response: (all): {r.text}")
         r.raise_for_status()
         price_history_data = r.json()
         historical_low = HistoricalLow(

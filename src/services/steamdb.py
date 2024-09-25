@@ -9,7 +9,7 @@ from playwright.async_api import async_playwright
 from pydantic import BaseModel
 
 from services.steam import SteamDetails
-from utils import price_string_to_float
+from utils import ANSICodes, price_string_to_float
 
 
 class SteamDBDetails(BaseModel):
@@ -20,11 +20,14 @@ class SteamDBDetails(BaseModel):
 
 
 class SteamDB:
+    def __init__(self):
+        self.logger = logging.getLogger(f"{ANSICodes.BLUE}steamdb{ANSICodes.RESET}")
+
     async def _captcha(self, appid: int, timeout: int) -> None:
-        logging.warning("Displaying captcha or bot protection message")
+        self.logger.warning("Displaying captcha or bot protection message")
         play = await async_playwright().start()
         with TemporaryDirectory() as td:
-            logging.debug(f"Temporary directory: {td}")
+            self.logger.debug(f"Temporary directory: {td}")
 
             # New browser
             browser = await play.firefox.launch_persistent_context(
@@ -40,13 +43,13 @@ class SteamDB:
 
             # Open page
             response = await page.goto(f"https://steamdb.info/app/{appid}/")
-            logging.info(f"Captcha response status: {response.status}")
+            self.logger.info(f"Captcha response status: {response.status}")
 
             # Wait for captcha to be solved
             start_time = time.time()
             while remaining_time := timeout - (time.time() - start_time) > 0:
                 # Wait for page reload
-                logging.info(f"Waiting for captcha to be solved (remaining time: {remaining_time:.0f}s)")
+                self.logger.info(f"Waiting for captcha to be solved (remaining time: {remaining_time:.0f}s)")
                 await page.wait_for_url(f"https://steamdb.info/app/{appid}/", timeout=remaining_time)
 
         # Close
@@ -71,24 +74,24 @@ class SteamDB:
                             if tds[0].text.strip() == "Euro":
                                 td = tds[4]
                                 if td.has_attr("class") and "muted" in td["class"]:
-                                    logging.info(f"Found element: {td}")
+                                    self.logger.info(f"Found element: {td}")
                                     return td
                                 else:
-                                    logging.debug("Muted class not found")
+                                    self.logger.debug("Muted class not found")
                             else:
-                                logging.debug(f"Currency column didn't match: {tds[0].text.strip()}")
+                                self.logger.debug(f"Currency column didn't match: {tds[0].text.strip()}")
                         else:
-                            logging.debug(f"tbody columns count didn't match: {tds}")
+                            self.logger.debug(f"tbody columns count didn't match: {tds}")
                 else:
-                    logging.debug(f"thead columns didn't match: {thead_columns}")
+                    self.logger.debug(f"thead columns didn't match: {thead_columns}")
             else:
-                logging.debug("thead or tbody not found")
+                self.logger.debug("thead or tbody not found")
 
     async def get_game_details(self, steam: SteamDetails, allow_captcha: bool = True) -> Union[SteamDBDetails, None]:
-        logging.info(f"Getting historical low for {steam.appid}")
+        self.logger.info(f"Getting historical low for {steam.appid}")
         play = await async_playwright().start()
         with TemporaryDirectory() as td:
-            logging.debug(f"Temporary directory: {td}")
+            self.logger.debug(f"Temporary directory: {td}")
 
             # New browser
             browser = await play.firefox.launch_persistent_context(
@@ -104,7 +107,7 @@ class SteamDB:
 
             # Open page
             response = await page.goto(f"https://steamdb.info/app/{steam.appid}/")
-            logging.info(f"Response status: {response.status}")
+            self.logger.info(f"Response status: {response.status}")
             if response.status == 404:
                 return
             elif response.status == 403 and allow_captcha:  # Try to bypass bot protection
@@ -114,8 +117,8 @@ class SteamDB:
 
             # Get response
             page_content = await page.content()
-            logging.info(f"Page content (100 chars): {repr(page_content[:100])}")
-            logging.debug(f"Page content (all): {page_content}")
+            self.logger.info(f"Page content (100 chars): {repr(page_content[:100])}")
+            self.logger.debug(f"Page content (all): {page_content}")
 
             # Parse response
             element = await self._parse_page_content(page_content)
@@ -141,7 +144,7 @@ class SteamDB:
                     iso_date=None,
                     external_url=f"https://steamdb.info/app/{steam.appid}/"
                 )
-            logging.info(f"Historical low: {historical_low}")
+            self.logger.info(f"Historical low: {historical_low}")
 
             # Close
             await browser.close()
