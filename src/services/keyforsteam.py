@@ -238,7 +238,7 @@ class HistoricalLow(TypedDict):
 
 class Product(BaseModel):
     internal_id: int
-    cheapest_offer: CheapestOffer
+    cheapest_offer: Union[CheapestOffer, None]
     id_verified: bool
     keyforsteam_game_url: str
 
@@ -291,12 +291,12 @@ class KeyForSteam:
         """
         purged_name = re.sub(r"\s\s+", " ", self._purge_words(
             self._purge_chars(self._purge_words(
-                self._normalize_string(name.lower()).replace("&#39;", "'"),
+                self._normalize_string(roman_string_to_int_string(name).lower()).replace("&#39;", "'"),
                 self._ignored_word_list
             ), IGNORED_CHARS),
             self._ignored_word_list
         )).strip()
-        self.logger.info(f"Purged name {repr(name)} -> {repr(purged_name)}")
+        self.logger.debug(f"Purged name {repr(name)} -> {repr(purged_name)}")
         return purged_name
 
     async def _get_internal_id_and_name(self, keyforsteam_game_url: str) -> Tuple[str, int, None]:
@@ -347,7 +347,7 @@ class KeyForSteam:
         Returns product details for the given internal ID, or None if the game isn't available
         """
         # Verify name
-        if self._purge_name(roman_string_to_int_string(steam.name)).lower() != self._purge_name(roman_string_to_int_string(internal_name)).lower():
+        if self._purge_name(steam.name) != self._purge_name(internal_name):
             self.logger.debug(f"Skipping KeyForSteam ID {internal_id} due to name mismatch: {repr(steam.name)} != {repr(internal_name)}")
             return
 
@@ -409,10 +409,6 @@ class KeyForSteam:
                 self.logger.debug(f"Found cheaper offer: {offer}")
                 cheapest_offer = offer
 
-        # Check if offers are available
-        if cheapest_offer is None:
-            return
-
         # Check if steam offer is available
         if steam_offer is not None:
 
@@ -445,7 +441,7 @@ class KeyForSteam:
                 form=cheapest_offer.form,
                 seller=cheapest_offer.seller,
                 edition=cheapest_offer.edition
-            ),
+            ) if cheapest_offer is not None else None,
             id_verified=steam_offer is not None,
             keyforsteam_game_url=keyforsteam_game_url
         )
@@ -456,7 +452,7 @@ class KeyForSteam:
         products: List[Product] = []
 
         # Get internal ID and link directly
-        keyforsteam_game_url = f"https://www.keyforsteam.de/{'-'.join(roman_string_to_int_string(steam.name).lower().split(' '))}-key-kaufen-preisvergleich/"
+        keyforsteam_game_url = f"https://www.keyforsteam.de/{'-'.join(self._purge_name(steam.name).split(' '))}-key-kaufen-preisvergleich/"
         direct_internal_id, internal_name = await self._get_internal_id_and_name(keyforsteam_game_url)
 
         if direct_internal_id is not None:
@@ -467,10 +463,10 @@ class KeyForSteam:
                 keyforsteam_game_url=keyforsteam_game_url
             )
             if product is not None:
+                self.logger.info(f"Valid product: {repr(product)}")
                 products.append(product)
-                self.logger.info(f"Found KeyForSteam ID: {direct_internal_id}")
 
-        if not products:
+        if not products or not products[0].id_verified:
             # Get internal ID and link via search
             self.logger.info("Couldn't get internal ID, trying search")
 
@@ -516,8 +512,6 @@ class KeyForSteam:
                     self.logger.debug(f"Invalid link: {repr(product_data['link'])}")
                     continue
 
-                # TODO: Validate release date (ONLY IF NECESSARY DUE TO MANY PRODUCTS)
-
                 # Skip invalid internal id if present to optimize search
                 if direct_internal_id is not None and product_data["id"] == direct_internal_id:
                     self.logger.info(f"Skipping invalid internal id: {product_data['id']}")
@@ -531,8 +525,12 @@ class KeyForSteam:
                     keyforsteam_game_url=product_data["link"]
                 )
                 if product is not None:
-                    self.logger.debug(f"Valid product: {product}")
+                    self.logger.info(f"Valid product: {product}")
                     products.append(product)
+                    if product.id_verified:
+                        self.logger.info("Cancel search because the correct product was found")
+                        products = [product]
+                        break
 
         # Check products
         if len(products) == 0:
@@ -543,6 +541,10 @@ class KeyForSteam:
 
         product = products[0]
         self.logger.info(f"Found KeyForSteam product: {product}")
+
+        if product.cheapest_offer is None:
+            self.logger.info("No cheapest offer found")
+            return
 
         # Get price history
         self.logger.info(f"Getting price history for internal id {product.internal_id}")
