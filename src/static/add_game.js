@@ -57,7 +57,7 @@ function addGame(game, appendToTop) {
     let lowest_price_color_class = null;
     let lowest_price = null;
     if (game.steam_historical_low !== null) {  // SteamDB data available
-        if ( game.key_and_gift_sellers !== null) {  // KeyForSteam data also available
+        if (game.key_and_gift_sellers !== null) {  // KeyForSteam data also available
             lowest_price = Math.min(game.steam.price, game.key_and_gift_sellers.cheapest_offer.price);
             var lowest_historical_low = Math.min(game.steam_historical_low.price, game.key_and_gift_sellers.historical_low.price);
         } else {  // Only SteamDB data available
@@ -88,6 +88,9 @@ function addGame(game, appendToTop) {
         } else {
             var color_class = "grey-text";
             title += "\n\nThe game was released less than a year ago:\nYou might be able to save more money if you wait longer!!";
+        }
+        if (game.key_and_gift_sellers !== null && !game.key_and_gift_sellers.id_verified) {
+            title += "\n\nThe steam id of the key or gift wasn't verified:\nThe key or gift price could be wrong!!";
         }
 
         detailsData.push({
@@ -335,12 +338,18 @@ function addGame(game, appendToTop) {
 
             // Key and gift sellers price
             if (game.key_and_gift_sellers !== null) {
+                let historicalLowTitle = `Date: ${game.key_and_gift_sellers.historical_low.iso_date === null ? "Today": display_date(game.key_and_gift_sellers.historical_low.iso_date)}\nSeller: ${game.key_and_gift_sellers.historical_low.seller}`;
+                let priceTitle = `Form: ${game.key_and_gift_sellers.cheapest_offer.form}\nSeller: ${game.key_and_gift_sellers.cheapest_offer.seller}\nEdition: ${game.key_and_gift_sellers.cheapest_offer.edition}`;
+                if (!game.key_and_gift_sellers.id_verified) {
+                    historicalLowTitle += "\n\nThe steam id of the key or gift wasn't verified:\nThe key or gift price could be wrong!!";
+                    priceTitle += "\n\nThe steam id of the key or gift wasn't verified:\nThe key or gift price could be wrong!!";
+                }
                 purchaseData.push({
                     historicalLowPrice: game.key_and_gift_sellers.historical_low.price,
-                    historicalLowTitle: `Date: ${game.key_and_gift_sellers.historical_low.iso_date === null ? "Today": display_date(game.key_and_gift_sellers.historical_low.iso_date)}\nSeller: ${game.key_and_gift_sellers.historical_low.seller}`,
+                    historicalLowTitle: historicalLowTitle,
 
                     price: game.key_and_gift_sellers.cheapest_offer.price,
-                    priceTitle: `Form: ${game.key_and_gift_sellers.cheapest_offer.form}\nSeller: ${game.key_and_gift_sellers.cheapest_offer.seller}\nEdition: ${game.key_and_gift_sellers.cheapest_offer.edition}`,
+                    priceTitle: priceTitle,
 
                     buttonText: "Buy Key or Gift",
                     buttonClass: "keyforsteam-button",
