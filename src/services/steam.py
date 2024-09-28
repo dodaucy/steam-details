@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime
-from typing import Dict, List, Union
 
 from pydantic import BaseModel
 
@@ -9,7 +8,7 @@ from utils import ANSICodes, http_client
 
 class ReleaseDate(BaseModel):
     display_string: str
-    iso_date: Union[str, None]
+    iso_date: str | None
 
 
 class OverallReviews(BaseModel):
@@ -21,12 +20,12 @@ class OverallReviews(BaseModel):
 class SteamDetails(BaseModel):
     appid: int
     name: str
-    images: List[str]
+    images: list[str]
     external_url: str
 
     released: bool
-    price: Union[float, None]
-    discount: Union[int, None]
+    price: float | None
+    discount: int | None
 
     release_date: ReleaseDate
     overall_reviews: OverallReviews
@@ -38,9 +37,10 @@ class Steam:
     def __init__(self):
         self.logger = logging.getLogger(f"{ANSICodes.CYAN}steam{ANSICodes.RESET}")
 
-        self.app_list: Union[Dict[str, int], None] = None
+        self.app_list: dict[str, int] | None = None
 
     async def load(self) -> None:
+        """Get the steam app list."""
         self.logger.info("Downloading app list")
         r = await http_client.get("https://api.steampowered.com/ISteamApps/GetAppList/v2/", timeout=300)
         self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
@@ -55,7 +55,8 @@ class Steam:
 
         self.logger.info("App list ready")
 
-    async def get_game_details(self, appid: int) -> Union[SteamDetails, None]:
+    async def get_game_details(self, appid: int) -> SteamDetails | None:
+        """Get details from steam for the given app id."""
         self.logger.info(f"Getting steam details for {appid}")
         r = await http_client.get(
             "https://store.steampowered.com/api/appdetails",
@@ -88,7 +89,8 @@ class Steam:
             price = 0.0
             discount = 0
         elif "price_overview" in steam_data:
-            assert steam_data["price_overview"]["currency"] == "EUR"
+            if steam_data["price_overview"]["currency"] != "EUR":
+                raise Exception(f"Unexpected currency: {repr(steam_data['price_overview']['currency'])}")
             price = float(steam_data["price_overview"]["final"] / 100)
             discount = steam_data["price_overview"]["discount_percent"]
         else:
@@ -154,15 +156,14 @@ class Steam:
             native_linux_support=steam_data["platforms"]["linux"]
         )
 
-    async def get_app(self, name: str) -> Union[int, None]:
+    async def get_app(self, name: str) -> int | None:
+        """Get the app id for the given name using the steam app list."""
         appid = self.app_list.get(name.lower())
         if appid is not None:
             return appid
 
-    async def get_wishlist_data(self, profile_name_or_id: str) -> Union[List[int], None]:
-        """
-        Get the wishlist data for the given profile id
-        """
+    async def get_wishlist_data(self, profile_name_or_id: str) -> list[int] | None:
+        """Get the wishlist data for the given profile id."""
         self.logger.info(f"Getting wishlist data for {repr(profile_name_or_id)}")
         r = await http_client.get(
             f"https://store.steampowered.com/wishlist/profiles/{profile_name_or_id}/wishlistdata/",
@@ -186,8 +187,8 @@ class Steam:
                 return None
         r.raise_for_status()
         j = r.json()
-        sorted_items: List[int] = []
-        unsorted_items: List[int] = []
+        sorted_items: list[int] = []
+        unsorted_items: list[int] = []
         for appid, data in j.items():
             if data["priority"] == 0:
                 unsorted_items.append(int(appid))

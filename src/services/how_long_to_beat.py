@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Iterator, Union
+from collections.abc import Iterator
 from urllib.parse import quote
 
 from bs4 import BeautifulSoup
@@ -12,9 +12,9 @@ from utils import ANSICodes, http_client
 
 
 class HowLongToBeatDetails(BaseModel):
-    main: Union[int, None]
-    plus: Union[int, None]
-    completionist: Union[int, None]
+    main: int | None
+    plus: int | None
+    completionist: int | None
     external_url: str
 
 
@@ -23,10 +23,11 @@ class HowLongToBeat:
         self.logger = logging.getLogger(f"{ANSICodes.RED}howlongtobeat{ANSICodes.RESET}")
 
         # Cache
-        self._search_endpoint: Union[str, None] = None
-        self._build_id: Union[str, None] = None
+        self._search_endpoint: str | None = None
+        self._build_id: str | None = None
 
     async def load(self) -> None:
+        """Get search endpoint and build ID for HowLongToBeat."""
         await self._update_search_endpoint_and_build_id()
 
     async def _update_search_endpoint_and_build_id(self) -> None:
@@ -53,9 +54,11 @@ class HowLongToBeat:
 
         # Get build ID
         metadata_tag = soup.find("script", {"id": "__NEXT_DATA__", "type": "application/json"})
-        assert metadata_tag is not None
+        if metadata_tag is None:
+            raise Exception("Could not find __NEXT_DATA__ tag")
         metadata = json.loads(metadata_tag.text)
-        assert isinstance(metadata["buildId"], str)
+        if not isinstance(metadata["buildId"], str):
+            raise Exception("Invalid build ID")
         self._build_id = metadata["buildId"]
         self.logger.info(f"Found howlongtobeat build ID: {repr(self._build_id)}")
 
@@ -94,11 +97,13 @@ class HowLongToBeat:
                 else:
                     self.logger.debug(f"Skipping {repr(script_tag['src'])}")
 
-        assert new_search_endpoint is not None
+        if new_search_endpoint is None:
+            raise Exception("Could not find howlongtobeat search endpoint")
         self._search_endpoint = new_search_endpoint
 
     async def _search(self, steam: SteamDetails) -> Response:
-        assert self._search_endpoint is not None
+        if self._search_endpoint is None:
+            raise Exception("Search endpoint not loaded")
 
         # Search
         r = await http_client.post(
@@ -143,9 +148,7 @@ class HowLongToBeat:
         return r
 
     def _parse_fetch_urls_from_js(self, java_script: str) -> Iterator[str]:
-        """
-        Extract all fetch urls from the given java script
-        """
+        """Extract all fetch urls from the given java script."""
         for fetch_split in java_script.split("fetch(")[1:]:
             depth = 1
             char_counter = 0
@@ -163,7 +166,7 @@ class HowLongToBeat:
 
                     splitted_url = raw_url.split('"')
                     self.logger.debug(f"Splitted fetch url: {repr(splitted_url)}")
-                    real_url: Union[str, None] = None
+                    real_url: str | None = None
 
                     if len(splitted_url) == 3 and splitted_url[0] == "" and splitted_url[2] == "":  # "..."
                         real_url = splitted_url[1]
@@ -178,14 +181,15 @@ class HowLongToBeat:
 
                     break
 
-    async def _parse_search_results(self, steam: SteamDetails, search_results: dict) -> Union[HowLongToBeatDetails, None]:
+    async def _parse_search_results(self, steam: SteamDetails, search_results: dict) -> HowLongToBeatDetails | None:
         for game_data in search_results["data"]:
 
             if "profile_steam" in game_data:  # Was available in the past (might be removed in the future, it's still here for stability)
                 current_appid = int(game_data["profile_steam"])
 
             else:
-                assert isinstance(game_data["game_id"], int)
+                if not isinstance(game_data["game_id"], int):
+                    raise Exception(f"Invalid game ID: {repr(game_data['game_id'])}")
                 props = await self._get_game_props(game_data["game_id"], steam)
                 current_appid = int(props["pageProps"]["game"]["data"]["game"][0]["profile_steam"])
 
@@ -224,7 +228,8 @@ class HowLongToBeat:
         r.raise_for_status()
         return r.json()
 
-    async def get_game_details(self, steam: SteamDetails) -> Union[HowLongToBeatDetails, None]:
+    async def get_game_details(self, steam: SteamDetails) -> HowLongToBeatDetails | None:
+        """Get playtime stats from HowLongToBeat."""
         self.logger.info(f"Getting how long to beat for {repr(steam.name)} ({steam.appid})")
 
         # Search

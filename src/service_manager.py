@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import time
-from typing import Awaitable, Union
+from collections.abc import Awaitable
 
 from services.how_long_to_beat import HowLongToBeat, HowLongToBeatDetails
 from services.keyforsteam import KeyForSteam, KeyForSteamDetails
@@ -30,6 +30,7 @@ class ServiceManager:
         ]
 
     async def load_services(self) -> None:
+        """Load all services by calling their load method."""
         for service in self._services:
             if hasattr(service, "load"):
                 self._logger.debug(f"Loading {service.__class__.__name__}")
@@ -39,7 +40,8 @@ class ServiceManager:
 
         self._logger.debug("All services loaded")
 
-    async def get_service_details(self, service: Awaitable, *args, **kwargs) -> Union[object, None]:
+    async def get_service_details(self, service: Awaitable, *args, **kwargs) -> object | None:
+        """Get the details of the given service."""
         self._logger.debug(f"Starting task {service.__class__.__name__}")
         start_time = time.time()
         response = await service.get_game_details(*args, **kwargs)
@@ -47,19 +49,20 @@ class ServiceManager:
         return response
 
     def create_task(self, service: object, *args, **kwargs) -> asyncio.Task:
+        """Create a task for the given service."""
         return asyncio.create_task(self.get_service_details(service, *args, **kwargs))
 
-    def get_steam_details(self, appid: int) -> asyncio.Task[Union[SteamDetails, None]]:
+    def get_steam_details(self, appid: int) -> asyncio.Task[SteamDetails | None]:  # noqa: D102
         return self.create_task(self._steam, appid)
 
-    def get_steam_historical_low(self, steam: SteamDetails) -> asyncio.Task[Union[SteamDBDetails, None]]:
+    def get_steam_historical_low(self, steam: SteamDetails) -> asyncio.Task[SteamDBDetails | None]:  # noqa: D102
         return self.create_task(self._steamdb, steam)
 
-    def get_linux_support(self, steam: SteamDetails) -> asyncio.Task[Union[ProtonDBDetails, None]]:
+    def get_linux_support(self, steam: SteamDetails) -> asyncio.Task[ProtonDBDetails | None]:  # noqa: D102
         return self.create_task(self._protondb, steam)
 
-    def get_key_and_gift_sellers_data(self, steam: SteamDetails) -> asyncio.Task[Union[KeyForSteamDetails, None]]:
+    def get_key_and_gift_sellers_data(self, steam: SteamDetails) -> asyncio.Task[KeyForSteamDetails | None]:  # noqa: D102
         return self.create_task(self._keyforsteam, steam)
 
-    def get_game_length(self, steam: SteamDetails) -> asyncio.Task[Union[HowLongToBeatDetails, None]]:
+    def get_game_length(self, steam: SteamDetails) -> asyncio.Task[HowLongToBeatDetails | None]:  # noqa: D102
         return self.create_task(self._how_long_to_beat, steam)

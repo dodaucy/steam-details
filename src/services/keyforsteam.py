@@ -3,7 +3,6 @@ import logging
 import re
 import unicodedata
 from datetime import datetime
-from typing import List, Tuple, Union
 from urllib.parse import quote
 
 from bs4 import BeautifulSoup
@@ -11,9 +10,12 @@ from pydantic import BaseModel
 from typing_extensions import TypedDict
 
 from services.steam import SteamDetails
-from utils import (ANSICodes, http_client, price_string_to_float,
-                   roman_string_to_int_string)
-
+from utils import (
+    ANSICodes,
+    http_client,
+    price_string_to_float,
+    roman_string_to_int_string,
+)
 
 PLATFORMS = [
     "PlayStation 4",
@@ -233,12 +235,12 @@ class CheapestOffer(TypedDict):
 class HistoricalLow(TypedDict):
     price: float
     seller: str
-    iso_date: Union[str, None]
+    iso_date: str | None
 
 
 class Product(BaseModel):
     internal_id: int
-    cheapest_offer: Union[CheapestOffer, None]
+    cheapest_offer: CheapestOffer | None
     id_verified: bool
     keyforsteam_game_url: str
 
@@ -299,10 +301,8 @@ class KeyForSteam:
         self.logger.debug(f"Purged name {repr(name)} -> {repr(purged_name)}")
         return purged_name
 
-    async def _get_internal_id_and_name(self, keyforsteam_game_url: str) -> Tuple[str, int, None]:
-        """
-        Returns the internal ID and name of the game on KeyForSteam or None if the game page doesn't exist
-        """
+    async def _get_internal_id_and_name(self, keyforsteam_game_url: str) -> str | int | None:
+        """Return the internal ID and name of the game on KeyForSteam or None if the game page doesn't exist."""
         # Get game page
         r = await http_client.get(keyforsteam_game_url)
         self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
@@ -315,22 +315,25 @@ class KeyForSteam:
         # Get internal ID
         internal_id = None
         for script_tag in soup.find_all("script"):
-            if script_tag.text.startswith("var game_id=\"") and script_tag.text.endswith("\""):
-                internal_id = int(script_tag.text.split("var game_id=\"")[-1].split("\"")[0])
+            if script_tag.text.startswith('var game_id="') and script_tag.text.endswith('"'):
+                internal_id = int(script_tag.text.split('var game_id="')[-1].split('"')[0])
                 self.logger.info(f"Internal KeyForSteam ID: {internal_id}")
                 break
             else:
                 self.logger.debug(f"Skipping script tag: {repr(script_tag)}")
-        assert internal_id is not None
+        if internal_id is None:
+            raise Exception(f"Could not find KeyForSteam ID in {repr(keyforsteam_game_url)}")
 
         # Get internal name
         title_tag = soup.find("title")
-        assert title_tag is not None
+        if title_tag is None:
+            raise Exception(f"Could not find title tag in {repr(keyforsteam_game_url)}")
         self.logger.debug(f"Title tag: {repr(title_tag.text)}")
         position = title_tag.text.lower().find(" key kaufen preisvergleich")
         if position == -1:
             position = title_tag.text.lower().find(" cd key kaufen - preisvergleich")
-        assert position != -1
+        if position == -1:
+            raise Exception(f"Could not find KeyForSteam name in {repr(keyforsteam_game_url)}")
         internal_name = title_tag.text[:position].strip()
         self.logger.info(f"Internal name: {repr(internal_name)}")
 
@@ -342,10 +345,8 @@ class KeyForSteam:
         internal_id: int,
         internal_name: str,
         keyforsteam_game_url: str
-    ) -> Union[Product, None]:
-        """
-        Returns product details for the given internal ID, or None if the game isn't available
-        """
+    ) -> Product | None:
+        """Return product details for the given internal ID, or None if the game isn't available."""
         # Verify name
         if self._purge_name(steam.name) != self._purge_name(internal_name):
             self.logger.debug(f"Skipping KeyForSteam ID {internal_id} due to name mismatch: {repr(steam.name)} != {repr(internal_name)}")
@@ -378,11 +379,12 @@ class KeyForSteam:
                 self.logger.error(f"KeyForSteam error: {repr(error)}")
             raise Exception(f"KeyForSteam errors: {repr(offers_data['errors'])}")
 
-        assert offers_data["success"] is True
+        if offers_data["success"] is not True:
+            raise Exception("KeyForSteam API error")
 
         # Evaluate offers
-        steam_offer: Union[Offer, None] = None
-        cheapest_offer: Union[Offer, None] = None
+        steam_offer: Offer | None = None
+        cheapest_offer: Offer | None = None
         for offer_data in offers_data["offers"]:
             offer = Offer(
                 id=offer_data["id"],
@@ -421,11 +423,12 @@ class KeyForSteam:
             # Get potential steam id
             soup = BeautifulSoup(r.text, "html.parser")
             redirect_data_tag = soup.find("script", {"id": "appData"})
-            assert redirect_data_tag is not None
+            if redirect_data_tag is None:
+                raise Exception("Could not find appData tag")
             redirect_data = json.loads(redirect_data_tag.text)
             redirection_url = redirect_data["clickBody"]["redirectionUrl"]
-            assert isinstance(redirection_url, str)
-            assert redirection_url.startswith("https://store.steampowered.com/")
+            if not isinstance(redirection_url, str) or not redirection_url.startswith("https://store.steampowered.com/"):
+                raise Exception("Invalid redirection URL")
             if redirection_url.startswith("https://store.steampowered.com/app/"):  # Exclude bundles and stuff
                 potential_steam_id = int(redirection_url.split("https://store.steampowered.com/app/", 1)[1].split("/", 1)[0].split("?", 1)[0])
 
@@ -446,10 +449,11 @@ class KeyForSteam:
             keyforsteam_game_url=keyforsteam_game_url
         )
 
-    async def get_game_details(self, steam: SteamDetails) -> Union[KeyForSteamDetails, None]:
+    async def get_game_details(self, steam: SteamDetails) -> KeyForSteamDetails | None:
+        """Get cheapest offer and historical low price from KeyForSteam."""
         self.logger.info(f"Getting KeyForSteam data for {repr(steam.name)} ({steam.appid})")
 
-        products: List[Product] = []
+        products: list[Product] = []
 
         # Get internal ID and link directly
         keyforsteam_game_url = f"https://www.keyforsteam.de/{'-'.join(self._purge_name(steam.name).split(' '))}-key-kaufen-preisvergleich/"
@@ -501,7 +505,8 @@ class KeyForSteam:
                     self.logger.error(f"KeyForSteam error: {repr(error)}")
                 raise Exception(f"KeyForSteam errors: {repr(search_result['errors'])}")
 
-            assert search_result["status"] == "success", f"KeyForSteam status: {repr(search_result['status'])}"
+            if search_result["status"] != "success":
+                raise Exception(f"KeyForSteam status: {repr(search_result['status'])}")
 
             # Filter products
             for product_data in search_result["products"]:

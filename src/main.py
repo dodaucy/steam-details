@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import time
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.staticfiles import StaticFiles
@@ -9,7 +9,6 @@ from fastapi.templating import Jinja2Templates
 
 from service_manager import ServiceManager
 from utils import ANSICodes
-
 
 service_manager = ServiceManager()
 
@@ -30,7 +29,7 @@ class ColorFormatter(logging.Formatter):
         logging.CRITICAL: ANSICodes.MAGENTA
     }
 
-    def format(self, record: logging.LogRecord) -> str:
+    def format(self, record: logging.LogRecord) -> str:  # noqa: D102
         return super().format(record).replace(
             "{LEVEL_COLOR}",
             self.COLORS.get(record.levelno, ANSICodes.RESET),
@@ -47,7 +46,7 @@ logging.basicConfig(
 )
 
 logging.getLogger().handlers[0].setFormatter(ColorFormatter(
-    f"%(asctime)s {{LEVEL_COLOR}}{ANSICodes.BOLD}[%(levelname)s]{ANSICodes.RESET} %(name)s ({ANSICodes.BLUE}%(filename)s:%(lineno)d{ANSICodes.RESET}) %(message)s"
+    f"%(asctime)s {{LEVEL_COLOR}}{ANSICodes.BOLD}[%(levelname)s]{ANSICodes.RESET} %(name)s ({ANSICodes.BLUE}%(filename)s:%(lineno)d{ANSICodes.RESET}) %(message)s"  # noqa
 ))
 
 
@@ -55,11 +54,12 @@ logger = logging.getLogger(f"{ANSICodes.MAGENTA}main{ANSICodes.RESET}")
 
 details_lock = asyncio.Lock()
 
-details_cache: Dict[float, dict] = {}
+details_cache: dict[float, dict] = {}
 
 
 @app.get("/")
 async def index(request: Request):
+    """Get the index page."""
     return templates.TemplateResponse(
         "index.html",
         {
@@ -70,6 +70,7 @@ async def index(request: Request):
 
 @app.get("/wishlist")
 async def wishlist(profile_name_or_id: str):
+    """Get the wishlist data for the given profile name or id."""
     game_appids = await service_manager._steam.get_wishlist_data(profile_name_or_id)
     if game_appids is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Steam ID / Profile not found (your wishlist must be public)")
@@ -78,6 +79,7 @@ async def wishlist(profile_name_or_id: str):
 
 @app.get("/details")
 async def details(appid_or_name: str):
+    """Get the details for the given appid or name."""
     if details_lock.locked():
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Server is busy")
 
@@ -113,11 +115,11 @@ async def details(appid_or_name: str):
 
         if steam.released:
 
-            details: Dict[str, Any] = {
+            details: dict[str, Any] = {
                 "steam": steam.model_dump()
             }
 
-            tasks: Dict[str, asyncio.Task[object]] = {}
+            tasks: dict[str, asyncio.Task[object]] = {}
 
             # Steam historical low
             if steam.price is None:
@@ -147,7 +149,7 @@ async def details(appid_or_name: str):
 
             # Run tasks
             results = await asyncio.gather(*tasks.values())
-            for task, result in zip(tasks.keys(), results):
+            for task, result in zip(tasks.keys(), results, strict=True):
                 if result is None:
                     details[task] = None
                 else:

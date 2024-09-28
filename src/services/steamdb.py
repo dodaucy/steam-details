@@ -2,7 +2,6 @@ import logging
 import time
 from datetime import datetime
 from tempfile import TemporaryDirectory
-from typing import Union
 
 from bs4 import BeautifulSoup, Tag
 from playwright.async_api import async_playwright
@@ -14,16 +13,18 @@ from utils import ANSICodes, price_string_to_float
 
 class SteamDBDetails(BaseModel):
     price: float
-    discount: Union[int, None]
-    iso_date: Union[str, None]
+    discount: int | None
+    iso_date: str | None
     external_url: str
 
 
 class SteamDB:
+    """Get steam historical low price from SteamDB."""
+
     def __init__(self):
         self.logger = logging.getLogger(f"{ANSICodes.BLUE}steamdb{ANSICodes.RESET}")
 
-    async def _captcha(self, appid: int, timeout: int) -> None:
+    async def _captcha(self, appid: int, timeout: int) -> None:  # noqa: ASYNC109
         self.logger.warning("Displaying captcha or bot protection message")
         play = await async_playwright().start()
         with TemporaryDirectory() as td:
@@ -58,7 +59,7 @@ class SteamDB:
         if play._loop.is_running():
             await play.stop()
 
-    async def _parse_page_content(self, content: str) -> Union[Tag, None]:
+    async def _parse_page_content(self, content: str) -> Tag | None:
         soup = BeautifulSoup(content, "html.parser")
         for table_tag in soup.find_all("table"):
             thead = table_tag.find("thead")
@@ -87,7 +88,8 @@ class SteamDB:
             else:
                 self.logger.debug("thead or tbody not found")
 
-    async def get_game_details(self, steam: SteamDetails, allow_captcha: bool = True) -> Union[SteamDBDetails, None]:
+    async def get_game_details(self, steam: SteamDetails, allow_captcha: bool = True) -> SteamDBDetails | None:
+        """Get steam historical low price from SteamDB."""
         self.logger.info(f"Getting historical low for {steam.appid}")
         play = await async_playwright().start()
         with TemporaryDirectory() as td:
@@ -113,7 +115,8 @@ class SteamDB:
             elif response.status == 403 and allow_captcha:  # Try to bypass bot protection
                 await self._captcha(steam.appid, timeout=20)
                 return self.get_game_details(steam, allow_captcha=False)
-            assert response.status == 200, f"Unexpected status: {response.status}"
+            if response.status != 200:
+                raise Exception(f"Unexpected status: {response.status}")
 
             # Get response
             page_content = await page.content()
@@ -122,7 +125,8 @@ class SteamDB:
 
             # Parse response
             element = await self._parse_page_content(page_content)
-            assert element is not None, "Element not found"
+            if element is None:
+                raise Exception("Element not found")
             if "at" in element.text:
                 price_string, discount_string = element.text.split("at", 1)
                 discount = abs(int(discount_string.split("%", 1)[0]))
