@@ -12,7 +12,9 @@ This project is NOT affiliated with Steam. It is only for educational purposes.
 
 You can hover over almost anything to see more details.
 
-![Steam Details Showcase](./showcase.png)
+![Steam Details Showcase Image](./showcase.png)
+
+![Steam Details Showcase GIF](./showcase.gif)
 
 ## Installation
 
