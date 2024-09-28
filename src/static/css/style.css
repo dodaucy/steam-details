@@ -19,7 +19,7 @@ button {
 .small-font {
     font-size: 12px;
 }
-[title]:hover {
+.result-item [title]:hover {
     cursor: help;
 }
 
@@ -39,6 +39,47 @@ button {
 #page-content > * {
     width: 100%;
     margin: 10px 0px 10px 0px;
+}
+
+
+
+/* Navigation Area */
+#nav_area {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+    /* Original: background: linear-gradient( to right, rgba(62, 103, 150, 0.919) 11.38%, rgba(58, 120, 177, 0.8) 25.23%, rgb(15, 33, 110) 100%); */
+    background: linear-gradient( to right, rgba(62, 103, 150, 0.919) 11.38%, rgba(58, 120, 177, 0.8) 100%);
+    border-radius: 3px;
+    font-size: 0.8em;
+
+    height: 35px;
+}
+#nav_area > * {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+    height: 100%;
+    width: 100%;
+}
+#nav_area > * > * {
+    margin: 0px 5px 0px 5px;
+}
+#nav_area > * > img {
+    height: 1.5em;
+}
+#nav_area > *:hover {
+    /* Original: background: linear-gradient( to right, rgba(33, 162, 255, 0.25) 0%, rgba(33, 162, 255, 0.15) 50%, rgba(50, 50, 51, 0) 100%); */
+    background: linear-gradient( to right, rgba(33, 162, 255, 0.4) 0%, rgba(33, 162, 255, 0.25) 50%, rgba(50, 50, 51, 0) 100%);
+}
+
+/* Active Tab */
+#active-tab {
+    text-decoration: underline;
 }
 
 

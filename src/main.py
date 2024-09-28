@@ -63,7 +63,8 @@ async def index(request: Request):
     return templates.TemplateResponse(
         "index.html",
         {
-            "request": request
+            "request": request,
+            "selected_nav_item": "index"
         }
     )
 
