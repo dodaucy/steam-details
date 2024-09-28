@@ -50,7 +50,6 @@ button {
     /* Original: background: linear-gradient( to right, rgba(62, 103, 150, 0.919) 11.38%, rgba(58, 120, 177, 0.8) 25.23%, rgb(15, 33, 110) 100%); */
     background: linear-gradient( to right, rgba(62, 103, 150, 0.919) 11.38%, rgba(58, 120, 177, 0.8) 100%);
     border-radius: 3px;
-    font-size: 0.8em;
 
     height: 35px;
 }
