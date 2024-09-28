@@ -20,14 +20,35 @@ You can hover over almost anything to see more details.
 git clone https://github.com/dodaucy/steam-details.git
 cd steam-details
 
-python3 -m pip install -Ur requirements.txt
-
-playwright install
+pdm install  # https://pdm-project.org/latest/#installation
 ```
 
 ## Usage
 
 ```bash
-cd src
-python3 -m uvicorn main:app --host 127.0.0.1 --port 8000
+pdm start
+```
+
+## Development
+
+### Install dependencies
+
+```bash
+pdm install --dev
+```
+
+### Show lint errors
+
+Run this command before committing.
+
+```bash
+pdm lint
+```
+
+### Fix fixable lint errors
+
+Currently only import errors are fixed.
+
+```bash
+pdm fix
 ```

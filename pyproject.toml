@@ -1,0 +1,66 @@
+[project]
+name = "steam-details"
+version = "1.0.0"
+description = "Displays some details for a steam app or a whole wishlist "
+authors = [
+    {name = "dodaucy", email = "dodaucy@gmail.com"},
+]
+dependencies = [
+    "uvicorn[standard]>=0.30.6",
+    "fastapi>=0.115.0",
+    "jinja2>=3.1.4",
+    "pydantic>=2.9.2",
+    "httpx>=0.27.2",
+    "beautifulsoup4>=4.12.3",
+    "playwright>=1.47.0",
+]
+requires-python = "==3.12.5"
+readme = "README.md"
+license = {file = "LICENSE"}
+
+[tool.pdm]
+distribution = false
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "ruff>=0.6.8",
+]
+
+[tool.pdm.scripts]
+start = { cmd = "uvicorn main:app --host 127.0.0.1 --port 8000", working_dir = "src" }
+lint = "ruff check src --respect-gitignore"
+fix = "ruff check src --fix-only --respect-gitignore"
+post_install = "playwright install"
+
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [  # https://docs.astral.sh/ruff/rules/
+    "F",  # pyflakes
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "I",  # isort
+    "N",  # pep8-naming
+    "D",  # pydocstyle
+    "UP",  # pyupgrade
+    "ASYNC",  # flake8-async
+    "S",  # flake8-bandit
+    "BLE",  # flake8-blind-except
+    "B",  # flake8-bugbear
+    "A",  # flake8-builtins
+    # "COM",  # flake8-commas
+    "C4",  # flake8-comprehensions
+    "LOG",  # flake8-logging
+    "Q",  # flake8-quotes
+    "ARG",  # flake8-unused-arguments
+]
+ignore = [
+    "E501",  # Max line length
+    "D100",  # Missing docstring in public module
+    "D101",  # Missing docstring in public class
+    "D107",  # Missing docstring in __init__
+    "D203",  # 1 Blank line required before class docstring
+    "D212",  # Multi-line docstring summary should start at the first line
+]
+fixable = ["I"]
