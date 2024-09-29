@@ -5,12 +5,12 @@
             GitHub
         </div>
     </a>
-    <a href="/" {% if selected_nav_item == "index" %}id="active-tab"{% endif %}>
+    <a href="/" {% if name == "" %}id="active-tab"{% endif %}>
         <div>
             Steam Details
         </div>
     </a>
-    <a href="/analytics" {% if selected_nav_item == "analytics" %}id="active-tab"{% endif %}>
+    <a href="/analytics" {% if name == "analytics" %}id="active-tab"{% endif %}>
         <div>
             Analytics
         </div>

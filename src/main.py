@@ -65,7 +65,7 @@ async def index(request: Request):
         "index.html",
         {
             "request": request,
-            "selected_nav_item": "index"
+            "name": ""
         }
     )
 
@@ -77,7 +77,7 @@ async def analytics(request: Request):
         "analytics.html",
         {
             "request": request,
-            "selected_nav_item": "analytics"
+            "name": "analytics"
         }
     )
 
