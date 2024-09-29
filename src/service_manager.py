@@ -1,5 +1,7 @@
+import base64
 import logging
 
+from analytics import Analytics, AnalyticsService, render_speed_box_plot
 from service import Service
 from services.how_long_to_beat import HowLongToBeat
 from services.keyforsteam import KeyForSteam
@@ -44,5 +46,25 @@ class ServiceManager:
         """Get the wishlist data for the given profile name or id."""
         return await self.steam.get_wishlist_data(profile_name_or_id)
 
-    async def analyze_services(self) -> ...:  # TODO
-        raise NotImplementedError
+    async def analyze_services(self) -> Analytics:
+        """Analyze all services and return their data."""
+        # Collect data
+        services: dict[str, AnalyticsService] = {}
+        speed_histories: dict[str, list[float]] = {}
+        for service in self._services:
+            name = service.__class__.__name__
+            services[name] = AnalyticsService(
+                load_time=service.load_time,
+                timeout_count=service.timeout_count,
+                error_count=service.error_count
+            )
+            speed_histories[name] = service.speed_history
+
+        # Render box plot
+        speed_box_plot = await render_speed_box_plot(speed_histories)
+
+        # Return data
+        return Analytics(
+            services=services,
+            speed_box_plot=base64.b64encode(speed_box_plot).decode()
+        )

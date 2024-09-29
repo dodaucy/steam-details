@@ -14,7 +14,9 @@ class Service:
 
         # Stats
         self.load_time: float | None = None
-        self.response_times: list[float] = []
+        self.speed_history: list[float] = []
+        self.timeout_count: int = 0
+        self.error_count: int = 0
 
         self.logger.debug(f"Initialized {self.__class__.__name__}")
 
@@ -38,7 +40,7 @@ class Service:
 
         run_time = time.time() - start_time
         self.logger.debug(f"Got response in {run_time:.2f}s")
-        self.response_times.append(run_time)
+        self.speed_history.append(run_time)
         return response
 
     async def load_service(self) -> None:

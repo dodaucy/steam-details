@@ -70,6 +70,18 @@ async def index(request: Request):
     )
 
 
+@app.get("/analytics")
+async def analytics(request: Request):
+    """Get the analytics page."""
+    return templates.TemplateResponse(
+        "analytics.html",
+        {
+            "request": request,
+            "selected_nav_item": "analytics"
+        }
+    )
+
+
 @app.get("/wishlist")
 async def wishlist(profile_name_or_id: str):
     """Get the wishlist data for the given profile name or id."""
@@ -174,3 +186,9 @@ async def details(appid_or_name: str):
 
         details["from_cache"] = False
         return details
+
+
+@app.get("/analyze")
+async def analyze():
+    """Analyze all services and return their data."""
+    return (await service_manager.analyze_services()).model_dump()
