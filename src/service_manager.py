@@ -52,7 +52,7 @@ class ServiceManager:
         services: dict[str, AnalyticsService] = {}
         speed_histories: dict[str, list[float]] = {}
         for service in self._services:
-            name = service.__class__.__name__
+            name = service.__class__.__name__.lower()
             services[name] = AnalyticsService(
                 load_time=service.load_time,
                 timeout_count=service.timeout_count,
