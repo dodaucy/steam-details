@@ -50,7 +50,7 @@ def _render_speed_box_plot(data: dict[str, list[int | float]]) -> bytes:
     df = pd.DataFrame(series_data)
 
     # Create figure
-    f, ax = plt.subplots()
+    fig, ax = plt.subplots()
     ax.set(
         title="Speed of Services Box Plot",
         xlabel="Time in seconds",
@@ -73,7 +73,7 @@ def _render_speed_box_plot(data: dict[str, list[int | float]]) -> bytes:
     )
 
     # Set size
-    f.set_size_inches(10, 5)
+    fig.set_size_inches(10, 5)
 
     # Adjust margins to fit text
     plt.tight_layout()
@@ -82,6 +82,7 @@ def _render_speed_box_plot(data: dict[str, list[int | float]]) -> bytes:
         logger.debug("Saving to temporary file")
         plt.savefig(f.name)
         logger.debug("Saved")
+        plt.close(fig)
         return f.read()
 
 
