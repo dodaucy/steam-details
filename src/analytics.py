@@ -40,6 +40,7 @@ _lock = asyncio.Lock()
 
 def _render_speed_box_plot(data: dict[str, list[int | float]]) -> bytes:
     logger.info("Rendering box plot")
+    logger.debug(f"Data: {data}")
 
     # Fill in missing values with NaN
     series_data = {}
@@ -83,13 +84,14 @@ def _render_speed_box_plot(data: dict[str, list[int | float]]) -> bytes:
         plt.savefig(f.name)
         logger.debug("Saved")
         plt.close(fig)
+        logger.info("Finished box plot")
         return f.read()
 
 
 async def render_speed_box_plot(data: dict[str, list[int | float]]) -> bytes:
     """Render a box plot of the speed of the services."""
     async with _lock:
-        logging.debug("Starting box plot thread")
+        logger.debug("Starting box plot thread")
         response = await asyncio.to_thread(_render_speed_box_plot, data)
-        logging.debug("Finished box plot thread")
+        logger.debug("Finished box plot thread")
         return response
