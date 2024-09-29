@@ -8,6 +8,8 @@ Written to be used in the european union and tested in germany. If should be eas
 
 This project is NOT affiliated with Steam. It is only for educational purposes.
 
+Do not host this on a public server. This project is not safe for public use.
+
 ## Showcase
 
 You can hover over almost anything to see more details.
