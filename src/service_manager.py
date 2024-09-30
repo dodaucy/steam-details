@@ -46,19 +46,30 @@ class ServiceManager:
         """Get the wishlist data for the given profile name or id."""
         return await self.steam.get_wishlist_data(profile_name_or_id)
 
-    async def analyze_services(self) -> Analytics:
-        """Analyze all services and return their data."""
+    async def analyze_services(self) -> Analytics | None:
+        """
+        Analyze all services and return their data.
+
+        Return None if no data is available.
+        """
         # Collect data
         services: dict[str, AnalyticsService] = {}
         speed_histories: dict[str, list[float]] = {}
         for service in self._services:
             name = service.__class__.__name__.lower()
+            if service.load_time is None:
+                self._logger.warning(f"Skipping {repr(name)} due the service not being loaded")
+                continue
             services[name] = AnalyticsService(
                 load_time=service.load_time,
                 timeout_count=service.timeout_count,
                 error_count=service.error_count
             )
             speed_histories[name] = service.speed_history
+
+        # Return if no data
+        if not services:
+            return
 
         # Render box plot
         speed_box_plot = await render_speed_box_plot(speed_histories)

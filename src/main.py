@@ -191,4 +191,7 @@ async def details(appid_or_name: str):
 @app.get("/analyze")
 async def analyze():
     """Analyze all services and return their data."""
-    return (await service_manager.analyze_services()).model_dump()
+    data = await service_manager.analyze_services()
+    if data is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No data available")
+    return data.model_dump()
