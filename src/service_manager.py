@@ -61,7 +61,7 @@ class ServiceManager:
                 self._logger.warning(f"Skipping {repr(name)} due the service not being loaded")
                 continue
             services[name] = AnalyticsService(
-                load_time=service.load_time,
+                load_time=round(service.load_time, 3),
                 timeout_count=service.timeout_count,
                 error_count=service.error_count
             )
