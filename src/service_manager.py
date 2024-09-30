@@ -62,9 +62,13 @@ class ServiceManager:
 
         # Render box plot
         speed_box_plot = await render_speed_box_plot(speed_histories)
+        if speed_box_plot is None:
+            speed_box_plot_base64 = None
+        else:
+            speed_box_plot_base64 = base64.b64encode(speed_box_plot).decode()
 
         # Return data
         return Analytics(
             services=services,
-            speed_box_plot=base64.b64encode(speed_box_plot).decode()
+            speed_box_plot=speed_box_plot_base64
         )

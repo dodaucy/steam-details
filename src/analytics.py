@@ -21,7 +21,7 @@ class AnalyticsService(TypedDict):
 
 class Analytics(BaseModel):
     services: dict[str, AnalyticsService]
-    speed_box_plot: str  # base64 encoded png
+    speed_box_plot: str | None  # base64 encoded png
 
 
 sns.set_theme(
@@ -38,9 +38,21 @@ logger = logging.getLogger(f"{ANSICodes.MAGENTA}analytics{ANSICodes.RESET}")
 _lock = asyncio.Lock()
 
 
-def _render_speed_box_plot(data: dict[str, list[int | float]]) -> bytes:
+def _render_speed_box_plot(data: dict[str, list[int | float]]) -> bytes | None:
     logger.info("Rendering box plot")
     logger.debug(f"Data: {data}")
+
+    # Check if data is empty
+    found_data = False
+    for k, v in data.items():
+        if v:
+            logger.debug(f"Found data for {repr(k)}")
+            found_data = True
+            break
+
+    if not found_data:
+        logger.info("No data to plot")
+        return
 
     # Fill in missing values with NaN
     series_data = {}
@@ -88,7 +100,7 @@ def _render_speed_box_plot(data: dict[str, list[int | float]]) -> bytes:
         return f.read()
 
 
-async def render_speed_box_plot(data: dict[str, list[int | float]]) -> bytes:
+async def render_speed_box_plot(data: dict[str, list[int | float]]) -> bytes | None:
     """Render a box plot of the speed of the services."""
     async with _lock:
         logger.debug("Starting box plot thread")
