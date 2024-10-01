@@ -7,6 +7,7 @@
     width: 940px;
 }
 
+
 #service-stats {
     display: flex;
     flex-direction: row;
@@ -18,6 +19,19 @@
 
     background-color: rgba(64, 81, 99, 0.9);
 }
+
+#service-stats > * {
+    flex: 1;
+}
+
+#service-stats > * > * {
+    margin: 5px;
+    padding: 5px;
+
+    background-color: rgba(62, 66, 71);
+    border-radius: 3px;
+}
+
 
 #speed-box-plot {
     width: 100%;
