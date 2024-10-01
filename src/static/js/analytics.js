@@ -1,9 +1,13 @@
 async function analyze() {
     const analyticsContent = document.getElementById("analytics-content");
 
+    // Clear content
+    analyticsContent.innerHTML = "";
+
     // Display loading
     const loading = document.createElement("div");
     loading.className = "title";
+    loading.innerText = "Analyzing...";
     analyticsContent.appendChild(loading);
 
     const elements = [];
