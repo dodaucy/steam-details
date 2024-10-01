@@ -3,7 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 from service import Service
-from utils import ANSICodes, http_client
+from utils import http_client
 
 
 class ReleaseDate(BaseModel):
@@ -34,8 +34,8 @@ class SteamDetails(BaseModel):
 
 
 class Steam(Service):
-    def __init__(self):
-        super().__init__(f"{ANSICodes.CYAN}steam{ANSICodes.RESET}")
+    def __init__(self, name: str, log_name: str) -> None:
+        super().__init__(name, log_name)
 
         self.app_list: dict[str, int] | None = None
 

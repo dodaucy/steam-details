@@ -10,12 +10,7 @@ from typing_extensions import TypedDict
 
 from service import Service
 from services.steam import SteamDetails
-from utils import (
-    ANSICodes,
-    http_client,
-    price_string_to_float,
-    roman_string_to_int_string,
-)
+from utils import http_client, price_string_to_float, roman_string_to_int_string
 
 PLATFORMS = [
     "PlayStation 4",
@@ -253,8 +248,8 @@ class KeyForSteamDetails(BaseModel):
 
 
 class KeyForSteam(Service):
-    def __init__(self):
-        super().__init__(f"{ANSICodes.YELLOW}keyforsteam{ANSICodes.RESET}")
+    def __init__(self, name: str, log_name: str) -> None:
+        super().__init__(name, log_name)
 
         # Get full ignored word list
         self._ignored_word_list = IGNORED_WORDS + PLATFORMS

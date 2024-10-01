@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 from service import Service
 from services.steam import SteamDetails
-from utils import ANSICodes, http_client
+from utils import http_client
 
 
 class HowLongToBeatDetails(BaseModel):
@@ -19,8 +19,8 @@ class HowLongToBeatDetails(BaseModel):
 
 
 class HowLongToBeat(Service):
-    def __init__(self):
-        super().__init__(f"{ANSICodes.RED}howlongtobeat{ANSICodes.RESET}")
+    def __init__(self, name: str, log_name: str) -> None:
+        super().__init__(name, log_name)
 
         # Cache
         self._search_endpoint: str | None = None

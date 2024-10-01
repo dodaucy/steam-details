@@ -14,13 +14,14 @@ from utils import ANSICodes
 
 
 class AnalyticsService(TypedDict):
+    name: str
     load_time: float
     timeout_count: int
     error_count: int
 
 
 class Analytics(BaseModel):
-    services: dict[str, AnalyticsService]
+    services: list[AnalyticsService]
     speed_box_plot: str | None  # base64 encoded png
 
 

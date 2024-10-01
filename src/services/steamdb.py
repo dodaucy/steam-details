@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 from service import Service
 from services.steam import SteamDetails
-from utils import ANSICodes, price_string_to_float
+from utils import price_string_to_float
 
 
 class SteamDBDetails(BaseModel):
@@ -20,9 +20,6 @@ class SteamDBDetails(BaseModel):
 
 class SteamDB(Service):
     """Get steam historical low price from SteamDB."""
-
-    def __init__(self):
-        super().__init__(f"{ANSICodes.BLUE}steamdb{ANSICodes.RESET}")
 
     async def _captcha(self, appid: int, timeout: int) -> None:  # noqa: ASYNC109
         self.logger.warning("Displaying captcha or bot protection message")

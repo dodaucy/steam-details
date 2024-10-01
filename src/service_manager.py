@@ -15,11 +15,11 @@ class ServiceManager:
     def __init__(self):
         self._logger = logging.getLogger(f"{ANSICodes.MAGENTA}service_manager{ANSICodes.RESET}")
 
-        self.steam = Steam()
-        self.steamdb = SteamDB()
-        self.protondb = ProtonDB()
-        self.keyforsteam = KeyForSteam()
-        self.how_long_to_beat = HowLongToBeat()
+        self.steam = Steam("Steam", f"{ANSICodes.CYAN}steam{ANSICodes.RESET}")
+        self.steamdb = SteamDB("SteamDB", f"{ANSICodes.BLUE}steamdb{ANSICodes.RESET}")
+        self.protondb = ProtonDB("ProtonDB", f"{ANSICodes.GREEN}protondb{ANSICodes.RESET}")
+        self.keyforsteam = KeyForSteam("KeyForSteam", f"{ANSICodes.YELLOW}keyforsteam{ANSICodes.RESET}")
+        self.how_long_to_beat = HowLongToBeat("HowLongToBeat", f"{ANSICodes.RED}howlongtobeat{ANSICodes.RESET}")
 
         self._services: list[Service] = [
             self.steam,
@@ -33,9 +33,9 @@ class ServiceManager:
         """Load all services by calling their load method."""
         self._logger.info("Loading all services")
         for service in self._services:
-            self._logger.debug(f"Loading {service.__class__.__name__}")
+            self._logger.debug(f"Loading {service.name}")
             await service.load_service()
-            self._logger.debug(f"Loaded {service.__class__.__name__}")
+            self._logger.debug(f"Loaded {service.name}")
         self._logger.info("All services loaded")
 
     def get_appid_from_name(self, name: str) -> int | None:
@@ -53,18 +53,19 @@ class ServiceManager:
         Return None if no data is available.
         """
         # Collect data
-        services: dict[str, AnalyticsService] = {}
+        services: list[AnalyticsService] = []
         speed_histories: dict[str, list[float]] = {}
         for service in self._services:
-            name = service.__class__.__name__.lower()
+            name = service.name
             if service.load_time is None:
                 self._logger.warning(f"Skipping {repr(name)} due the service not being loaded")
                 continue
-            services[name] = AnalyticsService(
+            services.append(AnalyticsService(
+                name=name,
                 load_time=round(service.load_time, 3),
                 timeout_count=service.timeout_count,
                 error_count=service.error_count
-            )
+            ))
             speed_histories[name] = service.speed_history
 
         # Return if no data
