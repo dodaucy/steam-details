@@ -65,7 +65,7 @@ def _render_speed_box_plot(data: dict[str, list[int | float]]) -> bytes | None:
     # Create figure
     fig, ax = plt.subplots()
     ax.set(
-        title="Speed of Services Box Plot",
+        title=f"Speed Box Plot ({len(df)} entries)",
         xlabel="Time in seconds",
         ylabel="Services"
     )
