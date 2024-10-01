@@ -64,7 +64,7 @@
 .result-item {
     width: 100%;
     padding: 10px;
-    margin: 5px 0px 5px 0px;
+    margin: 5px 0px;
     background-color: rgba(64, 81, 99, 0.9);
 
     display: flex;
@@ -98,7 +98,7 @@
     width: 100%;
 }
 .content > * {
-    margin: 5px 0px 5px 0px;
+    margin: 5px 0px;
 }
 
 
