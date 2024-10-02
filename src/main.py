@@ -3,6 +3,7 @@ import logging
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from api import app as api_app
 from service_manager import service_manager
@@ -48,6 +49,21 @@ logging.getLogger().handlers[0].setFormatter(ColorFormatter(
 
 
 logger = logging.getLogger(f"{ANSICodes.MAGENTA}main{ANSICodes.RESET}")
+
+
+@app.exception_handler(StarletteHTTPException)
+async def starlette_http_exception(request: Request, exc: StarletteHTTPException):
+    """Handle Starlette HTTP exceptions."""
+    return templates.TemplateResponse(
+        "error.html",
+        {
+            "request": request,
+            "status_code": exc.status_code,
+            "detail": exc.detail,
+            "name": "error"
+        },
+        status_code=exc.status_code
+    )
 
 
 @app.get("/")
