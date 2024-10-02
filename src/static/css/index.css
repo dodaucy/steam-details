@@ -109,13 +109,16 @@ button {
 .result-item {
     width: 100%;
     padding: 10px;
-    margin: 5px 0px 5px 0px;
+    margin: 5px 0px;
     background-color: rgba(64, 81, 99, 0.9);
 
     display: flex;
     flex-direction: row;
     justify-content: center;
     align-items: center;
+}
+.result-item [title]:hover {
+    cursor: help;
 }
 
 
@@ -140,15 +143,7 @@ button {
     width: 100%;
 }
 .content > * {
-    margin: 5px 0px 5px 0px;
-}
-
-
-
-/* Title */
-.title {
-    font-size: 20px;
-    font-weight: bold;
+    margin: 5px 0px;
 }
 
 
@@ -221,7 +216,7 @@ button {
 
 /* Buy Buttons */
 .steam-button, .keyforsteam-button {
-    width: 125px;
+    width: 150px;
     text-align: center;
     color: rgb(210, 239, 169);
     margin-left: 0;
@@ -241,50 +236,4 @@ button {
 }
 .keyforsteam-button:hover {
     background: linear-gradient( to right, #c0d629 5%, #a6a621 95%);
-}
-
-
-
-/* Text Colors */
-.green-text {
-    color: #75b022;
-}
-.yellow-text {
-    color: #CFB53B;
-}
-.orange-text {
-    color: #ff6600;
-}
-.red-text {
-    color: #ff0000;
-}
-.grey-text {
-    color: #aaaaaa;
-}
-.rainbow-text {
-    animation: rainbow-text-animation 3s ease-in-out infinite;
-}
-@keyframes rainbow-text-animation {
-    0% { color: #FF0000; }
-    20% { color: #FF7F00; }
-    40% { color: #FFFF00; }
-    60% { color: #00FF00; }
-    80% { color: #fa5eff; }
-    100% { color: #FF0000; }
-}
-
-/* Purchase Area Colors */
-.green-purchase-area {
-    background: rgba(100, 255, 0, 0.2);
-}
-.rainbow-purchase-area {
-    animation: rainbow-purchase-area-animation 3s ease-in-out infinite;
-}
-@keyframes rainbow-purchase-area-animation {
-    0% { background-color: rgb(255, 0, 0, 0.2); }
-    20% { background-color: rgb(255, 127, 0, 0.2); }
-    40% { background-color: rgb(255, 255, 0, 0.2); }
-    60% { background-color: rgb(0, 255, 0, 0.2); }
-    80% { background-color: rgb(250, 94, 255, 0.2); }
-    100% { background-color: rgb(255, 0, 0, 0.2); }
 }

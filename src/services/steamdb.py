@@ -1,4 +1,3 @@
-import logging
 import time
 from datetime import datetime
 from tempfile import TemporaryDirectory
@@ -7,8 +6,9 @@ from bs4 import BeautifulSoup, Tag
 from playwright.async_api import async_playwright
 from pydantic import BaseModel
 
+from service import Service
 from services.steam import SteamDetails
-from utils import ANSICodes, price_string_to_float
+from utils import price_string_to_float
 
 
 class SteamDBDetails(BaseModel):
@@ -18,11 +18,8 @@ class SteamDBDetails(BaseModel):
     external_url: str
 
 
-class SteamDB:
+class SteamDB(Service):
     """Get steam historical low price from SteamDB."""
-
-    def __init__(self):
-        self.logger = logging.getLogger(f"{ANSICodes.BLUE}steamdb{ANSICodes.RESET}")
 
     async def _captcha(self, appid: int, timeout: int) -> None:  # noqa: ASYNC109
         self.logger.warning("Displaying captcha or bot protection message")

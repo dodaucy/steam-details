@@ -6,6 +6,7 @@ from typing import Any
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 
 from service_manager import ServiceManager
 from utils import ANSICodes
@@ -63,7 +64,20 @@ async def index(request: Request):
     return templates.TemplateResponse(
         "index.html",
         {
-            "request": request
+            "request": request,
+            "name": ""
+        }
+    )
+
+
+@app.get("/analytics")
+async def analytics(request: Request):
+    """Get the analytics page."""
+    return templates.TemplateResponse(
+        "analytics.html",
+        {
+            "request": request,
+            "name": "analytics"
         }
     )
 
@@ -71,7 +85,7 @@ async def index(request: Request):
 @app.get("/wishlist")
 async def wishlist(profile_name_or_id: str):
     """Get the wishlist data for the given profile name or id."""
-    game_appids = await service_manager._steam.get_wishlist_data(profile_name_or_id)
+    game_appids: list[int] | None = await service_manager.get_wishlist(profile_name_or_id)
     if game_appids is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Steam ID / Profile not found (your wishlist must be public)")
     return game_appids
@@ -91,12 +105,12 @@ async def details(appid_or_name: str):
         # Get steam details
         steam = None
         if appid_or_name.strip().isdigit():
-            steam = await service_manager.get_steam_details(int(appid_or_name))
+            steam = await service_manager.steam.create_task(int(appid_or_name))
         if steam is None:
-            appid = await service_manager._steam.get_app(appid_or_name)
+            appid = service_manager.get_appid_from_name(appid_or_name)
             if appid is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="App not found")
-            steam = await service_manager.get_steam_details(appid)
+            steam = await service_manager.steam.create_task(appid)
             if steam is None:
                 raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get steam details")
 
@@ -119,13 +133,13 @@ async def details(appid_or_name: str):
                 "steam": steam.model_dump()
             }
 
-            tasks: dict[str, asyncio.Task[object]] = {}
+            tasks: dict[str, asyncio.Task[BaseModel]] = {}
 
             # Steam historical low
             if steam.price is None:
                 details["steam_historical_low"] = None
             elif steam.price > 0:
-                tasks["steam_historical_low"] = service_manager.get_steam_historical_low(steam)
+                tasks["steam_historical_low"] = service_manager.steamdb.create_task(steam)
             else:
                 details["steam_historical_low"] = {
                     "price": 0.0,
@@ -134,18 +148,18 @@ async def details(appid_or_name: str):
 
             # Key and gift sellers
             if steam.price is not None and steam.price > 0:
-                tasks["key_and_gift_sellers"] = service_manager.get_key_and_gift_sellers_data(steam)
+                tasks["key_and_gift_sellers"] = service_manager.keyforsteam.create_task(steam)
             else:
                 details["key_and_gift_sellers"] = None
 
             # Game length
-            tasks["game_length"] = service_manager.get_game_length(steam)
+            tasks["game_length"] = service_manager.how_long_to_beat.create_task(steam)
 
             # Linux support
             if steam.native_linux_support:
                 details["linux_support"] = None
             else:
-                tasks["linux_support"] = service_manager.get_linux_support(steam)
+                tasks["linux_support"] = service_manager.protondb.create_task(steam)
 
             # Run tasks
             results = await asyncio.gather(*tasks.values())
@@ -172,3 +186,12 @@ async def details(appid_or_name: str):
 
         details["from_cache"] = False
         return details
+
+
+@app.get("/analyze")
+async def analyze():
+    """Analyze all services and return their data."""
+    data = await service_manager.analyze_services()
+    if data is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No data available")
+    return data.model_dump()

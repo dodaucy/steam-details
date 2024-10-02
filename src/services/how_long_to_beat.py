@@ -1,5 +1,4 @@
 import json
-import logging
 from collections.abc import Iterator
 from urllib.parse import quote
 
@@ -7,8 +6,9 @@ from bs4 import BeautifulSoup
 from httpx import Response
 from pydantic import BaseModel
 
+from service import Service
 from services.steam import SteamDetails
-from utils import ANSICodes, http_client
+from utils import http_client
 
 
 class HowLongToBeatDetails(BaseModel):
@@ -18,9 +18,9 @@ class HowLongToBeatDetails(BaseModel):
     external_url: str
 
 
-class HowLongToBeat:
-    def __init__(self):
-        self.logger = logging.getLogger(f"{ANSICodes.RED}howlongtobeat{ANSICodes.RESET}")
+class HowLongToBeat(Service):
+    def __init__(self, name: str, log_name: str) -> None:
+        super().__init__(name, log_name)
 
         # Cache
         self._search_endpoint: str | None = None
@@ -102,9 +102,6 @@ class HowLongToBeat:
         self._search_endpoint = new_search_endpoint
 
     async def _search(self, steam: SteamDetails) -> Response:
-        if self._search_endpoint is None:
-            raise Exception("Search endpoint not loaded")
-
         # Search
         r = await http_client.post(
             self._search_endpoint,

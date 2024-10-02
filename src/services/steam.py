@@ -1,9 +1,9 @@
-import logging
 from datetime import datetime
 
 from pydantic import BaseModel
 
-from utils import ANSICodes, http_client
+from service import Service
+from utils import http_client
 
 
 class ReleaseDate(BaseModel):
@@ -33,9 +33,9 @@ class SteamDetails(BaseModel):
     native_linux_support: bool
 
 
-class Steam:
-    def __init__(self):
-        self.logger = logging.getLogger(f"{ANSICodes.CYAN}steam{ANSICodes.RESET}")
+class Steam(Service):
+    def __init__(self, name: str, log_name: str) -> None:
+        super().__init__(name, log_name)
 
         self.app_list: dict[str, int] | None = None
 
@@ -156,7 +156,7 @@ class Steam:
             native_linux_support=steam_data["platforms"]["linux"]
         )
 
-    async def get_app(self, name: str) -> int | None:
+    def get_app(self, name: str) -> int | None:
         """Get the app id for the given name using the steam app list."""
         appid = self.app_list.get(name.lower())
         if appid is not None:

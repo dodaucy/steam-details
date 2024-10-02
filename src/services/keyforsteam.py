@@ -1,5 +1,4 @@
 import json
-import logging
 import re
 import unicodedata
 from datetime import datetime
@@ -9,13 +8,9 @@ from bs4 import BeautifulSoup
 from pydantic import BaseModel
 from typing_extensions import TypedDict
 
+from service import Service
 from services.steam import SteamDetails
-from utils import (
-    ANSICodes,
-    http_client,
-    price_string_to_float,
-    roman_string_to_int_string,
-)
+from utils import http_client, price_string_to_float, roman_string_to_int_string
 
 PLATFORMS = [
     "PlayStation 4",
@@ -252,9 +247,9 @@ class KeyForSteamDetails(BaseModel):
     external_url: str
 
 
-class KeyForSteam:
-    def __init__(self):
-        self.logger = logging.getLogger(f"{ANSICodes.YELLOW}keyforsteam{ANSICodes.RESET}")
+class KeyForSteam(Service):
+    def __init__(self, name: str, log_name: str) -> None:
+        super().__init__(name, log_name)
 
         # Get full ignored word list
         self._ignored_word_list = IGNORED_WORDS + PLATFORMS

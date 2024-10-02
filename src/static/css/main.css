@@ -1,0 +1,136 @@
+/* General */
+body {
+    background-color: #1B2838;
+    color: #ffffff;
+}
+* {
+    font-family: "Motiva Sans", sans-serif;
+    box-sizing: border-box;
+}
+
+/* General Elements and Classes */
+a {
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+button {
+    cursor: pointer;
+}
+.small-font {
+    font-size: 0.8em;
+}
+.center-text {
+    text-align: center;
+}
+.title {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+.margin-top {
+    margin-top: 15px;
+}
+
+/* Page Content */
+#page-content {
+    margin-top: 30px;
+
+    margin-left: auto;
+    margin-right: auto;
+    width: 940px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+#page-content > * {
+    width: 100%;
+    margin-top: 10px;
+}
+
+
+
+/* Navigation Area */
+#nav_area {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+    /* Original: background: linear-gradient( to right, rgba(62, 103, 150, 0.919) 11.38%, rgba(58, 120, 177, 0.8) 25.23%, rgb(15, 33, 110) 100%); */
+    background: linear-gradient( to right, rgba(62, 103, 150, 0.919) 11.38%, rgba(58, 120, 177, 0.8) 100%);
+    border-radius: 3px;
+
+    height: 35px;
+}
+#nav_area > * {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+    height: 100%;
+    width: 100%;
+}
+#nav_area > * > * {
+    margin: 0px 5px;
+}
+#nav_area > * > img {
+    height: 1.5em;
+}
+#nav_area > *:not(#active-tab):hover {
+    /* Original: background: linear-gradient( to right, rgba(33, 162, 255, 0.25) 0%, rgba(33, 162, 255, 0.15) 50%, rgba(50, 50, 51, 0) 100%); */
+    background: linear-gradient( to right, rgba(33, 162, 255, 0.4) 0%, rgba(33, 162, 255, 0.25) 50%, rgba(50, 50, 51, 0) 100%);
+}
+
+/* Active Tab */
+#active-tab {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+
+
+/* Text Colors */
+.green-text {
+    color: #75b022;
+}
+.yellow-text {
+    color: #CFB53B;
+}
+.orange-text {
+    color: #ff6600;
+}
+.red-text {
+    color: #ff0000;
+}
+.grey-text {
+    color: #aaaaaa;
+}
+.rainbow-text {
+    animation: rainbow-text-animation 3s ease-in-out infinite;
+}
+@keyframes rainbow-text-animation {
+    0% { color: #FF0000; }
+    20% { color: #FF7F00; }
+    40% { color: #FFFF00; }
+    60% { color: #00FF00; }
+    80% { color: #fa5eff; }
+    100% { color: #FF0000; }
+}
+
+/* Purchase Area Colors */
+.green-purchase-area {
+    background: rgba(100, 255, 0, 0.2);
+}
+.rainbow-purchase-area {
+    animation: rainbow-purchase-area-animation 3s ease-in-out infinite;
+}
+@keyframes rainbow-purchase-area-animation {
+    0% { background-color: rgb(255, 0, 0, 0.2); }
+    20% { background-color: rgb(255, 127, 0, 0.2); }
+    40% { background-color: rgb(255, 255, 0, 0.2); }
+    60% { background-color: rgb(0, 255, 0, 0.2); }
+    80% { background-color: rgb(250, 94, 255, 0.2); }
+    100% { background-color: rgb(255, 0, 0, 0.2); }
+}
