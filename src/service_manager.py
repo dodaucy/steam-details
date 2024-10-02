@@ -84,3 +84,6 @@ class ServiceManager:
             services=services,
             speed_box_plot=speed_box_plot_base64
         )
+
+
+service_manager = ServiceManager()

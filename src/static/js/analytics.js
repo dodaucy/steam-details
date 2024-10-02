@@ -13,7 +13,7 @@ async function analyze() {
     const elements = [];
 
     try {
-        data = await getRequest("/analyze");
+        data = await getRequest("analyze");
     } catch (error) {
         // Display error
         const errorDiv = document.createElement("div");
