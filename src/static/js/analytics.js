@@ -6,7 +6,7 @@ async function analyze() {
 
     // Display loading
     const loading = document.createElement("div");
-    loading.className = "title";
+    loading.className = "title margin-top";
     loading.innerText = "Analyzing...";
     analyticsContent.appendChild(loading);
 
