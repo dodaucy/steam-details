@@ -79,14 +79,14 @@ button {
 #nav_area > * > img {
     height: 1.5em;
 }
-#nav_area > *:hover {
+#nav_area > *:not(#active-tab):hover {
     /* Original: background: linear-gradient( to right, rgba(33, 162, 255, 0.25) 0%, rgba(33, 162, 255, 0.15) 50%, rgba(50, 50, 51, 0) 100%); */
     background: linear-gradient( to right, rgba(33, 162, 255, 0.4) 0%, rgba(33, 162, 255, 0.25) 50%, rgba(50, 50, 51, 0) 100%);
 }
 
 /* Active Tab */
 #active-tab {
-    text-decoration: underline;
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 
