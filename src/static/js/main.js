@@ -1,5 +1,5 @@
 async function getRequest(url) {
-    const response = await fetch(url, {
+    const response = await fetch(`/api/${url}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json"
