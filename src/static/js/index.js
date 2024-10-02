@@ -17,6 +17,8 @@ async function search(mode, searchValue, progress) {
         // Try to get appid from url
         if (searchValue.startsWith("https://store.steampowered.com/app/")) {
             appid_or_name = searchValue.split("https://store.steampowered.com/app/")[1].split("/")[0];
+        } else if (searchValue.startsWith("https://store.steampowered.com/agecheck/app/")) {
+            appid_or_name = searchValue.split("https://store.steampowered.com/agecheck/app/")[1].split("/")[0];
         } else {
             appid_or_name = searchValue;
         }
