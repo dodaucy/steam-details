@@ -30,9 +30,9 @@ dev = [
 ]
 
 [tool.pdm.scripts]
-start = { cmd = "uvicorn main:app --host 127.0.0.1 --port 8000", working_dir = "src" }
-lint = "ruff check src --respect-gitignore"
-fix = "ruff check src --fix-only --respect-gitignore"
+start = { cmd = "uvicorn main:app --host 127.0.0.1 --port 8000", working_dir = "src/steam-details" }
+lint = "ruff check src/steam-details --respect-gitignore"
+fix = "ruff check src/steam-details --fix-only --respect-gitignore"
 post_install = "playwright install"
 
 [tool.ruff]

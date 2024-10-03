@@ -4,7 +4,6 @@ from service import Service
 from services.steam import SteamDetails
 from utils import http_client
 
-
 class ProtonDBDetails(BaseModel):
     tier: str
     confidence: str

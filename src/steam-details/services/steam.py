@@ -5,7 +5,6 @@ from pydantic import BaseModel
 from service import Service
 from utils import http_client
 
-
 class ReleaseDate(BaseModel):
     display_string: str
     iso_date: str | None

@@ -10,7 +10,6 @@ from service import Service
 from services.steam import SteamDetails
 from utils import price_string_to_float
 
-
 class SteamDBDetails(BaseModel):
     price: float
     discount: int | None
