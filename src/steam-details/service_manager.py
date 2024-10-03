@@ -1,14 +1,14 @@
 import base64
 import logging
 
-from analytics import Analytics, AnalyticsService, render_speed_box_plot
-from service import Service
-from services.how_long_to_beat import HowLongToBeat
-from services.keyforsteam import KeyForSteam
-from services.protondb import ProtonDB
-from services.steam import Steam
-from services.steamdb import SteamDB
-from utils import ANSICodes
+from .analytics import Analytics, AnalyticsService, render_speed_box_plot
+from .service import Service
+from .services.how_long_to_beat import HowLongToBeat
+from .services.keyforsteam import KeyForSteam
+from .services.protondb import ProtonDB
+from .services.steam import Steam
+from .services.steamdb import SteamDB
+from .utils import ANSICodes
 
 
 class ServiceManager:
