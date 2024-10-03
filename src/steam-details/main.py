@@ -1,4 +1,5 @@
 import logging
+import os
 
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
@@ -13,9 +14,13 @@ app = FastAPI(openapi_url=None, on_startup=[service_manager.load_services])
 
 app.mount("/api", api_app)
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(
+    directory=os.path.join(os.path.dirname(__file__), "static")
+), name="static")
 
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(
+    directory=os.path.join(os.path.dirname(__file__), "templates")
+)
 
 
 class ColorFormatter(logging.Formatter):
