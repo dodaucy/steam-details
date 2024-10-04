@@ -1,4 +1,5 @@
 import logging
+from argparse import ArgumentParser
 
 import uvicorn
 
@@ -38,6 +39,18 @@ def main() -> int:
     ))
 
     logger = logging.getLogger(f"{ANSICodes.MAGENTA}main{ANSICodes.RESET}")
+
+    parser = ArgumentParser()
+    parser.add_argument(
+        "-V", "--version", action="store_true", help="Show the version and exit."
+    )
+
+    args = parser.parse_args()
+
+    if args.version:
+        from . import __version__
+        print(f"Steam Details {__version__}")
+        return 0
 
     uvicorn.run(app, host="127.0.0.1", port=8000)
 
