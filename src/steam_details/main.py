@@ -1,26 +1,9 @@
 import logging
-import os
 
-from fastapi import FastAPI, Request
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from starlette.exceptions import HTTPException as StarletteHTTPException
+import uvicorn
 
-from .api import app as api_app
-from .service_manager import service_manager
 from .utils import ANSICodes
-
-app = FastAPI(openapi_url=None, on_startup=[service_manager.load_services])
-
-app.mount("/api", api_app)
-
-app.mount("/static", StaticFiles(
-    directory=os.path.join(os.path.dirname(__file__), "static")
-), name="static")
-
-templates = Jinja2Templates(
-    directory=os.path.join(os.path.dirname(__file__), "templates")
-)
+from .web.web import app
 
 
 class ColorFormatter(logging.Formatter):
@@ -40,56 +23,22 @@ class ColorFormatter(logging.Formatter):
         )
 
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s (%(filename)s:%(lineno)d) %(message)s",
-    handlers=[
-        logging.StreamHandler()
-    ]
-)
-
-logging.getLogger().handlers[0].setFormatter(ColorFormatter(
-    f"%(asctime)s {{LEVEL_COLOR}}{ANSICodes.BOLD}[%(levelname)s]{ANSICodes.RESET} %(name)s ({ANSICodes.BLUE}%(filename)s:%(lineno)d{ANSICodes.RESET}) %(message)s"  # noqa
-))
-
-
-logger = logging.getLogger(f"{ANSICodes.MAGENTA}main{ANSICodes.RESET}")
-
-
-@app.exception_handler(StarletteHTTPException)
-async def starlette_http_exception(request: Request, exc: StarletteHTTPException):
-    """Handle Starlette HTTP exceptions."""
-    return templates.TemplateResponse(
-        "error.html",
-        {
-            "request": request,
-            "status_code": exc.status_code,
-            "detail": exc.detail,
-            "name": "error"
-        },
-        status_code=exc.status_code
+def main() -> int:
+    """Display some details for a steam app or a whole wishlist."""
+    # Logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s (%(filename)s:%(lineno)d) %(message)s",
+        handlers=[
+            logging.StreamHandler()
+        ]
     )
+    logging.getLogger().handlers[0].setFormatter(ColorFormatter(
+        f"%(asctime)s {{LEVEL_COLOR}}{ANSICodes.BOLD}[%(levelname)s]{ANSICodes.RESET} %(name)s ({ANSICodes.BLUE}%(filename)s:%(lineno)d{ANSICodes.RESET}) %(message)s"  # noqa
+    ))
 
+    logger = logging.getLogger(f"{ANSICodes.MAGENTA}main{ANSICodes.RESET}")
 
-@app.get("/")
-async def index(request: Request):
-    """Get the index page."""
-    return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
-            "name": ""
-        }
-    )
+    uvicorn.run(app, host="127.0.0.1", port=8000)
 
-
-@app.get("/analytics")
-async def analytics(request: Request):
-    """Get the analytics page."""
-    return templates.TemplateResponse(
-        "analytics.html",
-        {
-            "request": request,
-            "name": "analytics"
-        }
-    )
+    return 0
