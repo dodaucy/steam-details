@@ -17,12 +17,16 @@ dependencies = [
     "pandas>=2.2.3",
     "seaborn>=0.13.2",
 ]
-requires-python = "==3.12.5"
+requires-python = "==3.12.*"
 readme = "README.md"
 license = {file = "LICENSE"}
 
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
 [tool.pdm]
-distribution = false
+distribution = true
 
 [tool.pdm.dev-dependencies]
 dev = [
@@ -30,10 +34,11 @@ dev = [
 ]
 
 [tool.pdm.scripts]
-start = { cmd = "uvicorn main:app --host 127.0.0.1 --port 8000", working_dir = "src/steam-details" }
-lint = "ruff check src/steam-details --respect-gitignore"
-fix = "ruff check src/steam-details --fix-only --respect-gitignore"
+start = {cmd = "python3 -m steam_details", working_dir = "src"}
+lint = "ruff check src --respect-gitignore"
+
 post_install = "playwright install"
+pre_build = {composite = ["lint"]}
 
 [tool.ruff]
 target-version = "py312"
@@ -66,4 +71,3 @@ ignore = [
     "D203",  # 1 Blank line required before class docstring
     "D212",  # Multi-line docstring summary should start at the first line
 ]
-fixable = ["I"]
