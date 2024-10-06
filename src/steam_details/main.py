@@ -38,8 +38,6 @@ def main() -> int:
         f"%(asctime)s {{LEVEL_COLOR}}{ANSICodes.BOLD}[%(levelname)s]{ANSICodes.RESET} %(name)s ({ANSICodes.BLUE}%(filename)s:%(lineno)d{ANSICodes.RESET}) %(message)s"  # noqa
     ))
 
-    logger = logging.getLogger(f"{ANSICodes.MAGENTA}main{ANSICodes.RESET}")
-
     parser = ArgumentParser()
     parser.add_argument(
         "-V", "--version", action="store_true", help="Show the version and exit."
