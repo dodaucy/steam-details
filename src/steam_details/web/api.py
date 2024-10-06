@@ -6,8 +6,8 @@ from typing import Any
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 
-from service_manager import service_manager
-from utils import ANSICodes
+from ..service_manager import service_manager
+from ..utils import ANSICodes
 
 app = FastAPI(docs_url="/")
 

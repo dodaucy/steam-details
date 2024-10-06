@@ -10,7 +10,7 @@ import pandas as pd
 import seaborn as sns
 from pydantic import BaseModel
 
-from utils import ANSICodes
+from .utils import ANSICodes
 
 
 class AnalyticsService(TypedDict):

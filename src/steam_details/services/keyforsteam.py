@@ -8,9 +8,9 @@ from bs4 import BeautifulSoup
 from pydantic import BaseModel
 from typing_extensions import TypedDict
 
-from service import Service
-from services.steam import SteamDetails
-from utils import http_client, price_string_to_float, roman_string_to_int_string
+from ..service import Service
+from ..services.steam import SteamDetails
+from ..utils import http_client, price_string_to_float, roman_string_to_int_string
 
 PLATFORMS = [
     "PlayStation 4",

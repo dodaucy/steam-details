@@ -2,8 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from service import Service
-from utils import http_client
+from ..service import Service
+from ..utils import http_client
 
 
 class ReleaseDate(BaseModel):

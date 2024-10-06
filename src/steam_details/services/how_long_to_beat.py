@@ -6,9 +6,9 @@ from bs4 import BeautifulSoup
 from httpx import Response
 from pydantic import BaseModel
 
-from service import Service
-from services.steam import SteamDetails
-from utils import http_client
+from ..service import Service
+from ..services.steam import SteamDetails
+from ..utils import http_client
 
 
 class HowLongToBeatDetails(BaseModel):

@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 
-from service import Service
-from services.steam import SteamDetails
-from utils import http_client
+from ..service import Service
+from ..services.steam import SteamDetails
+from ..utils import http_client
 
 
 class ProtonDBDetails(BaseModel):
