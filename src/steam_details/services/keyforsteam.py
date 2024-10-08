@@ -320,16 +320,10 @@ class KeyForSteam(Service):
             raise Exception(f"Could not find KeyForSteam ID in {repr(keyforsteam_game_url)}")
 
         # Get internal name
-        title_tag = soup.find("title")
-        if title_tag is None:
-            raise Exception(f"Could not find title tag in {repr(keyforsteam_game_url)}")
-        self.logger.debug(f"Title tag: {repr(title_tag.text)}")
-        position = title_tag.text.lower().find(" key kaufen preisvergleich")
-        if position == -1:
-            position = title_tag.text.lower().find(" cd key kaufen - preisvergleich")
-        if position == -1:
-            raise Exception(f"Could not find KeyForSteam name in {repr(keyforsteam_game_url)}")
-        internal_name = title_tag.text[:position].strip()
+        span_tag = soup.find("span", {"data-itemprop": "name"})
+        if span_tag is None:
+            raise Exception(f'Could not find internal name in {repr(keyforsteam_game_url)}')
+        internal_name = span_tag.text.strip()
         self.logger.info(f"Internal name: {repr(internal_name)}")
 
         return internal_id, internal_name
