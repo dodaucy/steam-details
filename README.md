@@ -48,11 +48,3 @@ Run this command before committing.
 ```bash
 pdm lint
 ```
-
-### Fix fixable lint errors
-
-Currently only import errors are fixed.
-
-```bash
-pdm fix
-```
