@@ -17,7 +17,7 @@
     width: 100%;
     padding: 10px;
 
-    background-color: rgba(64, 81, 99, 0.9);
+    background-color: var(--secondary-background-color);
 }
 
 #service-stats > * {
@@ -28,7 +28,7 @@
     margin: 5px;
     padding: 5px;
 
-    background-color: rgba(62, 66, 71);
+    background-color: var(--transparent-2);
     border-radius: 3px;
 }
 

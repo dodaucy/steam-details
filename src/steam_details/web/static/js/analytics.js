@@ -17,7 +17,7 @@ async function analyze() {
     } catch (error) {
         // Display error
         const errorDiv = document.createElement("div");
-        errorDiv.className = "red-text";
+        errorDiv.className = "error";
         errorDiv.innerText = error.message;
         elements.push(errorDiv);
     }
@@ -117,7 +117,7 @@ async function analyze() {
         } else {
             const noData = document.createElement("div");
             noData.id = "speed-box-plot";
-            noData.className = "red-text center-text";
+            noData.className = "error center-text";
             noData.innerText = "No data for the speed box plot available. Search for some games first. The more games you search, the better the results will be.";
             elements.push(noData);
         }

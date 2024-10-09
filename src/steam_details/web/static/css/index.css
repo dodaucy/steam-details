@@ -7,18 +7,18 @@
 }
 #search-bar > * {
     margin: 0px 5px 0px 5px;
-    color: rgb(198, 212, 223);
+    color: var(--text-color);
     padding: 7px 10px 7px 10px;
     border-radius: 3px;
 }
 
 /* Mode Select and Search Button */
 #mode-select,#search-button {
-    background-color: #3D4450;
+    background-color: var(--usable-element-color);
     border: 0;
 }
 #mode-select:hover,#search-button:hover {
-    background-color: #4F5565;
+    background-color: var(--usable-element-color-hover);
 }
 
 /* Search Input */
@@ -26,21 +26,16 @@
     width: 100%;
     border-style: solid;
     border-width: 1px;
-    border-color: rgb(0, 0, 0);
-    background-color: rgba(0, 0, 0, 0.1);
-    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 3px 0px inset, rgba(255, 255, 255, 0.2) 1px 1px 0px 0px;
+    border-color: var(--border-color);
+    background-color: var(--transparent-1);
+    box-shadow: var(--border-shadow-color) 0px 0px 3px 0px inset, var(--usable-element-color) 1px 1px 0px 0px;
 }
 #search-input:hover {
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 3px 0px inset;
+    border-color: var(--usable-element-color-hover);
+    box-shadow: var(--border-shadow-color) 0px 0px 3px 0px inset;
 }
 
 
-
-/* Error Message */
-#error-message {
-    color: #ff0000;
-}
 
 /* Progress */
 #progress-container {
@@ -49,7 +44,7 @@
     justify-content: center;
     align-items: center;
 }
-#wait_for_seconds {
+#wait_for_seconds {  /* Will be removed in v1.3 */
     color: #ffc2c2;
     cursor: pointer;
 }
@@ -65,7 +60,7 @@
     width: 100%;
     padding: 10px;
     margin: 5px 0px;
-    background-color: rgba(64, 81, 99, 0.9);
+    background-color: var(--secondary-background-color);
 
     display: flex;
     flex-direction: row;
@@ -142,7 +137,7 @@
     justify-content: center;
 }
 .purchase-area {
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: var(--transparent-2);
 
     display: flex;
     flex-direction: row;
@@ -154,6 +149,22 @@
 .purchase-area > * {
     margin: 5px;
     white-space: nowrap;
+}
+
+/* Purchase Area Colors */
+.green-purchase-area {
+    background: var(--green-purchase-area);
+}
+.rainbow-purchase-area {
+    animation: rainbow-purchase-area-animation 3s ease-in-out infinite;
+}
+@keyframes rainbow-purchase-area-animation {
+    0% { background-color: var(--rainbow-purchase-area-1); }
+    20% { background-color: var(--rainbow-purchase-area-2); }
+    40% { background-color: var(--rainbow-purchase-area-3); }
+    60% { background-color: var(--rainbow-purchase-area-4); }
+    80% { background-color: var(--rainbow-purchase-area-5); }
+    100% { background-color: var(--rainbow-purchase-area-1); }
 }
 
 /* Historical Low */
@@ -173,22 +184,23 @@
 .steam-button, .keyforsteam-button {
     width: 150px;
     text-align: center;
-    color: rgb(210, 239, 169);
     margin-left: 0;
     padding: 7px 15px 7px 15px;
     border-radius: 2px;
 }
 
 .steam-button {
-    background: linear-gradient( to right, #75b022 5%, #588a1b 95%);
+    color: var(--steam-button-color);
+    background: var(--steam-button-background);
 }
 .steam-button:hover {
-    background: linear-gradient( to right, #8ed629 5%, #6aa621 95%);
+    background: var(--steam-button-background-hover);
 }
 
 .keyforsteam-button {
-    background: linear-gradient( to right, #aeb022 5%, #8a8a1b 95%);
+    color: var(--keyforsteam-button-color);
+    background: var(--keyforsteam-button-background);
 }
 .keyforsteam-button:hover {
-    background: linear-gradient( to right, #c0d629 5%, #a6a621 95%);
+    background: var(--keyforsteam-button-background-hover);
 }
