@@ -1,6 +1,11 @@
 function addGame(game, appendToTop) {
     console.log(game);
 
+    // Check if steam data is available
+    if (!game.services.steam.success) {
+        throw new Error(game.services.steam.error);
+    }
+
     // Create the result-item div
     const resultItem = document.createElement("div");
     resultItem.className = "result-item";
