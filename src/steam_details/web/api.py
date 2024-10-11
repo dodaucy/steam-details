@@ -69,7 +69,7 @@ async def wishlist(profile_name_or_id: str):
 
 
 @app.get("/details")
-async def details(appid_or_name: str):
+async def details(appid_or_name: str, use_cache: bool = True):
     """Get the details for the given appid or name."""
     if details_lock.locked():
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Server is busy")
@@ -98,13 +98,17 @@ async def details(appid_or_name: str):
                 del details_cache[cache_time]
 
         # Check if already in cache
-        for sevices in details_cache.values():
-            if sevices["steam"]["data"]["appid"] == steam.appid:
-                logger.debug(f"App {steam.appid} already in cache")
-                return Details(
-                    services=sevices,
-                    from_cache=True
-                )
+        if use_cache:
+            for sevices in details_cache.values():
+                if sevices["steam"]["data"]["appid"] == steam.appid:
+                    logger.debug(f"App {steam.appid} already in cache")
+                    return Details(
+                        services=sevices,
+                        from_cache=True
+                    )
+            logger.debug(f"App {steam.appid} not in cache")
+        else:
+            logger.debug("App cache skipped")
 
         if steam.released:
 
