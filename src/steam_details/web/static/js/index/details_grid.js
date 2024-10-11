@@ -41,7 +41,7 @@ function createDetailsGrid(game) {
         });
     } else {
         if (game.services.steam_historical_low.data !== null) {  // SteamDB data available
-            if (game.services.key_and_gift_sellers !== null) {  // KeyForSteam data also available
+            if (game.services.key_and_gift_sellers.data !== null) {  // KeyForSteam data also available
                 lowest_price = Math.min(game.services.steam.data.price, game.services.key_and_gift_sellers.data.cheapest_offer.price);
                 var lowest_historical_low = Math.min(game.services.steam_historical_low.data.price, game.services.key_and_gift_sellers.data.historical_low.price);
             } else {  // Only SteamDB data available
