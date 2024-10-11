@@ -2,6 +2,7 @@ import asyncio
 import logging
 import time
 
+from httpx import ReadTimeout
 from pydantic import BaseModel
 
 
@@ -37,12 +38,21 @@ class Service:
         self.logger.debug(f"Starting task {self.name}")
         start_time = time.time()
 
-        response = await self.get_game_details(*args, **kwargs)
-
-        run_time = time.time() - start_time
-        self.logger.debug(f"Got response in {run_time:.2f}s")
-        self.speed_history.append(run_time)
-        return response
+        try:
+            response = await self.get_game_details(*args, **kwargs)
+        except ReadTimeout as e:
+            self.timeout_count += 1
+            self.logger.error(f"Timeout on {self.name}")
+            raise e
+        except Exception as e:
+            self.error_count += 1
+            self.logger.error(f"Error on {self.name}: {repr(e.__class__.__name__)}: {e}")
+            raise e
+        else:
+            run_time = time.time() - start_time
+            self.logger.debug(f"Got response in {run_time:.2f}s")
+            self.speed_history.append(run_time)
+            return response
 
     async def load_service(self) -> None:
         """Load the service."""

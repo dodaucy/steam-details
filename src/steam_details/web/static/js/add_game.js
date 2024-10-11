@@ -7,11 +7,11 @@ function addGame(game, appendToTop) {
 
     // Create the anchor element with images
     const anchorWithImages = document.createElement("a");
-    anchorWithImages.href = game.steam.external_url;
+    anchorWithImages.href = game.services.steam.data.external_url;
     anchorWithImages.target = "_blank";
     anchorWithImages.className = "images";
 
-    Array.from(game.steam.images).forEach((image_url) => {
+    Array.from(game.services.steam.data.images).forEach((image_url) => {
         const image = document.createElement("img");
         image.className = "image";
         image.src = image_url;
@@ -26,10 +26,10 @@ function addGame(game, appendToTop) {
 
     // Create the title anchor
     const titleAnchor = document.createElement("a");
-    titleAnchor.href = game.steam.external_url;
+    titleAnchor.href = game.services.steam.data.external_url;
     titleAnchor.target = "_blank";
     titleAnchor.className = "title";
-    titleAnchor.textContent = game.steam.name
+    titleAnchor.textContent = game.services.steam.data.name
     contentDiv.appendChild(titleAnchor);
 
     // Create the details div
@@ -45,8 +45,8 @@ function addGame(game, appendToTop) {
     // Get release difference
     let releaseDifferenceInDays = null;
     let releaseDifferenceInYears = null;
-    if (game.steam.released) {
-        const date = new Date(game.steam.release_date.iso_date);
+    if (game.services.steam.data.released) {
+        const date = new Date(game.services.steam.data.release_date.iso_date);
         const now = new Date();
         const dateDiff = now - date;
         releaseDifferenceInDays = Math.floor(dateDiff / (1000 * 60 * 60 * 24));
@@ -56,19 +56,19 @@ function addGame(game, appendToTop) {
     // Price difference
     let lowest_price_color_class = null;
     let lowest_price = null;
-    if (game.steam_historical_low !== null) {  // SteamDB data available
-        if (game.key_and_gift_sellers !== null) {  // KeyForSteam data also available
-            lowest_price = Math.min(game.steam.price, game.key_and_gift_sellers.cheapest_offer.price);
-            var lowest_historical_low = Math.min(game.steam_historical_low.price, game.key_and_gift_sellers.historical_low.price);
+    if (game.services.steam_historical_low.data !== null) {  // SteamDB data available
+        if (game.services.key_and_gift_sellers !== null) {  // KeyForSteam data also available
+            lowest_price = Math.min(game.services.steam.data.price, game.services.key_and_gift_sellers.data.cheapest_offer.price);
+            var lowest_historical_low = Math.min(game.services.steam_historical_low.data.price, game.services.key_and_gift_sellers.data.historical_low.price);
         } else {  // Only SteamDB data available
-            lowest_price = game.steam.price;
-            var lowest_historical_low = game.steam_historical_low.price;
+            lowest_price = game.services.steam.data.price;
+            var lowest_historical_low = game.services.steam_historical_low.data.price;
         }
 
         const price_difference = lowest_price - lowest_historical_low;
 
         let title = `How much money you could save if you wait longer\n\nHow this is calculated:\nlowest price (${display_price(lowest_price)}) - lowest historical low (${display_price(lowest_historical_low)})`;
-        if (game.steam.price === 0.0) {
+        if (game.services.steam.data.price === 0.0) {
             var color_class = "rainbow-text";
             lowest_price_color_class = "rainbow-purchase-area";
         } else if (releaseDifferenceInYears >= 1) {
@@ -89,7 +89,7 @@ function addGame(game, appendToTop) {
             var color_class = "grey-text";
             title += "\n\nThe game was released less than a year ago:\nYou might be able to save more money if you wait longer!!";
         }
-        if (game.key_and_gift_sellers !== null && !game.key_and_gift_sellers.id_verified) {
+        if (game.services.key_and_gift_sellers.data !== null && !game.services.key_and_gift_sellers.data.id_verified) {
             title += "\n\nThe steam id of the key or gift wasn't verified:\nThe key or gift price could be wrong!!";
         }
 
@@ -108,15 +108,15 @@ function addGame(game, appendToTop) {
 
     // Release date
     let title = "Release date of the game";
-    if (game.steam.released) {
+    if (game.services.steam.data.released) {
         if (releaseDifferenceInYears >= 1) {
             title = `Released ${releaseDifferenceInYears.toString().replace(".", ",")} year${releaseDifferenceInYears !== 1 ? "s" : ""} ago`;
         } else if (releaseDifferenceInDays >= 0) {
             title = `Released ${releaseDifferenceInDays} day${releaseDifferenceInDays !== 1 ? "s" : ""} ago`;
         }
-        var value = display_date(game.steam.release_date.iso_date);
+        var value = display_date(game.services.steam.data.release_date.iso_date);
     } else {
-        var value = game.steam.release_date.display_string;
+        var value = game.services.steam.data.release_date.display_string;
     }
     detailsData.push({
         label: "RELEASE DATE:",
@@ -125,19 +125,19 @@ function addGame(game, appendToTop) {
     });
 
     // Reviews
-    if (game.steam.released) {
+    if (game.services.steam.data.released) {
         let color_class = "red-text";
-        if (game.steam.overall_reviews.score >= 75) {
+        if (game.services.steam.data.overall_reviews.score >= 75) {
             color_class = "green-text";
-        } else if (game.steam.overall_reviews.score >= 50) {
+        } else if (game.services.steam.data.overall_reviews.score >= 50) {
             color_class = "yellow-text";
-        } else if (game.steam.overall_reviews.score >= 25) {
+        } else if (game.services.steam.data.overall_reviews.score >= 25) {
             color_class = "orange-text";
         }
         detailsData.push({
             label: "OVERALL REVIEWS:",
-            value: `${game.steam.overall_reviews.desc} (${game.steam.overall_reviews.score}%)`,
-            title: `${game.steam.overall_reviews.score}% of ${game.steam.overall_reviews.total_reviews.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} reviews are positive`,
+            value: `${game.services.steam.data.overall_reviews.desc} (${game.services.steam.data.overall_reviews.score}%)`,
+            title: `${game.services.steam.data.overall_reviews.score}% of ${game.services.steam.data.overall_reviews.total_reviews.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} reviews are positive`,
             color_class: color_class
         });
     } else {
@@ -148,32 +148,32 @@ function addGame(game, appendToTop) {
     }
 
     // Game length
-    if (game.game_length === null){
+    if (game.services.game_length.data === null){
         detailsData.push({
             label: "GAME LENGTH:",
             value: null
         });
     } else {
         let title_list = [];
-        if (game.game_length.main !== null) {
-            title_list.push(`Main Story: ${display_time(game.game_length.main)}`);
+        if (game.services.game_length.data.main !== null) {
+            title_list.push(`Main Story: ${display_time(game.services.game_length.data.main)}`);
         }
-        if (game.game_length.plus !== null) {
-            title_list.push(`Main + Extras: ${display_time(game.game_length.plus)}`);
+        if (game.services.game_length.data.plus !== null) {
+            title_list.push(`Main + Extras: ${display_time(game.services.game_length.data.plus)}`);
         }
-        if (game.game_length.completionist !== null) {
-            title_list.push(`Completionist: ${display_time(game.game_length.completionist)}`);
+        if (game.services.game_length.data.completionist !== null) {
+            title_list.push(`Completionist: ${display_time(game.services.game_length.data.completionist)}`);
         }
         if (title_list.length > 0) {
-            if (game.game_length.plus === null) {
+            if (game.services.game_length.data.plus === null) {
                 detailsData.push({
                     label: "GAME LENGTH:",
                     value: "Hover for info",
                     title: `${title_list.join("\n")}\n\nFrom: howlongtobeat.com\nClick to visit site`,
-                    url: game.game_length.external_url
+                    url: game.services.game_length.data.external_url
                 });
             } else {
-                const hours = game.game_length.plus / 3600;
+                const hours = game.services.game_length.data.plus / 3600;
                 if (hours >= 10) {
                     color_class = "green-text";
                 } else if (hours >= 5) {
@@ -185,10 +185,10 @@ function addGame(game, appendToTop) {
                 }
                 detailsData.push({
                     label: "GAME LENGTH:",
-                    value: display_time_as_float(game.game_length.plus),
+                    value: display_time_as_float(game.services.game_length.data.plus),
                     title: `${title_list.join("\n")}\n\nFrom: howlongtobeat.com\nClick to visit site`,
                     color_class: color_class,
-                    url: game.game_length.external_url
+                    url: game.services.game_length.data.external_url
                 });
             }
         } else {
@@ -200,19 +200,19 @@ function addGame(game, appendToTop) {
     }
 
     // Achievements
-    if (game.steam.released) {
-        if (game.steam.achievement_count >= 20) {
+    if (game.services.steam.data.released) {
+        if (game.services.steam.data.achievement_count >= 20) {
             color_class = "green-text";
-        } else if (game.steam.achievement_count >= 10) {
+        } else if (game.services.steam.data.achievement_count >= 10) {
             color_class = "yellow-text";
-        } else if (game.steam.achievement_count >= 1) {
+        } else if (game.services.steam.data.achievement_count >= 1) {
             color_class = "orange-text";
         } else {
             color_class = "red-text";
         }
         detailsData.push({
             label: "ACHIEVEMENTS:",
-            value: game.steam.achievement_count,
+            value: game.services.steam.data.achievement_count,
             title: "Number of achievements in the game",
             color_class: color_class
         });
@@ -224,7 +224,7 @@ function addGame(game, appendToTop) {
     }
 
     // Linux support
-    if (game.steam.native_linux_support) {
+    if (game.services.steam.data.native_linux_support) {
         detailsData.push({
             label: "LINUX SUPPORT:",
             value: "NATIVE",
@@ -232,30 +232,30 @@ function addGame(game, appendToTop) {
             color_class: "green-text"
         });
     } else {
-        if (game.linux_support == null || game.linux_support.tier == "PENDING") {
+        if (game.services.linux_support.data == null || game.services.linux_support.data.tier == "PENDING") {
             detailsData.push({
                 label: "LINUX SUPPORT:",
                 value: null
             });
         } else {
             let color_class = "grey-text";
-            if (["moderate", "good", "strong"].includes(game.linux_support.confidence)) {
-                if (game.linux_support.tier == "PLATINUM" || game.linux_support.tier == "GOLD") {
+            if (["moderate", "good", "strong"].includes(game.services.linux_support.data.confidence)) {
+                if (game.services.linux_support.data.tier == "PLATINUM" || game.services.linux_support.data.tier == "GOLD") {
                     color_class = "green-text";
-                } else if (game.linux_support.tier == "SILVER") {
+                } else if (game.services.linux_support.data.tier == "SILVER") {
                     color_class = "yellow-text";
-                } else if (game.linux_support.tier == "BRONZE") {
+                } else if (game.services.linux_support.data.tier == "BRONZE") {
                     color_class = "orange-text";
-                } else if (game.linux_support.tier == "BORKED") {
+                } else if (game.services.linux_support.data.tier == "BORKED") {
                     color_class = "red-text";
                 }
             }
             detailsData.push({
                 label: "LINUX SUPPORT:",
-                value: game.linux_support.tier,
-                title: `Confidence: ${game.linux_support.confidence}\nReports: ${game.linux_support.report_count}\n\nFrom: protondb.com\nClick to visit site`,
+                value: game.services.linux_support.data.tier,
+                title: `Confidence: ${game.services.linux_support.data.confidence}\nReports: ${game.services.linux_support.data.report_count}\n\nFrom: protondb.com\nClick to visit site`,
                 color_class: color_class,
-                url: game.linux_support.external_url
+                url: game.services.linux_support.data.external_url
             });
         }
     }
@@ -297,9 +297,9 @@ function addGame(game, appendToTop) {
     const purchaseAreaContainerDiv = document.createElement("div");
     purchaseAreaContainerDiv.className = "purchase-area-container";
 
-    if (game.steam.released) {
+    if (game.services.steam.data.released) {
 
-        if (game.steam.price === null) {
+        if (game.services.steam.data.price === null) {
 
             const purchaseAreaDiv = document.createElement("div");
             purchaseAreaDiv.className = "purchase-area";
@@ -318,42 +318,42 @@ function addGame(game, appendToTop) {
             let historicalLowPrice = null;
             let historicalLowTitle = null;
             let historicalLowURL = undefined;
-            if (game.steam_historical_low !== null) {
-                historicalLowPrice = game.steam_historical_low.price;
-                historicalLowTitle = `At Discount: ${game.steam_historical_low.discount}%\nDate: ${game.steam_historical_low.iso_date === null ? "Today": display_date(game.steam_historical_low.iso_date)}\n\nFrom: steamdb.info\nClick to visit site`;
-                historicalLowURL = game.steam_historical_low.external_url;
+            if (game.services.steam_historical_low.data !== null) {
+                historicalLowPrice = game.services.steam_historical_low.data.price;
+                historicalLowTitle = `At Discount: ${game.services.steam_historical_low.data.discount}%\nDate: ${game.services.steam_historical_low.data.iso_date === null ? "Today": display_date(game.services.steam_historical_low.data.iso_date)}\n\nFrom: steamdb.info\nClick to visit site`;
+                historicalLowURL = game.services.steam_historical_low.data.external_url;
             }
             let purchaseData = [{
                 historicalLowPrice: historicalLowPrice,
                 historicalLowTitle: historicalLowTitle,
                 historicalLowURL: historicalLowURL,
 
-                price: game.steam.price,
-                priceTitle: `Discount: ${game.steam.discount}%`,
+                price: game.services.steam.data.price,
+                priceTitle: `Discount: ${game.services.steam.data.discount}%`,
 
                 buttonText: "Buy on Steam",
                 buttonClass: "steam-button",
-                buttonURL: game.steam.external_url
+                buttonURL: game.services.steam.data.external_url
             }];
 
             // Key and gift sellers price
-            if (game.key_and_gift_sellers !== null) {
-                let historicalLowTitle = `Date: ${game.key_and_gift_sellers.historical_low.iso_date === null ? "Today": display_date(game.key_and_gift_sellers.historical_low.iso_date)}\nSeller: ${game.key_and_gift_sellers.historical_low.seller}`;
-                let priceTitle = `Form: ${game.key_and_gift_sellers.cheapest_offer.form}\nSeller: ${game.key_and_gift_sellers.cheapest_offer.seller}\nEdition: ${game.key_and_gift_sellers.cheapest_offer.edition}`;
-                if (!game.key_and_gift_sellers.id_verified) {
+            if (game.services.key_and_gift_sellers.data !== null) {
+                let historicalLowTitle = `Date: ${game.services.key_and_gift_sellers.data.historical_low.iso_date === null ? "Today": display_date(game.services.key_and_gift_sellers.data.historical_low.iso_date)}\nSeller: ${game.services.key_and_gift_sellers.data.historical_low.seller}`;
+                let priceTitle = `Form: ${game.services.key_and_gift_sellers.data.cheapest_offer.form}\nSeller: ${game.services.key_and_gift_sellers.data.cheapest_offer.seller}\nEdition: ${game.services.key_and_gift_sellers.data.cheapest_offer.edition}`;
+                if (!game.services.key_and_gift_sellers.data.id_verified) {
                     historicalLowTitle += "\n\nThe steam id of the key or gift wasn't verified:\nThe key or gift price could be wrong!!";
                     priceTitle += "\n\nThe steam id of the key or gift wasn't verified:\nThe key or gift price could be wrong!!";
                 }
                 purchaseData.push({
-                    historicalLowPrice: game.key_and_gift_sellers.historical_low.price,
+                    historicalLowPrice: game.services.key_and_gift_sellers.data.historical_low.price,
                     historicalLowTitle: historicalLowTitle,
 
-                    price: game.key_and_gift_sellers.cheapest_offer.price,
+                    price: game.services.key_and_gift_sellers.data.cheapest_offer.price,
                     priceTitle: priceTitle,
 
                     buttonText: "Buy Key or Gift",
                     buttonClass: "keyforsteam-button",
-                    buttonURL: game.key_and_gift_sellers.external_url
+                    buttonURL: game.services.key_and_gift_sellers.data.external_url
                 })
             }
 
