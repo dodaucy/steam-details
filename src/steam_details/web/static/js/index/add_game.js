@@ -10,6 +10,14 @@ function addGame(game, appendToTop) {
     const resultItem = document.createElement("div");
     resultItem.className = "result-item";
 
+    // Retry Button
+    const retryButton = document.createElement("a");
+    retryButton.style.display = "none";
+    retryButton.className = "retry-button error-button";
+    retryButton.textContent = "Retry";
+    retryButton.href = "javascript:void(0)";
+    resultItem.appendChild(retryButton);
+
     // Create the anchor element with images
     const anchorWithImages = document.createElement("a");
     anchorWithImages.href = game.services.steam.data.external_url;

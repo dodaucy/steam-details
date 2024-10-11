@@ -140,14 +140,14 @@ function createPurchaseAreas(game, lowest_price, lowest_price_color_class) {
                 if (purchase.priceError !== null) {
                     purchaseButton = document.createElement("div");
                     purchaseButton.textContent = "ERROR";
-                    purchaseButton.className = "error";
+                    purchaseButton.className = "error-button";
                 } else {
                     purchaseButton = document.createElement("a");
                     purchaseButton.href = purchase.buttonURL;
                     purchaseButton.target = "_blank";
                     purchaseButton.textContent = purchase.buttonText;
+                    purchaseButton.className = purchase.buttonClass;
                 }
-                purchaseButton.className = purchase.buttonClass;
                 purchaseAreaDiv.appendChild(purchaseButton);
 
                 purchaseAreaContainerDiv.appendChild(purchaseAreaDiv);
