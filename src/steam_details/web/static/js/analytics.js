@@ -15,6 +15,7 @@ async function analyze() {
     try {
         data = await getRequest("analyze");
     } catch (error) {
+        console.error(error);
         // Display error
         const errorDiv = document.createElement("div");
         errorDiv.className = "error";
