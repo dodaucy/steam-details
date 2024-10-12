@@ -1,4 +1,4 @@
-function change_wait_for_seconds() {
+function changeWaitForSeconds() {
     const new_wait_for_seconds = prompt(
         "Enter number of seconds to wait to avoid rate limits and captchas:",
         localStorage.getItem("wait_for_seconds") || "3"
@@ -76,7 +76,7 @@ async function search(mode, searchValue, progress) {
                         wait_for_seconds = 1;
                     }
 
-                    progressText.innerHTML = `Waiting for <span id="wait_for_seconds" onclick="change_wait_for_seconds();">${wait_for_seconds}</span> seconds...`;
+                    progressText.innerHTML = `Waiting for <span id="wait_for_seconds" onclick="changeWaitForSeconds();">${wait_for_seconds}</span> seconds...`;
                     await new Promise(resolve => setTimeout(resolve, wait_for_seconds * 1000));
 
                 }
