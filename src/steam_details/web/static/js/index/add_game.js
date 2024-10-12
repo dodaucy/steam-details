@@ -1,21 +1,28 @@
-function addGame(game, appendToTop) {
+function addGame(game, resultItem) {
     console.log(game);
+
+    // Clear the result-item
+    resultItem.innerHTML = "";
 
     // Check if steam data is available
     if (!game.services.steam.success) {
         throw new Error(game.services.steam.error);
     }
 
-    // Create the result-item div
-    const resultItem = document.createElement("div");
-    resultItem.className = "result-item";
-
     // Retry Button
     const retryButton = document.createElement("a");
-    retryButton.style.display = "none";
+    retryButton.style.display = "none";  // TODO: Show this in the UI if needed
     retryButton.className = "retry-button error-button";
     retryButton.textContent = "Retry";
     retryButton.href = "javascript:void(0)";
+    retryButton.onclick = async () => {
+        try {
+            await fetchDetails(resultItem, game.services.steam.data.appid);
+        } catch (error) {
+            console.error(error);
+            retryButton.textContent = `Retry (${error.message})`;
+        }
+    }
     resultItem.appendChild(retryButton);
 
     // Create the anchor element with images
@@ -93,11 +100,4 @@ function addGame(game, appendToTop) {
             }
         }, 50);
     });
-
-    // Append the result-item to the #result div
-    if (appendToTop) {
-        document.getElementById("result").prepend(resultItem);
-    } else {
-        document.getElementById("result").appendChild(resultItem);
-    }
 }
