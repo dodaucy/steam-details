@@ -26,7 +26,6 @@ function createResultItem(appendToTop) {
 
 
 async function fetchDetails(resultItem, appidOrName) {
-    d
     resultItem.innerText = `Getting details for '${appidOrName}'...`;
     addGame(await getRequest("details?use_cache=false&appid_or_name=" + encodeURIComponent(appidOrName)), resultItem);
 }
