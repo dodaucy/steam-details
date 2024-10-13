@@ -158,9 +158,7 @@ class Steam(Service):
 
     def get_app(self, name: str) -> int | None:
         """Get the app id for the given name using the steam app list."""
-        appid = self.app_list.get(name.lower())
-        if appid is not None:
-            return appid
+        return self.app_list.get(name.lower())
 
     async def get_wishlist_data(self, profile_name_or_id: str) -> list[int] | None:
         """Get the wishlist data for the given profile id."""
