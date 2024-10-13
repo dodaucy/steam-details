@@ -91,24 +91,27 @@ async def details(appid_or_name: str, use_cache: bool = True):
             if steam is None:
                 raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get steam details")
 
-        # Remove old cache entries
-        for cache_time in list(details_cache.keys()):
+        # Cache
+        logger.debug(f"Checking cache for app {steam.appid}")
+        for cache_time, services in details_cache.copy().items():
+            # Remove old cache entries
             if time.time() - cache_time > 60 * 15:
                 logger.debug(f"Removing old cache entry: {cache_time}")
                 del details_cache[cache_time]
+                continue
 
-        # Check if already in cache
-        if use_cache:
-            for sevices in details_cache.values():
-                if sevices["steam"]["data"]["appid"] == steam.appid:
-                    logger.debug(f"App {steam.appid} already in cache")
+            # Check if already in cache
+            if services["steam"]["data"]["appid"] == steam.appid:
+                if use_cache:
+                    logger.debug(f"Using cache for app {steam.appid}")
                     return Details(
-                        services=sevices,
+                        services=services,
                         from_cache=True
                     )
-            logger.debug(f"App {steam.appid} not in cache")
-        else:
-            logger.debug("App cache skipped")
+                else:
+                    logger.debug(f"Removing cache for app {steam.appid}")
+                    del details_cache[cache_time]
+        logger.debug(f"Cache check done for app {steam.appid}")
 
         if steam.released:
 
