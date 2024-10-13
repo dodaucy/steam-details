@@ -1,3 +1,23 @@
+function addRetryButton(text, appid, resultItem) {
+    const retryButton = document.createElement("a");
+    retryButton.className = "retry-button error-button";
+    retryButton.textContent = text;
+    retryButton.href = "javascript:void(0)";
+
+    retryButton.onclick = async () => {
+        resultItem.removeChild(retryButton);
+        try {
+            await fetchDetails(resultItem, appid);
+        } catch (error) {
+            console.error(error);
+            addRetryButton(`Retry (${error.message})`, appid, resultItem);
+        }
+    }
+
+    resultItem.appendChild(retryButton);
+}
+
+
 function addGame(game, resultItem) {
     console.log(game);
 
@@ -10,29 +30,12 @@ function addGame(game, resultItem) {
     }
 
     // Retry Button
-    const retryButton = document.createElement("a");
-    retryButton.className = "retry-button error-button";
-    retryButton.textContent = "Retry";
-    retryButton.href = "javascript:void(0)";
-
-    retryButton.style.display = "none";
     for (const service in game.services) {
         if (!game.services[service].success) {
-            retryButton.style.display = "block";
+            addRetryButton("Retry", game.services.steam.data.appid, resultItem);
             break;
         }
     }
-
-    retryButton.onclick = async () => {
-        try {
-            await fetchDetails(resultItem, game.services.steam.data.appid);
-        } catch (error) {
-            console.error(error);
-            retryButton.textContent = `Retry (${error.message})`;
-        }
-    }
-
-    resultItem.appendChild(retryButton);
 
     // Create the anchor element with images
     const anchorWithImages = document.createElement("a");
