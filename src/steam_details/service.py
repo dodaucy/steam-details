@@ -56,6 +56,9 @@ class Service:
 
     async def load_service(self) -> None:
         """Load the service."""
+        if self.load_time is not None:  # Already loaded
+            return
+
         self.logger.debug(f"Loading {self.name}")
         start_time = time.time()
 
