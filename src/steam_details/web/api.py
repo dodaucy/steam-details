@@ -82,14 +82,22 @@ async def details(appid_or_name: str, use_cache: bool = True):
         # Get steam details
         steam: SteamDetails | None = None
         if appid_or_name.strip().isdigit():
-            steam = await service_manager.steam.create_task(int(appid_or_name))
+            try:
+                steam = await service_manager.steam.create_task(int(appid_or_name))
+            except Exception as e:
+                traceback.print_exc()
+                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Steam error: {repr(e.__class__.__name__)}: {e}")
         if steam is None:
             appid = service_manager.get_appid_from_name(appid_or_name)
             if appid is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="App not found")
-            steam = await service_manager.steam.create_task(appid)
-            if steam is None:
-                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get steam details")
+            try:
+                steam = await service_manager.steam.create_task(appid)
+                if steam is None:
+                    raise Exception("Failed to get steam details")
+            except Exception as e:
+                traceback.print_exc()
+                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Steam error: {repr(e.__class__.__name__)}: {e}")
 
         # Cache
         logger.debug(f"Checking cache for app {steam.appid}")

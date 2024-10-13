@@ -5,8 +5,8 @@ function addGame(game, resultItem) {
     resultItem.innerHTML = "";
 
     // Check if steam data is available
-    if (!game.services.steam.success) {
-        throw new Error(game.services.steam.error);
+    if (!game.services.steam.success) {  // This should never happen
+        throw new Error(`Steam error: ${game.services.steam.error}`);
     }
 
     // Retry Button
