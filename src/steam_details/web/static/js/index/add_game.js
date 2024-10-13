@@ -11,10 +11,18 @@ function addGame(game, resultItem) {
 
     // Retry Button
     const retryButton = document.createElement("a");
-    retryButton.style.display = "none";  // TODO: Show this in the UI if needed
     retryButton.className = "retry-button error-button";
     retryButton.textContent = "Retry";
     retryButton.href = "javascript:void(0)";
+
+    retryButton.style.display = "none";
+    for (const service in game.services) {
+        if (!game.services[service].success) {
+            retryButton.style.display = "block";
+            break;
+        }
+    }
+
     retryButton.onclick = async () => {
         try {
             await fetchDetails(resultItem, game.services.steam.data.appid);
@@ -23,6 +31,7 @@ function addGame(game, resultItem) {
             retryButton.textContent = `Retry (${error.message})`;
         }
     }
+
     resultItem.appendChild(retryButton);
 
     // Create the anchor element with images
