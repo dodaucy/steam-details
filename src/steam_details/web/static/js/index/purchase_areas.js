@@ -139,6 +139,7 @@ function createPurchaseAreas(game, lowest_price, lowest_price_color_class) {
                 let purchaseButton = null;
                 if (purchase.priceError !== null) {
                     purchaseButton = document.createElement("div");
+                    purchaseButton.title = purchase.priceError;
                     purchaseButton.textContent = "ERROR";
                     purchaseButton.className = "error-button";
                 } else {
