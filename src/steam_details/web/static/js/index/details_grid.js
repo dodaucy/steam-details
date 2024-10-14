@@ -137,8 +137,9 @@ function createDetailsGrid(game) {
         detailsData.push({
             label: "GAME LENGTH:",
             value: "ERROR",
-            title: game.services.game_length.error,
-            color_class: "error"
+            title: `${game.services.game_length.error}\n\nClick to visit the following site:\n${game.services.game_length.url}`,
+            color_class: "error",
+            url: game.services.game_length.url
         });
     } else {
         if (game.services.game_length.data === null){
@@ -222,8 +223,9 @@ function createDetailsGrid(game) {
         detailsData.push({
             label: "LINUX SUPPORT:",
             value: "ERROR",
-            title: game.services.linux_support.error,
-            color_class: "error"
+            title: `${game.services.linux_support.error}\n\nClick to visit the following site:\n${game.services.linux_support.url}`,
+            color_class: "error",
+            url: game.services.linux_support.url
         });
     } else {
         if (game.services.steam.data.native_linux_support) {

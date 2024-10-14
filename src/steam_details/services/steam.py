@@ -58,6 +58,8 @@ class Steam(Service):
     async def get_game_details(self, appid: int) -> SteamDetails | None:
         """Get details from steam for the given app id."""
         self.logger.info(f"Getting steam details for {appid}")
+        self.error_url = f"https://store.steampowered.com/app/{appid}/"
+
         r = await http_client.get(
             "https://store.steampowered.com/api/appdetails",
             params={

@@ -17,6 +17,7 @@ function createPurchaseAreas(game, lowest_price, lowest_price_color_class) {
         } else {
             // Steam price
             let historicalLowError = null;
+            let historicalLowErrorURL = null;
             let historicalLowPrice = null;
             let historicalLowTitle = null;
             let historicalLowURL = null;
@@ -28,14 +29,17 @@ function createPurchaseAreas(game, lowest_price, lowest_price_color_class) {
                 }
             } else {
                 historicalLowError = game.services.steam_historical_low.error;
+                historicalLowErrorURL = game.services.steam_historical_low.url;
             }
             let purchaseData = [{
                 historicalLowError: historicalLowError,
+                historicalLowErrorURL: historicalLowErrorURL,
                 historicalLowPrice: historicalLowPrice,
                 historicalLowTitle: historicalLowTitle,
                 historicalLowURL: historicalLowURL,
 
                 priceError: null,
+                priceErrorURL: null,
                 price: game.services.steam.data.price,
                 priceTitle: `Discount: ${game.services.steam.data.discount}%`,
 
@@ -55,11 +59,13 @@ function createPurchaseAreas(game, lowest_price, lowest_price_color_class) {
                     }
                     purchaseData.push({
                         historicalLowError: null,
+                        historicalLowErrorURL: null,
                         historicalLowPrice: game.services.key_and_gift_sellers.data.historical_low.price,
                         historicalLowTitle: historicalLowTitle,
                         historicalLowURL: null,
 
                         priceError: null,
+                        priceErrorURL: null,
                         price: game.services.key_and_gift_sellers.data.cheapest_offer.price,
                         priceTitle: priceTitle,
 
@@ -71,11 +77,13 @@ function createPurchaseAreas(game, lowest_price, lowest_price_color_class) {
             } else {
                 purchaseData.push({
                     historicalLowError: game.services.key_and_gift_sellers.error,
+                    historicalLowErrorURL: game.services.key_and_gift_sellers.url,
                     historicalLowPrice: null,
                     historicalLowTitle: null,
                     historicalLowURL: null,
 
                     priceError: game.services.key_and_gift_sellers.error,
+                    priceErrorURL: game.services.key_and_gift_sellers.url,
                     price: null,
                     priceTitle: null,
 
@@ -92,60 +100,70 @@ function createPurchaseAreas(game, lowest_price, lowest_price_color_class) {
                     purchaseAreaDiv.classList.add(lowest_price_color_class);
                 }
 
-                if (purchase.historicalLowURL !== null) {
+                if (purchase.historicalLowError !== null) {
                     var historicalLowElement = document.createElement("a");
-                    historicalLowElement.href = purchase.historicalLowURL;
+                    historicalLowElement.href = purchase.historicalLowErrorURL;
                     historicalLowElement.target = "_blank";
+                    historicalLowElement.title = `${purchase.historicalLowError}\n\nClick to visit the following site:\n${purchase.historicalLowErrorURL}`;
+                    historicalLowElement.className = "historical-low error";
                 } else {
-                    var historicalLowElement = document.createElement("div");
+                    if (purchase.historicalLowURL !== null) {
+                        var historicalLowElement = document.createElement("a");
+                        historicalLowElement.href = purchase.historicalLowURL;
+                        historicalLowElement.target = "_blank";
+                        historicalLowElement.className = "historical-low";
+                    } else {
+                        var historicalLowElement = document.createElement("div");
+                        historicalLowElement.className = "historical-low";
+                    }
+                    historicalLowElement.title = purchase.historicalLowTitle;
                 }
-                historicalLowElement.title = purchase.historicalLowTitle;
-                historicalLowElement.className = "historical-low";
 
                 const historicalLowLabelDiv = document.createElement("div");
                 historicalLowLabelDiv.className = "small-font historical-low-label";
                 historicalLowLabelDiv.textContent = "Historical low";
                 historicalLowElement.appendChild(historicalLowLabelDiv);
 
-                const historicalLowValueDiv = document.createElement("div");
-                historicalLowValueDiv.className = "small-font historical-low-value";
+                const historicalLowValueElement = document.createElement("div");
                 if (purchase.historicalLowError !== null) {
-                    historicalLowValueDiv.textContent = "ERROR";
-                    historicalLowElement.title = purchase.historicalLowError;
-                    historicalLowElement.classList.add("error");
+                    historicalLowValueElement.textContent = "ERROR";
                 } else if (purchase.historicalLowPrice === null) {
-                    historicalLowValueDiv.textContent = "N/A";
+                    historicalLowValueElement.textContent = "N/A";
                     historicalLowElement.title = "Not available";
                     historicalLowElement.classList.add("grey-text");
                 } else {
-                    historicalLowValueDiv.textContent = display_price(purchase.historicalLowPrice);
+                    historicalLowValueElement.textContent = display_price(purchase.historicalLowPrice);
                 }
-                historicalLowElement.appendChild(historicalLowValueDiv);
+                historicalLowValueElement.className = "small-font historical-low-value";
+                historicalLowElement.appendChild(historicalLowValueElement);
 
                 purchaseAreaDiv.appendChild(historicalLowElement);
 
-                const priceDiv = document.createElement("div");
-                priceDiv.className = "price";
+                let priceElement = null;
                 if (purchase.priceError !== null) {
-                    priceDiv.title = purchase.priceError;
-                    priceDiv.textContent = "ERROR";
-                    priceDiv.classList.add("error");
+                    priceElement = document.createElement("a");
+                    priceElement.className = "price error";
+                    priceElement.href = purchase.priceErrorURL;
+                    priceElement.target = "_blank";
+                    priceElement.title = `${purchase.priceError}\n\nClick to visit the following site:\n${purchase.priceErrorURL}`;
+                    priceElement.textContent = "ERROR";
                 } else {
-                    priceDiv.title = purchase.priceTitle;
-                    priceDiv.textContent = display_price(purchase.price);
+                    priceElement = document.createElement("div");
+                    priceElement.className = "price";
+                    priceElement.title = purchase.priceTitle;
+                    priceElement.textContent = display_price(purchase.price);
                 }
-                purchaseAreaDiv.appendChild(priceDiv);
+                purchaseAreaDiv.appendChild(priceElement);
 
-                let purchaseButton = null;
+                const purchaseButton = document.createElement("a");
+                purchaseButton.target = "_blank";
                 if (purchase.priceError !== null) {
-                    purchaseButton = document.createElement("div");
-                    purchaseButton.title = purchase.priceError;
+                    purchaseButton.href = purchase.priceErrorURL;
+                    purchaseButton.title = `${purchase.priceError}\n\nClick to visit the following site:\n${purchase.priceErrorURL}`;
                     purchaseButton.textContent = "ERROR";
                     purchaseButton.className = "error-button";
                 } else {
-                    purchaseButton = document.createElement("a");
                     purchaseButton.href = purchase.buttonURL;
-                    purchaseButton.target = "_blank";
                     purchaseButton.textContent = purchase.buttonText;
                     purchaseButton.className = purchase.buttonClass;
                 }

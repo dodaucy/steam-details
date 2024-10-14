@@ -191,6 +191,7 @@ class HowLongToBeat(Service):
                 current_appid = int(props["pageProps"]["game"]["data"]["game"][0]["profile_steam"])
 
             if current_appid == steam.appid:
+                self.error_url = f"https://howlongtobeat.com/game/{game_data['game_id']}"
                 return HowLongToBeatDetails(
                     main=game_data["comp_main"] if game_data["comp_main"] != 0 else None,
                     plus=game_data["comp_plus"] if game_data["comp_plus"] != 0 else None,
@@ -228,6 +229,7 @@ class HowLongToBeat(Service):
     async def get_game_details(self, steam: SteamDetails) -> HowLongToBeatDetails | None:
         """Get playtime stats from HowLongToBeat."""
         self.logger.info(f"Getting how long to beat for {repr(steam.name)} ({steam.appid})")
+        self.error_url = "https://howlongtobeat.com"
 
         # Search
         r = await self._search(steam)

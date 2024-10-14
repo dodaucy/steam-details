@@ -14,6 +14,10 @@ class Service:
         self.logger = logging.getLogger(log_name)
         self.name = name
 
+        # Lock
+        self._lock = asyncio.Lock()
+        self.error_url: str | None = None  # Only set in self._lock
+
         # Stats
         self.load_time: float | None = None
         self.speed_history: list[float] = []
@@ -35,24 +39,27 @@ class Service:
         if self.load_time is None:
             raise Exception("Service not loaded")
 
-        self.logger.debug(f"Starting task {self.name}")
-        start_time = time.time()
+        async with self._lock:
+            self.error_url = None
 
-        try:
-            response = await self.get_game_details(*args, **kwargs)
-        except ReadTimeout as e:
-            self.timeout_count += 1
-            self.logger.error(f"Timeout on {self.name}")
-            raise e
-        except Exception as e:
-            self.error_count += 1
-            self.logger.error(f"Error on {self.name}: {repr(e.__class__.__name__)}: {e}")
-            raise e
-        else:
-            run_time = time.time() - start_time
-            self.logger.debug(f"Got response in {run_time:.2f}s")
-            self.speed_history.append(run_time)
-            return response
+            self.logger.debug(f"Starting task {self.name}")
+            start_time = time.time()
+
+            try:
+                response = await self.get_game_details(*args, **kwargs)
+            except ReadTimeout as e:
+                self.timeout_count += 1
+                self.logger.error(f"Timeout on {self.name}")
+                raise e
+            except Exception as e:
+                self.error_count += 1
+                self.logger.error(f"Error on {self.name}: {repr(e.__class__.__name__)}: {e}")
+                raise e
+            else:
+                run_time = time.time() - start_time
+                self.logger.debug(f"Got response in {run_time:.2f}s")
+                self.speed_history.append(run_time)
+                return response
 
     async def load_service(self) -> None:
         """Load the service."""

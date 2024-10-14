@@ -441,6 +441,7 @@ class KeyForSteam(Service):
     async def get_game_details(self, steam: SteamDetails) -> KeyForSteamDetails | None:
         """Get cheapest offer and historical low price from KeyForSteam."""
         self.logger.info(f"Getting KeyForSteam data for {repr(steam.name)} ({steam.appid})")
+        self.error_url = "https://www.keyforsteam.de"
 
         products: list[Product] = []
 
@@ -534,6 +535,7 @@ class KeyForSteam(Service):
             raise Exception(f"Too many KeyForSteam products found: Found {len(products)}")
 
         product = products[0]
+        self.error_url = product.keyforsteam_game_url
         self.logger.info(f"Found KeyForSteam product: {product}")
 
         if product.cheapest_offer is None:

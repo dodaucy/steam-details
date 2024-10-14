@@ -8,6 +8,7 @@ from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 from typing_extensions import TypedDict
 
+from ..service import Service
 from ..service_manager import service_manager
 from ..services.steam import SteamDetails
 from ..utils import ANSICodes
@@ -21,6 +22,7 @@ class ServiceDetails(TypedDict):
 class ServiceError(TypedDict):
     success: Literal[False]
     error: str
+    url: str
 
 
 class Details(BaseModel):
@@ -28,7 +30,7 @@ class Details(BaseModel):
     from_cache: bool
 
 
-async def get_json_from_task(task: asyncio.Task[BaseModel | None]) -> ServiceDetails | ServiceError:
+async def get_json_from_task(task: asyncio.Task[BaseModel | None], service: Service) -> ServiceDetails | ServiceError:
     """Run the task and return the result as a JSON object with success status."""
     try:
         response = await task
@@ -44,9 +46,12 @@ async def get_json_from_task(task: asyncio.Task[BaseModel | None]) -> ServiceDet
             }
     except Exception as e:
         traceback.print_exc()
+        if service.error_url is None:
+            raise Exception("Service error URL not set")
         return {
             "success": False,
-            "error": f"{repr(e.__class__.__name__)}: {e}"
+            "error": f"{repr(e.__class__.__name__)}: {e}",
+            "url": service.error_url
         }
 
 
@@ -129,7 +134,7 @@ async def details(appid_or_name: str, use_cache: bool = True):
                     "data": steam.model_dump()
                 }
             }
-            tasks: dict[str, asyncio.Task[BaseModel | None]] = {}
+            task_services: dict[str, Service] = {}
 
             # Steam historical low
             if steam.price is None:
@@ -138,7 +143,7 @@ async def details(appid_or_name: str, use_cache: bool = True):
                     "data": None
                 }
             elif steam.price > 0:
-                tasks["steam_historical_low"] = service_manager.steamdb.create_task(steam)
+                task_services["steam_historical_low"] = service_manager.steamdb
             else:
                 services["steam_historical_low"] = {
                     "success": True,
@@ -150,7 +155,7 @@ async def details(appid_or_name: str, use_cache: bool = True):
 
             # Key and gift sellers
             if steam.price is not None and steam.price > 0:
-                tasks["key_and_gift_sellers"] = service_manager.keyforsteam.create_task(steam)
+                task_services["key_and_gift_sellers"] = service_manager.keyforsteam
             else:
                 services["key_and_gift_sellers"] = {
                     "success": True,
@@ -158,7 +163,7 @@ async def details(appid_or_name: str, use_cache: bool = True):
                 }
 
             # Game length
-            tasks["game_length"] = service_manager.how_long_to_beat.create_task(steam)
+            task_services["game_length"] = service_manager.how_long_to_beat
 
             # Linux support
             if steam.native_linux_support:
@@ -167,12 +172,12 @@ async def details(appid_or_name: str, use_cache: bool = True):
                     "data": None
                 }
             else:
-                tasks["linux_support"] = service_manager.protondb.create_task(steam)
+                task_services["linux_support"] = service_manager.protondb
 
             # Create JSON tasks
             json_tasks: dict[str, asyncio.Task[ServiceDetails | ServiceError]] = {}
-            for name, task in tasks.items():
-                json_tasks[name] = get_json_from_task(task)
+            for name, service in task_services.items():
+                json_tasks[name] = get_json_from_task(service.create_task(steam), service)
 
             # Run tasks
             results = await asyncio.gather(*json_tasks.values())
