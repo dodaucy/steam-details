@@ -5,8 +5,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from .api import app as api_app
 from ..service_manager import service_manager
+from .api import app as api_app
 
 app = FastAPI(openapi_url=None, on_startup=[service_manager.load_services])
 

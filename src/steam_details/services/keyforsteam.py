@@ -322,7 +322,7 @@ class KeyForSteam(Service):
         # Get internal name
         span_tag = soup.find("span", {"data-itemprop": "name"})
         if span_tag is None:
-            raise Exception(f'Could not find internal name in {repr(keyforsteam_game_url)}')
+            raise Exception(f"Could not find internal name in {repr(keyforsteam_game_url)}")
         internal_name = span_tag.text.strip()
         self.logger.info(f"Internal name: {repr(internal_name)}")
 

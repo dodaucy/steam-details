@@ -44,10 +44,10 @@ async def get_json_from_task(task: asyncio.Task[BaseModel | None], service: Serv
                 "success": True,
                 "data": response.model_dump()
             }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         traceback.print_exc()
         if service.error_url is None:
-            raise Exception("Service error URL not set")
+            raise Exception("Service error URL not set")  # noqa: B904
         return {
             "success": False,
             "error": f"{repr(e.__class__.__name__)}: {e}",
@@ -89,9 +89,9 @@ async def details(appid_or_name: str, use_cache: bool = True):
         if appid_or_name.strip().isdigit():
             try:
                 steam = await service_manager.steam.create_task(int(appid_or_name))
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 traceback.print_exc()
-                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Steam error: {repr(e.__class__.__name__)}: {e}")
+                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Steam error: {repr(e.__class__.__name__)}: {e}")  # noqa: B904
         if steam is None:
             appid = service_manager.get_appid_from_name(appid_or_name)
             if appid is None:
@@ -100,9 +100,9 @@ async def details(appid_or_name: str, use_cache: bool = True):
                 steam = await service_manager.steam.create_task(appid)
                 if steam is None:
                     raise Exception("Failed to get steam details")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 traceback.print_exc()
-                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Steam error: {repr(e.__class__.__name__)}: {e}")
+                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Steam error: {repr(e.__class__.__name__)}: {e}")  # noqa: B904
 
         # Cache
         logger.debug(f"Checking cache for app {steam.appid}")
