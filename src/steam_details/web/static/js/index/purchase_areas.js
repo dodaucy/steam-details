@@ -87,7 +87,7 @@ function createPurchaseAreas(game, lowest_price, lowest_price_color_class) {
                     price: null,
                     priceTitle: null,
 
-                    buttonText: null,
+                    buttonText: "Buy Key or Gift",
                     buttonClass: "keyforsteam-button",
                     buttonURL: null
                 })
@@ -157,14 +157,13 @@ function createPurchaseAreas(game, lowest_price, lowest_price_color_class) {
 
                 const purchaseButton = document.createElement("a");
                 purchaseButton.target = "_blank";
+                purchaseButton.textContent = purchase.buttonText;
                 if (purchase.priceError !== null) {
                     purchaseButton.href = purchase.priceErrorURL;
                     purchaseButton.title = `${purchase.priceError}\n\nClick to visit the following site:\n${purchase.priceErrorURL}`;
-                    purchaseButton.textContent = "ERROR";
                     purchaseButton.className = "error-button";
                 } else {
                     purchaseButton.href = purchase.buttonURL;
-                    purchaseButton.textContent = purchase.buttonText;
                     purchaseButton.className = purchase.buttonClass;
                 }
                 purchaseAreaDiv.appendChild(purchaseButton);
