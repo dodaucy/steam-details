@@ -77,6 +77,7 @@ function createDetailsGrid(game) {
                 title += "\n\nThe game was released less than a year ago:\nYou might be able to save more money if you wait longer!!";
             }
             if (game.services.key_and_gift_sellers.data !== null && !game.services.key_and_gift_sellers.data.id_verified) {
+                var color_class = "grey-text";
                 title += "\n\nThe steam id of the key or gift wasn't verified:\nThe key or gift price could be wrong!!";
             }
 
