@@ -89,9 +89,6 @@ button {
 .margin-top {
     margin-top: 15px;
 }
-.error {
-    color: var(--error-color);
-}
 
 /* Page Content */
 #page-content {
@@ -166,6 +163,9 @@ button {
 }
 .grey-text {
     color: #aaaaaa;
+}
+.error-text {
+    color: var(--error-color);
 }
 .rainbow-text {
     animation: rainbow-text-animation 3s ease-in-out infinite;

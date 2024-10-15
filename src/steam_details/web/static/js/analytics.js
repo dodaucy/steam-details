@@ -18,7 +18,7 @@ async function analyze() {
         console.error(error);
         // Display error
         const errorDiv = document.createElement("div");
-        errorDiv.className = "error";
+        errorDiv.className = "error-text";
         errorDiv.innerText = error.message;
         elements.push(errorDiv);
     }
@@ -48,7 +48,7 @@ async function analyze() {
             const serviceLoadTimeValue = document.createElement("div");
             if (service.load_time === null) {
                 serviceLoadTimeValue.innerText = "Not loaded";
-                serviceLoadTimeValue.className = "error";
+                serviceLoadTimeValue.className = "error-text";
             } else {
                 serviceLoadTimeValue.innerText = service.load_time + "s";
                 if (service.load_time > 10) {  // Very high load time
@@ -123,7 +123,7 @@ async function analyze() {
         } else {
             const noData = document.createElement("div");
             noData.id = "speed-box-plot";
-            noData.className = "error center-text";
+            noData.className = "error-text center-text";
             noData.innerText = "No data for the speed box plot available. Search for some games first. The more games you search, the better the results will be.";
             elements.push(noData);
         }

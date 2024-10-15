@@ -23,21 +23,21 @@ function createDetailsGrid(game) {
             label: "PRICE DIFFERENCE:",
             value: "ERROR",
             title: `${game.services.steam_historical_low.error}\n${game.services.key_and_gift_sellers.error}`,
-            color_class: "error"
+            color_class: "error-text"
         });
     } else if (!game.services.steam_historical_low.success) {
         detailsData.push({
             label: "PRICE DIFFERENCE:",
             value: "ERROR",
             title: game.services.steam_historical_low.error,
-            color_class: "error"
+            color_class: "error-text"
         });
     } else if (!game.services.key_and_gift_sellers.success) {
         detailsData.push({
             label: "PRICE DIFFERENCE:",
             value: "ERROR",
             title: game.services.key_and_gift_sellers.error,
-            color_class: "error"
+            color_class: "error-text"
         });
     } else {
         if (game.services.steam_historical_low.data !== null) {  // SteamDB data available
@@ -138,7 +138,7 @@ function createDetailsGrid(game) {
             label: "GAME LENGTH:",
             value: "ERROR",
             title: `${game.services.game_length.error}\n\nClick to visit the following site:\n${game.services.game_length.url}`,
-            color_class: "error",
+            color_class: "error-text",
             url: game.services.game_length.url
         });
     } else {
@@ -224,7 +224,7 @@ function createDetailsGrid(game) {
             label: "LINUX SUPPORT:",
             value: "ERROR",
             title: `${game.services.linux_support.error}\n\nClick to visit the following site:\n${game.services.linux_support.url}`,
-            color_class: "error",
+            color_class: "error-text",
             url: game.services.linux_support.url
         });
     } else {

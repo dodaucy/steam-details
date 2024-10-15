@@ -116,7 +116,7 @@ function createPurchaseAreas(game, lowest_price, lowest_price_color_class) {
                     historicalLowElement.href = purchase.historicalLowErrorURL;
                     historicalLowElement.target = "_blank";
                     historicalLowElement.title = `${purchase.historicalLowError}\n\nClick to visit the following site:\n${purchase.historicalLowErrorURL}`;
-                    historicalLowElement.className = "historical-low error";
+                    historicalLowElement.className = "historical-low error-text";
                 } else {
                     if (purchase.historicalLowURL !== null) {
                         var historicalLowElement = document.createElement("a");
@@ -153,7 +153,7 @@ function createPurchaseAreas(game, lowest_price, lowest_price_color_class) {
                 let priceElement = null;
                 if (purchase.priceError !== null) {
                     priceElement = document.createElement("a");
-                    priceElement.className = "price error";
+                    priceElement.className = "price error-text";
                     priceElement.href = purchase.priceErrorURL;
                     priceElement.target = "_blank";
                     priceElement.title = `${purchase.priceError}\n\nClick to visit the following site:\n${purchase.priceErrorURL}`;
