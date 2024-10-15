@@ -38,9 +38,9 @@ class ServiceManager:
             self._logger.debug(f"Loaded {service.name}")
         self._logger.info("All services loaded")
 
-    def get_appid_from_name(self, name: str) -> int | None:
+    async def get_appid_from_name(self, name: str) -> int | None:
         """Get the app id for the given name using the steam app list."""
-        return self.steam.get_app(name)
+        return await self.steam.get_app(name)
 
     async def get_wishlist(self, profile_name_or_id: str) -> list[int] | None:
         """Get the wishlist data for the given profile name or id."""
@@ -56,17 +56,17 @@ class ServiceManager:
         services: list[AnalyticsService] = []
         speed_histories: dict[str, list[float]] = {}
         for service in self._services:
-            name = service.name
             if service.load_time is None:
-                self._logger.warning(f"Skipping {repr(name)} due the service not being loaded")
-                continue
+                load_time = None
+            else:
+                load_time = round(service.load_time, 3)
             services.append(AnalyticsService(
-                name=name,
-                load_time=round(service.load_time, 3),
+                name=service.name,
+                load_time=load_time,
                 timeout_count=service.timeout_count,
                 error_count=service.error_count
             ))
-            speed_histories[name] = service.speed_history
+            speed_histories[service.name] = service.speed_history
 
         # Return if no data
         if not services:

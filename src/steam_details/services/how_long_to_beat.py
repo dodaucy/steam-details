@@ -20,7 +20,7 @@ class HowLongToBeatDetails(BaseModel):
 
 class HowLongToBeat(Service):
     def __init__(self, name: str, log_name: str) -> None:
-        super().__init__(name, log_name)
+        super().__init__(name, log_name, "https://howlongtobeat.com")
 
         # Cache
         self._search_endpoint: str | None = None
@@ -229,7 +229,6 @@ class HowLongToBeat(Service):
     async def get_game_details(self, steam: SteamDetails) -> HowLongToBeatDetails | None:
         """Get playtime stats from HowLongToBeat."""
         self.logger.info(f"Getting how long to beat for {repr(steam.name)} ({steam.appid})")
-        self.error_url = "https://howlongtobeat.com"
 
         # Search
         r = await self._search(steam)

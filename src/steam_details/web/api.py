@@ -30,6 +30,15 @@ class Details(BaseModel):
     from_cache: bool
 
 
+def raise_steam_error(error: Exception) -> None:
+    """Raise an HTTPException with the Steam error message."""
+    traceback.print_exc()
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail=f"Steam error: {error.__class__.__name__}: {error}"
+    )
+
+
 async def get_json_from_task(task: asyncio.Task[BaseModel | None], service: Service) -> ServiceDetails | ServiceError:
     """Run the task and return the result as a JSON object with success status."""
     try:
@@ -45,12 +54,13 @@ async def get_json_from_task(task: asyncio.Task[BaseModel | None], service: Serv
                 "data": response.model_dump()
             }
     except Exception as e:  # noqa: BLE001
-        traceback.print_exc()
         if service.error_url is None:
             raise Exception("Service error URL not set")  # noqa: B904
+        else:
+            traceback.print_exc()
         return {
             "success": False,
-            "error": f"{repr(e.__class__.__name__)}: {e}",
+            "error": f"{e.__class__.__name__}: {e}",
             "url": service.error_url
         }
 
@@ -67,7 +77,10 @@ logger = logging.getLogger(f"{ANSICodes.MAGENTA}api{ANSICodes.RESET}")
 @app.get("/wishlist")
 async def wishlist(profile_name_or_id: str):
     """Get the wishlist data for the given profile name or id."""
-    game_appids: list[int] | None = await service_manager.get_wishlist(profile_name_or_id)
+    try:
+        game_appids: list[int] | None = await service_manager.get_wishlist(profile_name_or_id)
+    except Exception as e:  # noqa: BLE001
+        raise_steam_error(e)
     if game_appids is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Steam ID / Profile not found (your wishlist must be public)")
     return game_appids
@@ -88,21 +101,22 @@ async def details(appid_or_name: str, use_cache: bool = True):
         steam: SteamDetails | None = None
         if appid_or_name.strip().isdigit():
             try:
-                steam = await service_manager.steam.create_task(int(appid_or_name))
+                steam = await service_manager.steam.create_task(appid=int(appid_or_name))
             except Exception as e:  # noqa: BLE001
-                traceback.print_exc()
-                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Steam error: {repr(e.__class__.__name__)}: {e}")  # noqa: B904
+                raise_steam_error(e)
         if steam is None:
-            appid = service_manager.get_appid_from_name(appid_or_name)
+            try:
+                appid = await service_manager.get_appid_from_name(appid_or_name)
+            except Exception as e:  # noqa: BLE001
+                raise_steam_error(e)
             if appid is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="App not found")
             try:
-                steam = await service_manager.steam.create_task(appid)
+                steam = await service_manager.steam.create_task(appid=appid)
                 if steam is None:
                     raise Exception("Failed to get steam details")
             except Exception as e:  # noqa: BLE001
-                traceback.print_exc()
-                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Steam error: {repr(e.__class__.__name__)}: {e}")  # noqa: B904
+                raise_steam_error(e)
 
         # Cache
         logger.debug(f"Checking cache for app {steam.appid}")
@@ -177,7 +191,7 @@ async def details(appid_or_name: str, use_cache: bool = True):
             # Create JSON tasks
             json_tasks: dict[str, asyncio.Task[ServiceDetails | ServiceError]] = {}
             for name, service in task_services.items():
-                json_tasks[name] = get_json_from_task(service.create_task(steam), service)
+                json_tasks[name] = get_json_from_task(service.create_task(steam=steam), service)
 
             # Run tasks
             results = await asyncio.gather(*json_tasks.values())

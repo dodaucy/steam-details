@@ -249,7 +249,7 @@ class KeyForSteamDetails(BaseModel):
 
 class KeyForSteam(Service):
     def __init__(self, name: str, log_name: str) -> None:
-        super().__init__(name, log_name)
+        super().__init__(name, log_name, "https://www.keyforsteam.de")
 
         # Get full ignored word list
         self._ignored_word_list = IGNORED_WORDS + PLATFORMS
@@ -441,7 +441,6 @@ class KeyForSteam(Service):
     async def get_game_details(self, steam: SteamDetails) -> KeyForSteamDetails | None:
         """Get cheapest offer and historical low price from KeyForSteam."""
         self.logger.info(f"Getting KeyForSteam data for {repr(steam.name)} ({steam.appid})")
-        self.error_url = "https://www.keyforsteam.de"
 
         products: list[Product] = []
 

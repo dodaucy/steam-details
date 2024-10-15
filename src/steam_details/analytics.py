@@ -15,7 +15,7 @@ from .utils import ANSICodes
 
 class AnalyticsService(TypedDict):
     name: str
-    load_time: float
+    load_time: float | None
     timeout_count: int
     error_count: int
 

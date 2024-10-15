@@ -19,7 +19,8 @@ class SteamDBDetails(BaseModel):
 
 
 class SteamDB(Service):
-    """Get steam historical low price from SteamDB."""
+    def __init__(self, name: str, log_name: str):
+        super().__init__(name, log_name, "https://steamdb.info/app/{steam.appid}/")
 
     async def _captcha(self, appid: int, timeout: int) -> None:  # noqa: ASYNC109
         self.logger.warning("Displaying captcha or bot protection message")
@@ -88,7 +89,6 @@ class SteamDB(Service):
     async def get_game_details(self, steam: SteamDetails, allow_captcha: bool = True) -> SteamDBDetails | None:
         """Get steam historical low price from SteamDB."""
         self.logger.info(f"Getting historical low for {steam.appid}")
-        self.error_url = f"https://steamdb.info/app/{steam.appid}/"
 
         play = await async_playwright().start()
         with TemporaryDirectory() as td:
