@@ -27,7 +27,7 @@ class SteamDetails(BaseModel):
     price: float | None
     discount: int | None
 
-    release_date: ReleaseDate
+    release_date: ReleaseDate | None
     overall_reviews: OverallReviews
     achievement_count: int
     native_linux_support: bool
@@ -99,14 +99,17 @@ class Steam(Service):
             discount = None
 
         # Get release date
-        if released:
-            iso_date = datetime.strptime(steam_data["release_date"]["date"], "%d %b, %Y").date().isoformat()
+        if steam_data["release_date"]["date"] == "":
+            release_date = None
         else:
-            iso_date = None
-        release_date = ReleaseDate(
-            display_string=steam_data["release_date"]["date"],
-            iso_date=iso_date
-        )
+            if released:
+                iso_date = datetime.strptime(steam_data["release_date"]["date"], "%d %b, %Y").date().isoformat()
+            else:
+                iso_date = None
+            release_date = ReleaseDate(
+                display_string=steam_data["release_date"]["date"],
+                iso_date=iso_date
+            )
 
         # Get reviews
         self.logger.info(f"Getting reviews for {appid}")

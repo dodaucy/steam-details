@@ -7,7 +7,7 @@ function createDetailsGrid(game) {
     // Get release difference
     let releaseDifferenceInDays = null;
     let releaseDifferenceInYears = null;
-    if (game.services.steam.data.released) {
+    if (game.services.steam.data.released && game.services.steam.data.release_date !== null) {
         const date = new Date(game.services.steam.data.release_date.iso_date);
         const now = new Date();
         const dateDiff = now - date;
@@ -55,6 +55,9 @@ function createDetailsGrid(game) {
             if (game.services.steam.data.price === 0.0) {
                 var color_class = "rainbow-text";
                 lowest_price_color_class = "rainbow-purchase-area";
+            } else if (game.services.steam.data.release_date === null) {
+                var color_class = "grey-text";
+                title += "\n\nThe release date is unknown!!";
             } else if (releaseDifferenceInYears >= 1) {
                 if (price_difference > 10) {
                     var color_class = "red-text";
@@ -93,21 +96,28 @@ function createDetailsGrid(game) {
 
     // Release date
     let title = "Release date of the game";
-    if (game.services.steam.data.released) {
-        if (releaseDifferenceInYears >= 1) {
-            title = `Released ${releaseDifferenceInYears.toString().replace(".", ",")} year${releaseDifferenceInYears !== 1 ? "s" : ""} ago`;
-        } else if (releaseDifferenceInDays >= 0) {
-            title = `Released ${releaseDifferenceInDays} day${releaseDifferenceInDays !== 1 ? "s" : ""} ago`;
-        }
-        var value = display_date(game.services.steam.data.release_date.iso_date);
+    if (game.services.steam.data.release_date === null) {
+        detailsData.push({
+            label: "RELEASE DATE:",
+            value: null
+        })
     } else {
-        var value = game.services.steam.data.release_date.display_string;
+        if (game.services.steam.data.released) {
+            if (releaseDifferenceInYears >= 1) {
+                title = `Released ${releaseDifferenceInYears.toString().replace(".", ",")} year${releaseDifferenceInYears !== 1 ? "s" : ""} ago`;
+            } else if (releaseDifferenceInDays >= 0) {
+                title = `Released ${releaseDifferenceInDays} day${releaseDifferenceInDays !== 1 ? "s" : ""} ago`;
+            }
+            var value = display_date(game.services.steam.data.release_date.iso_date);
+        } else {
+            var value = game.services.steam.data.release_date.display_string;
+        }
+        detailsData.push({
+            label: "RELEASE DATE:",
+            value: value,
+            title: title
+        });
     }
-    detailsData.push({
-        label: "RELEASE DATE:",
-        value: value,
-        title: title
-    });
 
     // Reviews
     if (game.services.steam.data.released) {
