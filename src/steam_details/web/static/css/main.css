@@ -7,6 +7,12 @@
     /* Text */
     --text-color: #ffffff;
 
+    --green-color: #75b022;
+    --yellow-color: #CFB53B;
+    --orange-color: #ff6600;
+    --red-color: #ff0000;
+    --grey-color: #aaaaaa;
+
     --error-color: #FF0000;
 
     --rainbow-color-1: rgb(255, 0, 0);
@@ -150,19 +156,19 @@ button {
 
 /* Text Colors */
 .green-text {
-    color: #75b022;
+    color: var(--green-color);
 }
 .yellow-text {
-    color: #CFB53B;
+    color: var(--yellow-color);
 }
 .orange-text {
-    color: #ff6600;
+    color: var(--orange-color);
 }
 .red-text {
-    color: #ff0000;
+    color: var(--red-color);
 }
 .grey-text {
-    color: #aaaaaa;
+    color: var(--grey-color);
 }
 .error-text {
     color: var(--error-color);
