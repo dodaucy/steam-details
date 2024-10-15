@@ -163,7 +163,9 @@ async def details(appid_or_name: str, use_cache: bool = True):
                     "success": True,
                     "data": {
                         "price": 0.0,
-                        "iso_date": None
+                        "discount": 0,
+                        "iso_date": None,
+                        "external_url": None
                     }
                 }
 

@@ -24,8 +24,19 @@ function createPurchaseAreas(game, lowest_price, lowest_price_color_class) {
             if (game.services.steam_historical_low.success) {
                 if (game.services.steam_historical_low.data !== null) {
                     historicalLowPrice = game.services.steam_historical_low.data.price;
-                    historicalLowTitle = `At Discount: ${game.services.steam_historical_low.data.discount}%\nDate: ${game.services.steam_historical_low.data.iso_date === null ? "Today": display_date(game.services.steam_historical_low.data.iso_date)}\n\nFrom: steamdb.info\nClick to visit site`;
-                    historicalLowURL = game.services.steam_historical_low.data.external_url;
+
+                    if (game.services.steam_historical_low.data.iso_date === null) {
+                        var date = "Today";
+                    } else {
+                        var date = display_date(game.services.steam_historical_low.data.iso_date);
+                    }
+
+                    historicalLowTitle = `At Discount: ${game.services.steam_historical_low.data.discount}%\nDate: ${date}`;
+
+                    if (game.services.steam_historical_low.data.external_url !== null) {
+                        historicalLowTitle += `\n\nFrom: steamdb.info\nClick to visit site`;
+                        historicalLowURL = game.services.steam_historical_low.data.external_url;
+                    }
                 }
             } else {
                 historicalLowError = game.services.steam_historical_low.error;

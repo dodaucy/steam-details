@@ -13,8 +13,8 @@ from ..utils import price_string_to_float
 
 class SteamDBDetails(BaseModel):
     price: float
-    discount: int | None
-    iso_date: str | None
+    discount: int
+    iso_date: str | None  # None -> Today
     external_url: str
 
 
@@ -89,6 +89,9 @@ class SteamDB(Service):
     async def get_game_details(self, steam: SteamDetails, allow_captcha: bool = True) -> SteamDBDetails | None:
         """Get steam historical low price from SteamDB."""
         self.logger.info(f"Getting historical low for {steam.appid}")
+
+        if steam.price is None or steam.discount is None:
+            raise Exception("Steam price or discount not found")
 
         play = await async_playwright().start()
         with TemporaryDirectory() as td:
