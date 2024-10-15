@@ -65,7 +65,7 @@ async def get_json_from_task(task: asyncio.Task[BaseModel | None], service: Serv
         }
 
 
-app = FastAPI(docs_url="/")
+app = FastAPI(openapi_url=None)
 
 details_lock = asyncio.Lock()
 
