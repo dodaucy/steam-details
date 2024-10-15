@@ -1,5 +1,4 @@
 import json
-import logging
 import re
 import unicodedata
 from datetime import datetime
@@ -9,13 +8,9 @@ from bs4 import BeautifulSoup
 from pydantic import BaseModel
 from typing_extensions import TypedDict
 
-from services.steam import SteamDetails
-from utils import (
-    ANSICodes,
-    http_client,
-    price_string_to_float,
-    roman_string_to_int_string,
-)
+from ..service import Service
+from ..services.steam import SteamDetails
+from ..utils import http_client, price_string_to_float, roman_string_to_int_string
 
 PLATFORMS = [
     "PlayStation 4",
@@ -252,9 +247,9 @@ class KeyForSteamDetails(BaseModel):
     external_url: str
 
 
-class KeyForSteam:
-    def __init__(self):
-        self.logger = logging.getLogger(f"{ANSICodes.YELLOW}keyforsteam{ANSICodes.RESET}")
+class KeyForSteam(Service):
+    def __init__(self, name: str, log_name: str) -> None:
+        super().__init__(name, log_name, "https://www.keyforsteam.de")
 
         # Get full ignored word list
         self._ignored_word_list = IGNORED_WORDS + PLATFORMS
@@ -301,8 +296,8 @@ class KeyForSteam:
         self.logger.debug(f"Purged name {repr(name)} -> {repr(purged_name)}")
         return purged_name
 
-    async def _get_internal_id_and_name(self, keyforsteam_game_url: str) -> str | int | None:
-        """Return the internal ID and name of the game on KeyForSteam or None if the game page doesn't exist."""
+    async def _get_internal_id_and_name(self, keyforsteam_game_url: str) -> tuple[int | None, str | None]:
+        """Return a tuple of the internal ID and name of the game on KeyForSteam or (None, None) if the game page doesn't exist."""
         # Get game page
         r = await http_client.get(keyforsteam_game_url)
         self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
@@ -325,16 +320,10 @@ class KeyForSteam:
             raise Exception(f"Could not find KeyForSteam ID in {repr(keyforsteam_game_url)}")
 
         # Get internal name
-        title_tag = soup.find("title")
-        if title_tag is None:
-            raise Exception(f"Could not find title tag in {repr(keyforsteam_game_url)}")
-        self.logger.debug(f"Title tag: {repr(title_tag.text)}")
-        position = title_tag.text.lower().find(" key kaufen preisvergleich")
-        if position == -1:
-            position = title_tag.text.lower().find(" cd key kaufen - preisvergleich")
-        if position == -1:
-            raise Exception(f"Could not find KeyForSteam name in {repr(keyforsteam_game_url)}")
-        internal_name = title_tag.text[:position].strip()
+        span_tag = soup.find("span", {"data-itemprop": "name"})
+        if span_tag is None:
+            raise Exception(f"Could not find internal name in {repr(keyforsteam_game_url)}")
+        internal_name = span_tag.text.strip()
         self.logger.info(f"Internal name: {repr(internal_name)}")
 
         return internal_id, internal_name
@@ -545,6 +534,7 @@ class KeyForSteam:
             raise Exception(f"Too many KeyForSteam products found: Found {len(products)}")
 
         product = products[0]
+        self.error_url = product.keyforsteam_game_url
         self.logger.info(f"Found KeyForSteam product: {product}")
 
         if product.cheapest_offer is None:

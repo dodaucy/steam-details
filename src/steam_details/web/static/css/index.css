@@ -1,0 +1,230 @@
+/* Search Bar */
+#search-bar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+#search-bar > * {
+    margin: 0px 5px;
+    color: var(--text-color);
+    padding: 7px 10px;
+    border-radius: 3px;
+}
+
+/* Mode Select and Search Button */
+#mode-select,#search-button {
+    background-color: var(--usable-element-color);
+    border: 0;
+}
+#mode-select:hover,#search-button:hover {
+    background-color: var(--usable-element-color-hover);
+}
+
+/* Search Input */
+#search-input {
+    width: 100%;
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--border-color);
+    background-color: var(--transparent-1);
+    box-shadow: var(--border-shadow-color) 0px 0px 3px 0px inset, var(--usable-element-color) 1px 1px 0px 0px;
+}
+#search-input:hover {
+    border-color: var(--usable-element-color-hover);
+    box-shadow: var(--border-shadow-color) 0px 0px 3px 0px inset;
+}
+
+
+
+/* Progress */
+#progress-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+#wait_for_seconds {  /* Will be removed in v1.3 */
+    color: #ffc2c2;
+    cursor: pointer;
+}
+
+/* Result */
+#result {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.result-item {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0px;
+    background-color: var(--secondary-background-color);
+
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+    position: relative;
+}
+.result-item [title]:hover {
+    cursor: help;
+}
+
+
+
+/* Retry Button */
+.retry-button {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+
+    max-height: 100%;
+    overflow: auto;
+
+    box-shadow: var(--border-shadow-color) 3px -3px 3px 0px;
+}
+
+
+
+/* Images */
+.images {
+    margin-right: 10px;
+}
+.image {
+    display: none;
+    width: 292px;
+    height: 136px;
+}
+.image.active {
+    display: block !important;
+}
+
+
+
+/* Content */
+.content {
+    width: 100%;
+}
+.content > * {
+    margin: 5px 0px;
+}
+
+
+
+/* Details */
+.details {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 0;
+}
+.details > * > * {
+    margin: 5px;
+    text-align: right;
+}
+
+
+
+/* Details Grid */
+.details-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-column-gap: 30px;
+    text-align: left;
+}
+.details-grid > * {
+    margin: 2px;
+    text-align: left;
+    white-space: nowrap;
+    overflow-x: hidden;
+}
+
+
+
+/* Purchase Area */
+.purchase-area-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.purchase-area {
+    background-color: var(--transparent-2);
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 0;
+}
+.purchase-area > * {
+    margin: 5px;
+    white-space: nowrap;
+}
+
+/* Purchase Area Colors */
+.green-purchase-area {
+    background: var(--green-purchase-area);
+}
+.rainbow-purchase-area {
+    animation: rainbow-purchase-area-animation 3s ease-in-out infinite;
+}
+@keyframes rainbow-purchase-area-animation {
+    0% { background-color: var(--rainbow-purchase-area-1); }
+    20% { background-color: var(--rainbow-purchase-area-2); }
+    40% { background-color: var(--rainbow-purchase-area-3); }
+    60% { background-color: var(--rainbow-purchase-area-4); }
+    80% { background-color: var(--rainbow-purchase-area-5); }
+    100% { background-color: var(--rainbow-purchase-area-1); }
+}
+
+/* Historical Low */
+.historical-low {
+    text-align: center;
+}
+.historical-low > * {
+    white-space: nowrap;
+}
+
+/* Price */
+.price {
+    padding: 5px;
+}
+
+/* Buttons */
+.steam-button, .keyforsteam-button, .error-button {
+    width: 150px;
+    text-align: center;
+    margin-left: 0;
+    padding: 7px 15px;
+    border-radius: 2px;
+}
+
+.steam-button {
+    color: var(--steam-button-color);
+    background: var(--steam-button-background);
+}
+.steam-button:hover {
+    background: var(--steam-button-background-hover);
+}
+
+.keyforsteam-button {
+    color: var(--keyforsteam-button-color);
+    background: var(--keyforsteam-button-background);
+}
+.keyforsteam-button:hover {
+    background: var(--keyforsteam-button-background-hover);
+}
+
+.error-button {
+    color: var(--error-button-color);
+    background: var(--error-button-background);
+}
+.error-button:hover {
+    background: var(--error-button-background-hover);
+}

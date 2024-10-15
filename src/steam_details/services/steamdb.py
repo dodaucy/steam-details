@@ -1,4 +1,3 @@
-import logging
 import time
 from datetime import datetime
 from tempfile import TemporaryDirectory
@@ -7,22 +6,21 @@ from bs4 import BeautifulSoup, Tag
 from playwright.async_api import async_playwright
 from pydantic import BaseModel
 
-from services.steam import SteamDetails
-from utils import ANSICodes, price_string_to_float
+from ..service import Service
+from ..services.steam import SteamDetails
+from ..utils import price_string_to_float
 
 
 class SteamDBDetails(BaseModel):
     price: float
-    discount: int | None
-    iso_date: str | None
+    discount: int
+    iso_date: str | None  # None -> Today
     external_url: str
 
 
-class SteamDB:
-    """Get steam historical low price from SteamDB."""
-
-    def __init__(self):
-        self.logger = logging.getLogger(f"{ANSICodes.BLUE}steamdb{ANSICodes.RESET}")
+class SteamDB(Service):
+    def __init__(self, name: str, log_name: str):
+        super().__init__(name, log_name, "https://steamdb.info/app/{steam.appid}/")
 
     async def _captcha(self, appid: int, timeout: int) -> None:  # noqa: ASYNC109
         self.logger.warning("Displaying captcha or bot protection message")
@@ -91,6 +89,10 @@ class SteamDB:
     async def get_game_details(self, steam: SteamDetails, allow_captcha: bool = True) -> SteamDBDetails | None:
         """Get steam historical low price from SteamDB."""
         self.logger.info(f"Getting historical low for {steam.appid}")
+
+        if steam.price is None or steam.discount is None:
+            raise Exception("Steam price or discount not found")
+
         play = await async_playwright().start()
         with TemporaryDirectory() as td:
             self.logger.debug(f"Temporary directory: {td}")

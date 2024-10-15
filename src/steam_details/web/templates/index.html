@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Steam Details</title>
-    <link rel="stylesheet" href="/static/style.css">
+    {% include "head_content.html" %}
+    <link rel="stylesheet" href="/static/css/index.css">
 </head>
 <body>
     <div id="page-content">
+        {% include "nav_area.html" %}
         <div id="search-bar">
             <select id="mode-select">
                 <option value="single-game">Single Game</option>
@@ -16,14 +15,16 @@
             <input type="text" id="search-input" autofocus>
             <button id="search-button">Search</button>
         </div>
-        <div id="error-message"></div>
+        <div id="error-message" class="error-text"></div>
         <div id="progress-container" style="display: none;">
             <div id="progress-text"></div>
             <progress id="progress"></progress>
         </div>
         <div id="result"></div>
     </div>
-    <script src="/static/script.js"></script>
-    <script src="/static/add_game.js"></script>
+    <script src="/static/js/index/index.js"></script>
+    <script src="/static/js/index/details_grid.js"></script>
+    <script src="/static/js/index/purchase_areas.js"></script>
+    <script src="/static/js/index/add_game.js"></script>
 </body>
 </html>

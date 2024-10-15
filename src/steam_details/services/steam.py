@@ -1,9 +1,9 @@
-import logging
 from datetime import datetime
 
 from pydantic import BaseModel
 
-from utils import ANSICodes, http_client
+from ..service import Service
+from ..utils import http_client
 
 
 class ReleaseDate(BaseModel):
@@ -27,22 +27,22 @@ class SteamDetails(BaseModel):
     price: float | None
     discount: int | None
 
-    release_date: ReleaseDate
+    release_date: ReleaseDate | None
     overall_reviews: OverallReviews
     achievement_count: int
     native_linux_support: bool
 
 
-class Steam:
-    def __init__(self):
-        self.logger = logging.getLogger(f"{ANSICodes.CYAN}steam{ANSICodes.RESET}")
+class Steam(Service):
+    def __init__(self, name: str, log_name: str) -> None:
+        super().__init__(name, log_name, "https://store.steampowered.com/{appid}")
 
         self.app_list: dict[str, int] | None = None
 
     async def load(self) -> None:
         """Get the steam app list."""
         self.logger.info("Downloading app list")
-        r = await http_client.get("https://api.steampowered.com/ISteamApps/GetAppList/v2/", timeout=300)
+        r = await http_client.get("https://api.steampowered.com/ISteamApps/GetAppList/v2/", timeout=30)
         self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
         self.logger.debug(f"Response: (all): {r.text}")
         r.raise_for_status()
@@ -58,6 +58,7 @@ class Steam:
     async def get_game_details(self, appid: int) -> SteamDetails | None:
         """Get details from steam for the given app id."""
         self.logger.info(f"Getting steam details for {appid}")
+
         r = await http_client.get(
             "https://store.steampowered.com/api/appdetails",
             params={
@@ -98,14 +99,17 @@ class Steam:
             discount = None
 
         # Get release date
-        if released:
-            iso_date = datetime.strptime(steam_data["release_date"]["date"], "%d %b, %Y").date().isoformat()
+        if steam_data["release_date"]["date"] == "":
+            release_date = None
         else:
-            iso_date = None
-        release_date = ReleaseDate(
-            display_string=steam_data["release_date"]["date"],
-            iso_date=iso_date
-        )
+            if released:
+                iso_date = datetime.strptime(steam_data["release_date"]["date"], "%d %b, %Y").date().isoformat()
+            else:
+                iso_date = None
+            release_date = ReleaseDate(
+                display_string=steam_data["release_date"]["date"],
+                iso_date=iso_date
+            )
 
         # Get reviews
         self.logger.info(f"Getting reviews for {appid}")
@@ -158,13 +162,14 @@ class Steam:
 
     async def get_app(self, name: str) -> int | None:
         """Get the app id for the given name using the steam app list."""
-        appid = self.app_list.get(name.lower())
-        if appid is not None:
-            return appid
+        self.logger.debug(f"Getting app id for {repr(name)}")
+        await self.load_check()
+        return self.app_list.get(name.lower())
 
     async def get_wishlist_data(self, profile_name_or_id: str) -> list[int] | None:
         """Get the wishlist data for the given profile id."""
         self.logger.info(f"Getting wishlist data for {repr(profile_name_or_id)}")
+        await self.load_check()
         r = await http_client.get(
             f"https://store.steampowered.com/wishlist/profiles/{profile_name_or_id}/wishlistdata/",
             params={

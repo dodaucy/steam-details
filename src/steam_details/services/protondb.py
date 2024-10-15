@@ -1,9 +1,8 @@
-import logging
-
 from pydantic import BaseModel
 
-from services.steam import SteamDetails
-from utils import ANSICodes, http_client
+from ..service import Service
+from ..services.steam import SteamDetails
+from ..utils import http_client
 
 
 class ProtonDBDetails(BaseModel):
@@ -13,9 +12,9 @@ class ProtonDBDetails(BaseModel):
     external_url: str
 
 
-class ProtonDB:
-    def __init__(self):
-        self.logger = logging.getLogger(f"{ANSICodes.GREEN}protondb{ANSICodes.RESET}")
+class ProtonDB(Service):
+    def __init__(self, name: str, log_name: str) -> None:
+        super().__init__(name, log_name, "https://www.protondb.com/app/{steam.appid}")
 
     async def get_game_details(self, steam: SteamDetails) -> ProtonDBDetails | None:
         """Get linux support state from ProtonDB."""

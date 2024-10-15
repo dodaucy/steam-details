@@ -1,0 +1,18 @@
+<div id="nav_area" class="small-font">
+    <a href="https://github.com/dodaucy/steam-details" target="_blank" title="View on GitHub">
+        <img src="/static/img/github/github.svg" onerror="this.onerror=null; this.src='/static/img/github/github.png'" alt="GitHub Logo">
+        <div>
+            GitHub
+        </div>
+    </a>
+    <a href="/" {% if name == "" %}id="active-tab" class="title"{% endif %}>
+        <div>
+            Steam Details
+        </div>
+    </a>
+    <a href="/analytics" {% if name == "analytics" %}id="active-tab" class="title"{% endif %}>
+        <div>
+            Analytics
+        </div>
+    </a>
+</div>

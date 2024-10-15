@@ -1,0 +1,186 @@
+/* Colors */
+:root {
+    /* General */
+    --transparent-1: rgba(0, 0, 0, 0.1);
+    --transparent-2: rgba(0, 0, 0, 0.2);
+
+    /* Text */
+    --text-color: #ffffff;
+
+    --green-color: #75b022;
+    --yellow-color: #CFB53B;
+    --orange-color: #ff6600;
+    --red-color: #ff0000;
+    --grey-color: #aaaaaa;
+
+    --error-color: #FF0000;
+
+    --rainbow-color-1: rgb(255, 0, 0);
+    --rainbow-color-2: rgb(255, 127, 0);
+    --rainbow-color-3: rgb(255, 255, 0);
+    --rainbow-color-4: rgb(0, 255, 0);
+    --rainbow-color-5: rgb(250, 94, 255);
+
+    /* Background */
+    --primary-background-color: #1B2838;
+    --secondary-background-color: rgba(64, 81, 99, 0.9);
+
+    /* Borders */
+    --border-color: #000000;
+    --border-shadow-color: rgba(0, 0, 0, 0.5);
+
+    /* Nav Area */
+    --nav-area-background-color: rgb(54, 110, 163);
+    --nav-area-background-hover: linear-gradient( to right, rgba(33, 162, 255, 0.25) 0%, rgba(33, 162, 255, 0.15) 50%, rgba(50, 50, 51, 0) 100%);
+    --nav-area-selected-tab-color: rgba(0, 0, 0, 0.1);
+
+    /* Search Area */
+    --usable-element-color: #3D4450;
+    --usable-element-color-hover: #4F5565;
+
+    /* Purchase Area */
+    --green-purchase-area: rgba(100, 255, 0, 0.2);
+
+    --rainbow-purchase-area-1: rgba(255, 0, 0, 0.2);
+    --rainbow-purchase-area-2: rgba(255, 127, 0, 0.2);
+    --rainbow-purchase-area-3: rgba(255, 255, 0, 0.2);
+    --rainbow-purchase-area-4: rgba(0, 255, 0, 0.2);
+    --rainbow-purchase-area-5: rgba(250, 94, 255, 0.2);
+
+    /* Buttons */
+    --steam-button-background: linear-gradient( to right, #75b022 5%, #588a1b 95%);
+    --steam-button-background-hover: linear-gradient( to right, #8ed629 5%, #6aa621 95%);
+    --steam-button-color: rgb(210, 239, 169);
+
+    --keyforsteam-button-background: linear-gradient( to right, #aeb022 5%, #8a8a1b 95%);
+    --keyforsteam-button-background-hover: linear-gradient( to right, #c0d629 5%, #a6a621 95%);
+    --keyforsteam-button-color: rgb(238, 239, 169);
+
+    --error-button-background: linear-gradient( to right, #b02222 5%, #8a1b1b 95%);
+    --error-button-background-hover: linear-gradient( to right, #d62929 5%, #a62121 95%);
+    --error-button-color: rgb(239, 169, 169);
+}
+
+
+
+/* General */
+body {
+    background-color: var(--primary-background-color);
+    color: var(--text-color);
+}
+* {
+    font-family: sans-serif;
+    box-sizing: border-box;
+}
+
+/* General Elements and Classes */
+a {
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+button {
+    cursor: pointer;
+}
+.small-font {
+    font-size: 0.8em;
+}
+.center-text {
+    text-align: center;
+}
+.title {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+.margin-top {
+    margin-top: 15px;
+}
+
+/* Page Content */
+#page-content {
+    margin-top: 30px;
+
+    margin-left: auto;
+    margin-right: auto;
+    width: 940px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+#page-content > * {
+    width: 100%;
+    margin-top: 10px;
+}
+
+
+
+/* Navigation Area */
+#nav_area {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+    background-color: var(--nav-area-background-color);
+    border-radius: 3px;
+
+    height: 35px;
+}
+#nav_area > * {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+    height: 100%;
+    width: 100%;
+}
+#nav_area > * > * {
+    margin: 0px 5px;
+}
+#nav_area > * > img {
+    height: 1.5em;
+}
+#nav_area > *:not(#active-tab):hover {
+    background: var(--nav-area-background-hover);
+}
+
+/* Active Tab */
+#active-tab {
+    background-color: var(--nav-area-selected-tab-color);
+}
+
+
+
+/* Text Colors */
+.green-text {
+    color: var(--green-color);
+}
+.yellow-text {
+    color: var(--yellow-color);
+}
+.orange-text {
+    color: var(--orange-color);
+}
+.red-text {
+    color: var(--red-color);
+}
+.grey-text {
+    color: var(--grey-color);
+}
+.error-text {
+    color: var(--error-color);
+}
+.rainbow-text {
+    animation: rainbow-text-animation 3s ease-in-out infinite;
+}
+@keyframes rainbow-text-animation {
+    0% { color: var(--rainbow-color-1); }
+    20% { color: var(--rainbow-color-2); }
+    40% { color: var(--rainbow-color-3); }
+    60% { color: var(--rainbow-color-4); }
+    80% { color: var(--rainbow-color-5); }
+    100% { color: var(--rainbow-color-1); }
+}
