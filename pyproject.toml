@@ -1,6 +1,6 @@
 [project]
 name = "steam-details"
-version = "1.0.0"
+version = "1.1.0"
 description = "Displays some details for a steam app or a whole wishlist "
 authors = [
     {name = "dodaucy", email = "dodaucy@gmail.com"},
