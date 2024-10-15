@@ -66,9 +66,25 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
+
+    position: relative;
 }
 .result-item [title]:hover {
     cursor: help;
+}
+
+
+
+/* Retry Button */
+.retry-button {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+
+    max-height: 100%;
+    overflow: auto;
+
+    box-shadow: var(--border-shadow-color) 3px -3px 3px 0px;
 }
 
 
@@ -180,8 +196,8 @@
     padding: 5px;
 }
 
-/* Buy Buttons */
-.steam-button, .keyforsteam-button {
+/* Buttons */
+.steam-button, .keyforsteam-button, .error-button {
     width: 150px;
     text-align: center;
     margin-left: 0;
@@ -203,4 +219,12 @@
 }
 .keyforsteam-button:hover {
     background: var(--keyforsteam-button-background-hover);
+}
+
+.error-button {
+    color: var(--error-button-color);
+    background: var(--error-button-background);
+}
+.error-button:hover {
+    background: var(--error-button-background-hover);
 }

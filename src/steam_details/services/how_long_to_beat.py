@@ -20,7 +20,7 @@ class HowLongToBeatDetails(BaseModel):
 
 class HowLongToBeat(Service):
     def __init__(self, name: str, log_name: str) -> None:
-        super().__init__(name, log_name)
+        super().__init__(name, log_name, "https://howlongtobeat.com")
 
         # Cache
         self._search_endpoint: str | None = None
@@ -191,6 +191,7 @@ class HowLongToBeat(Service):
                 current_appid = int(props["pageProps"]["game"]["data"]["game"][0]["profile_steam"])
 
             if current_appid == steam.appid:
+                self.error_url = f"https://howlongtobeat.com/game/{game_data['game_id']}"
                 return HowLongToBeatDetails(
                     main=game_data["comp_main"] if game_data["comp_main"] != 0 else None,
                     plus=game_data["comp_plus"] if game_data["comp_plus"] != 0 else None,

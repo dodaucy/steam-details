@@ -41,7 +41,7 @@
     --rainbow-purchase-area-4: rgba(0, 255, 0, 0.2);
     --rainbow-purchase-area-5: rgba(250, 94, 255, 0.2);
 
-    /* Buy Buttons */
+    /* Buttons */
     --steam-button-background: linear-gradient( to right, #75b022 5%, #588a1b 95%);
     --steam-button-background-hover: linear-gradient( to right, #8ed629 5%, #6aa621 95%);
     --steam-button-color: rgb(210, 239, 169);
@@ -49,6 +49,10 @@
     --keyforsteam-button-background: linear-gradient( to right, #aeb022 5%, #8a8a1b 95%);
     --keyforsteam-button-background-hover: linear-gradient( to right, #c0d629 5%, #a6a621 95%);
     --keyforsteam-button-color: rgb(238, 239, 169);
+
+    --error-button-background: linear-gradient( to right, #b02222 5%, #8a1b1b 95%);
+    --error-button-background-hover: linear-gradient( to right, #d62929 5%, #a62121 95%);
+    --error-button-color: rgb(239, 169, 169);
 }
 
 

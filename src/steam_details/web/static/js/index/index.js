@@ -1,4 +1,4 @@
-function change_wait_for_seconds() {
+function changeWaitForSeconds() {
     const new_wait_for_seconds = prompt(
         "Enter number of seconds to wait to avoid rate limits and captchas:",
         localStorage.getItem("wait_for_seconds") || "3"
@@ -9,6 +9,28 @@ function change_wait_for_seconds() {
 }
 
 
+function createResultItem(appendToTop) {
+    // Create the result-item
+    const resultItem = document.createElement("div");
+    resultItem.className = "result-item";
+
+    // Append the result-item to the #result div
+    if (appendToTop) {
+        document.getElementById("result").prepend(resultItem);
+    } else {
+        document.getElementById("result").appendChild(resultItem);
+    }
+
+    return resultItem;
+}
+
+
+async function fetchDetails(resultItem, appidOrName) {
+    resultItem.innerText = `Getting details for '${appidOrName}'...`;
+    addGame(await getRequest("details?use_cache=false&appid_or_name=" + encodeURIComponent(appidOrName)), resultItem);
+}
+
+
 async function search(mode, searchValue, progress) {
     const progressText = document.getElementById("progress-text");
 
@@ -16,16 +38,16 @@ async function search(mode, searchValue, progress) {
 
         // Try to get appid from url
         if (searchValue.startsWith("https://store.steampowered.com/app/")) {
-            appid_or_name = searchValue.split("https://store.steampowered.com/app/")[1].split("/")[0];
+            appidOrName = searchValue.split("https://store.steampowered.com/app/")[1].split("/")[0];
         } else if (searchValue.startsWith("https://store.steampowered.com/agecheck/app/")) {
-            appid_or_name = searchValue.split("https://store.steampowered.com/agecheck/app/")[1].split("/")[0];
+            appidOrName = searchValue.split("https://store.steampowered.com/agecheck/app/")[1].split("/")[0];
         } else {
-            appid_or_name = searchValue;
+            appidOrName = searchValue;
         }
 
         // Get details
-        progressText.innerText = `Getting details for '${appid_or_name}'...`;
-        addGame(await getRequest("details?appid_or_name=" + encodeURIComponent(appid_or_name)), true);
+        progressText.innerText = `Getting details for '${appidOrName}'...`;
+        addGame(await getRequest("details?appid_or_name=" + encodeURIComponent(appidOrName)), createResultItem(true));
 
     } else if (mode === "wishlist") {
 
@@ -54,7 +76,7 @@ async function search(mode, searchValue, progress) {
             // Get details
             progressText.innerText = `Getting details for '${appid}'...`;
             const details = await getRequest("details?appid_or_name=" + encodeURIComponent(appid));
-            addGame(details, false);
+            addGame(details, createResultItem(false));
 
             // Update progress
             progress.value = ((i + 1) / wishlist.length) * 100;
@@ -76,7 +98,7 @@ async function search(mode, searchValue, progress) {
                         wait_for_seconds = 1;
                     }
 
-                    progressText.innerHTML = `Waiting for <span id="wait_for_seconds" onclick="change_wait_for_seconds();">${wait_for_seconds}</span> seconds...`;
+                    progressText.innerHTML = `Waiting for <span id="wait_for_seconds" onclick="changeWaitForSeconds();">${wait_for_seconds}</span> seconds...`;
                     await new Promise(resolve => setTimeout(resolve, wait_for_seconds * 1000));
 
                 }

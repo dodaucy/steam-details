@@ -249,7 +249,7 @@ class KeyForSteamDetails(BaseModel):
 
 class KeyForSteam(Service):
     def __init__(self, name: str, log_name: str) -> None:
-        super().__init__(name, log_name)
+        super().__init__(name, log_name, "https://www.keyforsteam.de")
 
         # Get full ignored word list
         self._ignored_word_list = IGNORED_WORDS + PLATFORMS
@@ -296,8 +296,8 @@ class KeyForSteam(Service):
         self.logger.debug(f"Purged name {repr(name)} -> {repr(purged_name)}")
         return purged_name
 
-    async def _get_internal_id_and_name(self, keyforsteam_game_url: str) -> str | int | None:
-        """Return the internal ID and name of the game on KeyForSteam or None if the game page doesn't exist."""
+    async def _get_internal_id_and_name(self, keyforsteam_game_url: str) -> tuple[int | None, str | None]:
+        """Return a tuple of the internal ID and name of the game on KeyForSteam or (None, None) if the game page doesn't exist."""
         # Get game page
         r = await http_client.get(keyforsteam_game_url)
         self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
@@ -322,7 +322,7 @@ class KeyForSteam(Service):
         # Get internal name
         span_tag = soup.find("span", {"data-itemprop": "name"})
         if span_tag is None:
-            raise Exception(f'Could not find internal name in {repr(keyforsteam_game_url)}')
+            raise Exception(f"Could not find internal name in {repr(keyforsteam_game_url)}")
         internal_name = span_tag.text.strip()
         self.logger.info(f"Internal name: {repr(internal_name)}")
 
@@ -534,6 +534,7 @@ class KeyForSteam(Service):
             raise Exception(f"Too many KeyForSteam products found: Found {len(products)}")
 
         product = products[0]
+        self.error_url = product.keyforsteam_game_url
         self.logger.info(f"Found KeyForSteam product: {product}")
 
         if product.cheapest_offer is None:

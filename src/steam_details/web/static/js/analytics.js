@@ -15,6 +15,7 @@ async function analyze() {
     try {
         data = await getRequest("analyze");
     } catch (error) {
+        console.error(error);
         // Display error
         const errorDiv = document.createElement("div");
         errorDiv.className = "error";
@@ -45,18 +46,23 @@ async function analyze() {
             serviceLoadTime.appendChild(serviceLoadTimeTitle);
 
             const serviceLoadTimeValue = document.createElement("div");
-            serviceLoadTimeValue.innerText = service.load_time + "s";
-            serviceLoadTime.appendChild(serviceLoadTimeValue);
-
-            if (service.load_time > 10) {  // Very high load time
-                serviceLoadTimeValue.className = "red-text";
-            } else if (service.load_time > 5) {  // High load time
-                serviceLoadTimeValue.className = "orange-text";
-            } else if (service.load_time > 3) {  // Medium load time
-                serviceLoadTimeValue.className = "yellow-text";
-            } else {  // Low load time
-                serviceLoadTimeValue.className = "green-text";
+            if (service.load_time === null) {
+                serviceLoadTimeValue.innerText = "Not loaded";
+                serviceLoadTimeValue.className = "error";
+            } else {
+                serviceLoadTimeValue.innerText = service.load_time + "s";
+                if (service.load_time > 10) {  // Very high load time
+                    serviceLoadTimeValue.className = "red-text";
+                } else if (service.load_time > 5) {  // High load time
+                    serviceLoadTimeValue.className = "orange-text";
+                } else if (service.load_time > 3) {  // Medium load time
+                    serviceLoadTimeValue.className = "yellow-text";
+                } else {  // Low load time
+                    serviceLoadTimeValue.className = "green-text";
+                }
             }
+
+            serviceLoadTime.appendChild(serviceLoadTimeValue);
 
             serviceElement.appendChild(serviceLoadTime);
 
