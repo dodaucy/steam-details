@@ -1,4 +1,5 @@
 import json
+import string
 from collections.abc import Iterator
 from urllib.parse import quote
 
@@ -29,6 +30,14 @@ class HowLongToBeat(Service):
     async def load(self) -> None:
         """Get search endpoint and build ID for HowLongToBeat."""
         await self._update_search_endpoint_and_build_id()
+
+    def _purge_name(self, name: str) -> str:
+        """Remove special characters from a game name."""
+        purged_name: list[str] = []
+        for char in name:
+            if char in string.ascii_letters + string.digits + " ":
+                purged_name.append(char)
+        return "".join(purged_name)
 
     async def _update_search_endpoint_and_build_id(self) -> None:
         self.logger.info("Try fetching new howlongtobeat search endpoint")
@@ -101,8 +110,16 @@ class HowLongToBeat(Service):
             raise Exception("Could not find howlongtobeat search endpoint")
         self._search_endpoint = new_search_endpoint
 
-    async def _search(self, steam: SteamDetails) -> Response:
+    async def _search(self, name: str) -> Response:
+        # Prepare search terms
+        search_terms: list[str] = []
+        for word in name.split(" "):
+            term = word.strip()
+            if term != "":
+                search_terms.append(term)
+
         # Search
+        self.logger.info(f"Searching for {repr(search_terms)}")
         r = await http_client.post(
             self._search_endpoint,
             headers={
@@ -116,7 +133,7 @@ class HowLongToBeat(Service):
             },
             json={
                 "searchType": "games",
-                "searchTerms": [steam.name],
+                "searchTerms": search_terms,
                 "searchPage": 1,
                 "size": 10,
                 "searchOptions": {
@@ -191,6 +208,7 @@ class HowLongToBeat(Service):
                 current_appid = int(props["pageProps"]["game"]["data"]["game"][0]["profile_steam"])
 
             if current_appid == steam.appid:
+                self.logger.info(f"Found {repr(steam.name)}")
                 self.error_url = f"https://howlongtobeat.com/game/{game_data['game_id']}"
                 return HowLongToBeatDetails(
                     main=game_data["comp_main"] if game_data["comp_main"] != 0 else None,
@@ -198,6 +216,8 @@ class HowLongToBeat(Service):
                     completionist=game_data["comp_100"] if game_data["comp_100"] != 0 else None,
                     external_url=f"https://howlongtobeat.com/game/{game_data['game_id']}"
                 )
+
+        self.logger.info(f"Could not find {repr(steam.name)}")
 
     async def _get_game_props(self, internal_game_id: int, steam: SteamDetails, *, allow_wrong_build_id: bool = True) -> dict:
         r = await http_client.get(
@@ -230,12 +250,16 @@ class HowLongToBeat(Service):
         """Get playtime stats from HowLongToBeat."""
         self.logger.info(f"Getting how long to beat for {repr(steam.name)} ({steam.appid})")
 
+        # Purge name
+        purged_name = self._purge_name(steam.name)
+        self.logger.info(f"Purged name: {repr(purged_name)}")
+
         # Search
-        r = await self._search(steam)
+        r = await self._search(purged_name)
         if r.status_code == 404:
             self.logger.info(f"The howlongtobeat search endpoint ({repr(self._search_endpoint)}) is not available")
             self._update_search_endpoint_and_build_id()
-            r = await self._search(steam)
+            r = await self._search(purged_name)
 
         r.raise_for_status()
 
