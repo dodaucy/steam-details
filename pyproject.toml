@@ -35,8 +35,6 @@ dev = [
 [tool.pdm.scripts]
 start = {cmd = "python3 -m steam_details", working_dir = "src"}
 lint = "ruff check src --respect-gitignore"
-
-post_install = "playwright install"
 pre_build = {composite = ["lint"]}
 
 [tool.ruff]
