@@ -240,7 +240,7 @@ class HowLongToBeat(Service):
         # Allow updating the build id if it's wrong
         if allow_wrong_build_id and r.status_code == 404:
             self.logger.info(f"The howlongtobeat build id ({repr(self._build_id)}) is deprecated")
-            self._update_search_endpoint_and_build_id()
+            await self._update_search_endpoint_and_build_id()
             return await self._get_game_props(internal_game_id, steam, allow_wrong_build_id=False)
 
         r.raise_for_status()
@@ -258,7 +258,7 @@ class HowLongToBeat(Service):
         r = await self._search(purged_name)
         if r.status_code == 404:
             self.logger.info(f"The howlongtobeat search endpoint ({repr(self._search_endpoint)}) is not available")
-            self._update_search_endpoint_and_build_id()
+            await self._update_search_endpoint_and_build_id()
             r = await self._search(purged_name)
 
         r.raise_for_status()
