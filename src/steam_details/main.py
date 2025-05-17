@@ -40,7 +40,7 @@ def main() -> int:
 
     parser = ArgumentParser()
     parser.add_argument(
-        "-V", "--version", action="store_true", help="Show the version and exit."
+        "-v", "--version", action="store_true", help="Show the version and exit."
     )
 
     args = parser.parse_args()
