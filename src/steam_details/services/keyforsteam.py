@@ -296,14 +296,14 @@ class KeyForSteam(Service):
         self.logger.debug(f"Purged name {repr(name)} -> {repr(purged_name)}")
         return purged_name
 
-    async def _get_internal_id_and_name(self, keyforsteam_game_url: str) -> tuple[int | None, str | None]:
+    async def _get_internal_id_and_name(self, keyforsteam_game_url: str) -> tuple[int, str] | None:
         """Return a tuple of the internal ID and name of the game on KeyForSteam or (None, None) if the game page doesn't exist."""
         # Get game page
         r = await http_client.get(keyforsteam_game_url)
         self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
         self.logger.debug(f"Response: (all): {r.text}")
         if r.status_code == 404:
-            return None, None
+            return None
         r.raise_for_status()
         soup = BeautifulSoup(r.text, "html.parser")
 
@@ -446,9 +446,10 @@ class KeyForSteam(Service):
 
         # Get internal ID and link directly
         keyforsteam_game_url = f"https://www.keyforsteam.de/{'-'.join(self._purge_name(steam.name).split(' '))}-key-kaufen-preisvergleich/"
-        direct_internal_id, internal_name = await self._get_internal_id_and_name(keyforsteam_game_url)
+        id_and_name = await self._get_internal_id_and_name(keyforsteam_game_url)
 
-        if direct_internal_id is not None:
+        if id_and_name is not None:
+            direct_internal_id, internal_name = id_and_name
             product = await self._get_product(
                 steam=steam,
                 internal_id=direct_internal_id,
@@ -507,9 +508,11 @@ class KeyForSteam(Service):
                     continue
 
                 # Skip invalid internal id if present to optimize search
-                if direct_internal_id is not None and product_data["id"] == direct_internal_id:
-                    self.logger.info(f"Skipping invalid internal id: {product_data['id']}")
-                    continue
+                if id_and_name is not None:
+                    direct_internal_id, internal_name = id_and_name
+                    if product_data["id"] == direct_internal_id:
+                        self.logger.info(f"Skipping invalid internal id: {product_data['id']}")
+                        continue
 
                 # Get product
                 product = await self._get_product(

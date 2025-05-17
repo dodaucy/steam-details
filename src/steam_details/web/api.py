@@ -2,7 +2,8 @@ import asyncio
 import logging
 import time
 import traceback
-from typing import Any, Literal
+from types import CoroutineType
+from typing import Any, Literal, cast
 
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
@@ -30,10 +31,10 @@ class Details(BaseModel):
     from_cache: bool
 
 
-def raise_steam_error(error: Exception) -> None:
-    """Raise an HTTPException with the Steam error message."""
+def steam_error(error: Exception) -> HTTPException:
+    """Return an HTTPException with the Steam error message."""
     traceback.print_exc()
-    raise HTTPException(
+    return HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail=f"Steam error: {error.__class__.__name__}: {error}"
     )
@@ -80,7 +81,7 @@ async def wishlist(profile_name_or_id: str):
     try:
         game_appids: list[int] | None = await service_manager.get_wishlist(profile_name_or_id)
     except Exception as e:  # noqa: BLE001
-        raise_steam_error(e)
+        raise steam_error(e)
     if game_appids is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Steam ID / Profile not found (your wishlist must be public)")
     return game_appids
@@ -101,22 +102,22 @@ async def details(appid_or_name: str, use_cache: bool = True):
         steam: SteamDetails | None = None
         if appid_or_name.strip().isdigit():
             try:
-                steam = await service_manager.steam.create_task(appid=int(appid_or_name))
+                steam = cast(SteamDetails | None, await service_manager.steam.create_task(appid=int(appid_or_name)))
             except Exception as e:  # noqa: BLE001
-                raise_steam_error(e)
+                raise steam_error(e)
         if steam is None:
             try:
                 appid = await service_manager.get_appid_from_name(appid_or_name)
             except Exception as e:  # noqa: BLE001
-                raise_steam_error(e)
+                raise steam_error(e)
             if appid is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="App not found")
             try:
-                steam = await service_manager.steam.create_task(appid=appid)
+                steam = cast(SteamDetails | None, await service_manager.steam.create_task(appid=appid))
                 if steam is None:
                     raise Exception("Failed to get steam details")
             except Exception as e:  # noqa: BLE001
-                raise_steam_error(e)
+                raise steam_error(e)
 
         # Cache
         logger.debug(f"Checking cache for app {steam.appid}")
@@ -128,7 +129,7 @@ async def details(appid_or_name: str, use_cache: bool = True):
                 continue
 
             # Check if already in cache
-            if services["steam"]["data"]["appid"] == steam.appid:
+            if cast(ServiceDetails, services["steam"])["data"]["appid"] == steam.appid:
                 if use_cache:
                     logger.debug(f"Using cache for app {steam.appid}")
                     return Details(
@@ -191,7 +192,7 @@ async def details(appid_or_name: str, use_cache: bool = True):
                 task_services["linux_support"] = service_manager.protondb
 
             # Create JSON tasks
-            json_tasks: dict[str, asyncio.Task[ServiceDetails | ServiceError]] = {}
+            json_tasks: dict[str, CoroutineType[Any, Any, ServiceDetails | ServiceError]] = {}
             for name, service in task_services.items():
                 json_tasks[name] = get_json_from_task(service.create_task(steam=steam), service)
 

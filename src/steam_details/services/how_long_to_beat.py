@@ -120,6 +120,8 @@ class HowLongToBeat(Service):
 
         # Search
         self.logger.info(f"Searching for {repr(search_terms)}")
+        if self._search_endpoint is None:
+            raise Exception("Load service first")
         r = await http_client.post(
             self._search_endpoint,
             headers={

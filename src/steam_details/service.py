@@ -32,11 +32,11 @@ class Service:
         """Load the service. You can override this."""
         self.logger.debug("Nothing to load")
 
-    async def get_game_details(self, **kwargs) -> BaseModel | None:
+    async def get_game_details(self, *args, **kwargs) -> BaseModel | None:
         """Get the details of the game. You should override this."""
         raise NotImplementedError
 
-    async def _get_game_details_task(self, **kwargs) -> BaseModel:
+    async def _get_game_details_task(self, **kwargs) -> BaseModel | None:
         """Get the details of the game."""
         async with self._lock:
             self.logger.debug(f"Starting task {self.name}")
@@ -84,6 +84,6 @@ class Service:
             if self.load_time is None:
                 raise RuntimeError("Service failed to load")
 
-    def create_task(self, **kwargs) -> asyncio.Task[BaseModel]:
+    def create_task(self, **kwargs) -> asyncio.Task[BaseModel | None]:
         """Create a task for the service to get the details of the game."""
         return asyncio.create_task(self._get_game_details_task(**kwargs))

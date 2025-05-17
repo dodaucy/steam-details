@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import cast
 
 from pydantic import BaseModel
 
@@ -164,7 +165,7 @@ class Steam(Service):
         """Get the app id for the given name using the steam app list."""
         self.logger.debug(f"Getting app id for {repr(name)}")
         await self.load_check()
-        return self.app_list.get(name.lower())
+        return cast(dict[str, int], self.app_list).get(name.lower())
 
     async def get_wishlist_data(self, profile_name_or_id: str) -> list[int] | None:
         """Get the wishlist data for the given profile id."""
