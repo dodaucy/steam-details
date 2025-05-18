@@ -415,7 +415,7 @@ class KeyForSteam(Service):
             if redirect_data_tag is None:
                 raise Exception("Could not find appData tag")
             redirect_data = json.loads(redirect_data_tag.text)
-            redirection_url = redirect_data["clickBody"]["redirectionUrl"]
+            redirection_url = redirect_data["redirectionUrl"]
             if not isinstance(redirection_url, str) or not redirection_url.startswith("https://store.steampowered.com/"):
                 raise Exception("Invalid redirection URL")
             if redirection_url.startswith("https://store.steampowered.com/app/"):  # Exclude bundles and stuff
@@ -561,7 +561,7 @@ class KeyForSteam(Service):
         price_history_data = r.json()
         historical_low = HistoricalLow(
             price=price_string_to_float(price_history_data["lower_keyshops_price"]["price"]),
-            seller=price_history_data["merchants"][price_history_data["lower_keyshops_price"]["merchant_id"]]["name"],
+            seller=price_history_data["merchants"][str(price_history_data["lower_keyshops_price"]["merchant_id"])]["name"],
             iso_date=datetime.strptime(price_history_data["lower_keyshops_price"]["last_update"], "%Y-%m-%d %H:%M:%S").isoformat()
         )
 
