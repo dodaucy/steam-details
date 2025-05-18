@@ -95,7 +95,7 @@ class HowLongToBeat(Service):
                     js_response.raise_for_status()
 
                     for url in self._parse_fetch_urls_from_js(js_response.text):
-                        if url.startswith("/api/search") or url.startswith("/api/find"):
+                        if url.startswith("/api/search") or url.startswith("/api/find") or url.startswith("/api/seek"):
                             url = "https://howlongtobeat.com" + url
                             self.logger.info(f"Found howlongtobeat search endpoint: {repr(url)}")
                             new_search_endpoint = url
@@ -145,7 +145,7 @@ class HowLongToBeat(Service):
                         "sortCategory": "name",
                         "rangeCategory": "main",
                         "rangeTime": {"min": None, "max": None},
-                        "gameplay": {"perspective": "", "flow": "", "genre": ""},
+                        "gameplay": {"perspective": "", "flow": "", "genre": "", "difficulty": ""},
                         "rangeYear": {"min": "", "max": ""},
                         "modifier": ""
                     },
@@ -186,8 +186,11 @@ class HowLongToBeat(Service):
 
                     if len(splitted_url) == 3 and splitted_url[0] == "" and splitted_url[2] == "":  # "..."
                         real_url = splitted_url[1]
-                    elif len(splitted_url) == 5 and splitted_url[0] == "" and splitted_url[2] == ".concat(" and splitted_url[4] == ")":  # "...".concat("...")
-                        real_url = splitted_url = splitted_url[1] + splitted_url[3]
+                    elif len(splitted_url) >= 5 and len(splitted_url) % 2 == 1 and splitted_url[0] == "" and splitted_url[-1] == ")":  # "...".concat("...").concat("...") ...
+                        real_url = splitted_url[1]
+                        for i in range(3, len(splitted_url), 2):
+                            if splitted_url[i - 1] == ".concat(" or splitted_url[i - 1] == ").concat(":
+                                real_url += splitted_url[i]
 
                     if real_url is None:
                         self.logger.debug(f"Could not parse fetch url: {repr(raw_url)}")
