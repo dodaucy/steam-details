@@ -297,7 +297,7 @@ class KeyForSteam(Service):
         return purged_name
 
     async def _get_internal_id_and_name(self, keyforsteam_game_url: str) -> tuple[int, str] | None:
-        """Return a tuple of the internal ID and name of the game on KeyForSteam or (None, None) if the game page doesn't exist."""
+        """Return a tuple of the internal ID and name of the game on KeyForSteam or None if the game page doesn't exist."""
         # Get game page
         r = await http_client.get(keyforsteam_game_url)
         self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
