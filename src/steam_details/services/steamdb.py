@@ -26,17 +26,18 @@ class SteamDB(Service):
             raise Exception("Steam price or discount not found")
 
         r = await http_client.get(
-            "https://steamdb.info/api/ExtensionAppPrice/",
+            "https://extension.steamdb.info/api/ExtensionAppPrice/",
             params={
                 "appid": steam.appid,
-                "currency": "EUR",
+                "currency": "EUR"
             },
             headers={
                 "Accept": "application/json",
                 "Accept-Language": "en-US,en;q=0.5",
                 "Sec-Fetch-Dest": "empty",
                 "Sec-Fetch-Mode": "cors",
-                "Sec-Fetch-Site": "same-origin",
+                "Sec-Fetch-Site": "cross-site",
+                "Origin": "moz-extension://a175af2f-b384-4b88-aa24-051eab987ae5",
                 "X-Requested-With": "SteamDB"
             }
         )
@@ -56,7 +57,7 @@ class SteamDB(Service):
         if historical_low_price < steam.price:
             historical_low = SteamDBDetails(
                 price=historical_low_price,
-                discount=j["data"]["d"],
+                discount=j["data"]["d"],  # Not always right? Returned falsely 0 instead of 60 for game 367520.
                 iso_date=datetime.fromtimestamp(j["data"]["t"], tz=timezone.utc).isoformat(),
                 external_url=f"https://steamdb.info/app/{steam.appid}/"
             )
