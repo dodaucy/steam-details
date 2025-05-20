@@ -7,8 +7,8 @@ function createDetailsGrid(game) {
     // Get release difference
     let releaseDifferenceInDays = null;
     let releaseDifferenceInYears = null;
-    if (game.services.steam.data.released && game.services.steam.data.release_date !== null) {
-        const date = new Date(game.services.steam.data.release_date.iso_date);
+    if (game.services.steam_core.data.released && game.services.steam_core.data.release_date !== null) {
+        const date = new Date(game.services.steam_core.data.release_date.iso_date);
         const now = new Date();
         const dateDiff = now - date;
         releaseDifferenceInDays = Math.floor(dateDiff / (1000 * 60 * 60 * 24));
@@ -42,20 +42,20 @@ function createDetailsGrid(game) {
     } else {
         if (game.services.steam_historical_low.data !== null) {  // SteamDB data available
             if (game.services.key_and_gift_sellers.data !== null) {  // KeyForSteam data also available
-                lowest_price = Math.min(game.services.steam.data.price, game.services.key_and_gift_sellers.data.cheapest_offer.price);
+                lowest_price = Math.min(game.services.steam_core.data.price, game.services.key_and_gift_sellers.data.cheapest_offer.price);
                 var lowest_historical_low = Math.min(game.services.steam_historical_low.data.price, game.services.key_and_gift_sellers.data.historical_low.price);
             } else {  // Only SteamDB data available
-                lowest_price = game.services.steam.data.price;
+                lowest_price = game.services.steam_core.data.price;
                 var lowest_historical_low = game.services.steam_historical_low.data.price;
             }
 
             const price_difference = lowest_price - lowest_historical_low;
 
             let title = `How much money you could save if you wait longer\n\nHow this is calculated:\nlowest price (${display_price(lowest_price)}) - lowest historical low (${display_price(lowest_historical_low)})`;
-            if (game.services.steam.data.price === 0.0) {
+            if (game.services.steam_core.data.price === 0.0) {
                 var color_class = "rainbow-text";
                 lowest_price_color_class = "rainbow-purchase-area";
-            } else if (game.services.steam.data.release_date === null) {
+            } else if (game.services.steam_core.data.release_date === null) {
                 var color_class = "grey-text";
                 title += "\n\nThe release date is unknown!!";
             } else if (releaseDifferenceInYears >= 1) {
@@ -97,21 +97,21 @@ function createDetailsGrid(game) {
 
     // Release date
     let title = "Release date of the game";
-    if (game.services.steam.data.release_date === null) {
+    if (game.services.steam_core.data.release_date === null) {
         detailsData.push({
             label: "RELEASE DATE:",
             value: null
         })
     } else {
-        if (game.services.steam.data.released) {
+        if (game.services.steam_core.data.released) {
             if (releaseDifferenceInYears >= 1) {
                 title = `Released ${releaseDifferenceInYears.toString().replace(".", ",")} year${releaseDifferenceInYears !== 1 ? "s" : ""} ago`;
             } else if (releaseDifferenceInDays >= 0) {
                 title = `Released ${releaseDifferenceInDays} day${releaseDifferenceInDays !== 1 ? "s" : ""} ago`;
             }
-            var value = display_date(game.services.steam.data.release_date.iso_date);
+            var value = display_date(game.services.steam_core.data.release_date.iso_date);
         } else {
-            var value = game.services.steam.data.release_date.display_string;
+            var value = game.services.steam_core.data.release_date.display_string;
         }
         detailsData.push({
             label: "RELEASE DATE:",
@@ -121,19 +121,27 @@ function createDetailsGrid(game) {
     }
 
     // Reviews
-    if (game.services.steam.data.released) {
+    if (!game.services.steam_extension.success) {
+        detailsData.push({
+            label: "OVERALL REVIEWS:",
+            value: "ERROR",
+            title: `${game.services.steam_extension.error}\n\nClick to visit the following site:\n${game.services.steam_extension.url}`,
+            color_class: "error-text",
+            url: game.services.steam_extension.url
+        });
+    } else if (game.services.steam_core.data.released && game.services.steam_extension.data.overall_reviews !== null) {
         let color_class = "red-text";
-        if (game.services.steam.data.overall_reviews.score >= 75) {
+        if (game.services.steam_extension.data.overall_reviews.score >= 75) {
             color_class = "green-text";
-        } else if (game.services.steam.data.overall_reviews.score >= 50) {
+        } else if (game.services.steam_extension.data.overall_reviews.score >= 50) {
             color_class = "yellow-text";
-        } else if (game.services.steam.data.overall_reviews.score >= 25) {
+        } else if (game.services.steam_extension.data.overall_reviews.score >= 25) {
             color_class = "orange-text";
         }
         detailsData.push({
             label: "OVERALL REVIEWS:",
-            value: `${game.services.steam.data.overall_reviews.desc} (${game.services.steam.data.overall_reviews.score}%)`,
-            title: `${game.services.steam.data.overall_reviews.score}% of ${game.services.steam.data.overall_reviews.total_reviews.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} reviews are positive`,
+            value: `${game.services.steam_extension.data.overall_reviews.desc} (${game.services.steam_extension.data.overall_reviews.score}%)`,
+            title: `${game.services.steam_extension.data.overall_reviews.score}% of ${game.services.steam_extension.data.overall_reviews.total_reviews.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} reviews are positive`,
             color_class: color_class
         });
     } else {
@@ -206,19 +214,19 @@ function createDetailsGrid(game) {
     }
 
     // Achievements
-    if (game.services.steam.data.released) {
-        if (game.services.steam.data.achievement_count >= 20) {
+    if (game.services.steam_core.data.released) {
+        if (game.services.steam_core.data.achievement_count >= 20) {
             color_class = "green-text";
-        } else if (game.services.steam.data.achievement_count >= 10) {
+        } else if (game.services.steam_core.data.achievement_count >= 10) {
             color_class = "yellow-text";
-        } else if (game.services.steam.data.achievement_count >= 1) {
+        } else if (game.services.steam_core.data.achievement_count >= 1) {
             color_class = "orange-text";
         } else {
             color_class = "red-text";
         }
         detailsData.push({
             label: "ACHIEVEMENTS:",
-            value: game.services.steam.data.achievement_count,
+            value: game.services.steam_core.data.achievement_count,
             title: "Number of achievements in the game",
             color_class: color_class
         });
@@ -239,7 +247,7 @@ function createDetailsGrid(game) {
             url: game.services.linux_support.url
         });
     } else {
-        if (game.services.steam.data.native_linux_support) {
+        if (game.services.steam_core.data.native_linux_support) {
             detailsData.push({
                 label: "LINUX SUPPORT:",
                 value: "NATIVE",

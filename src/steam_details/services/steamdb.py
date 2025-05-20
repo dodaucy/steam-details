@@ -1,9 +1,10 @@
+import logging
 from datetime import datetime, timezone
 
 from pydantic import BaseModel
 
 from ..service import Service
-from ..services.steam import SteamDetails
+from ..steam_core import SteamCoreDetails
 from ..utils import http_client, price_string_to_float
 
 
@@ -15,10 +16,10 @@ class SteamDBDetails(BaseModel):
 
 
 class SteamDB(Service):
-    def __init__(self, name: str, log_name: str):
-        super().__init__(name, log_name, "https://steamdb.info/app/{steam.appid}/")
+    def __init__(self, name: str, logger: logging.Logger):
+        super().__init__(name, logger, "https://steamdb.info/app/{steam.appid}/")
 
-    async def get_game_details(self, steam: SteamDetails) -> SteamDBDetails | None:
+    async def get_game_details(self, steam: SteamCoreDetails) -> SteamDBDetails | None:
         """Get steam historical low price from SteamDB."""
         self.logger.info(f"Getting historical low for {steam.appid}")
 

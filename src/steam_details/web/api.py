@@ -11,7 +11,7 @@ from typing_extensions import TypedDict
 
 from ..service import Service
 from ..service_manager import service_manager
-from ..services.steam import SteamDetails
+from ..steam_core import SteamCoreDetails, steam_core
 from ..utils import ANSICodes
 
 
@@ -40,8 +40,8 @@ def steam_error(error: Exception) -> HTTPException:
     )
 
 
-async def get_json_from_task(task: asyncio.Task[BaseModel | None], service: Service) -> ServiceDetails | ServiceError:
-    """Run the task and return the result as a JSON object with success status."""
+async def get_dict_from_task(task: asyncio.Task[BaseModel | None], service: Service) -> ServiceDetails | ServiceError:
+    """Run the task and return the result as a dictionary with success status."""
     try:
         response = await task
         if response is None:
@@ -79,7 +79,7 @@ logger = logging.getLogger(f"{ANSICodes.MAGENTA}api{ANSICodes.RESET}")
 async def wishlist(profile_name_or_id: str):
     """Get the wishlist data for the given profile name or id."""
     try:
-        game_appids: list[int] | None = await service_manager.get_wishlist(profile_name_or_id)
+        game_appids: list[int] | None = await steam_core.get_wishlist_data(profile_name_or_id)
     except Exception as e:  # noqa: BLE001
         raise steam_error(e)
     if game_appids is None:
@@ -98,22 +98,22 @@ async def details(appid_or_name: str, use_cache: bool = True):
         if appid_or_name.strip() == "":
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty search")
 
-        # Get steam details
-        steam: SteamDetails | None = None
+        # Get steam core details
+        steam: SteamCoreDetails | None = None
         if appid_or_name.strip().isdigit():
             try:
-                steam = cast(SteamDetails | None, await service_manager.steam.create_task(appid=int(appid_or_name)))
+                steam = await steam_core.get_core_details(int(appid_or_name))
             except Exception as e:  # noqa: BLE001
                 raise steam_error(e)
         if steam is None:
             try:
-                appid = await service_manager.get_appid_from_name(appid_or_name)
+                appid = await steam_core.get_app_id_by_name(appid_or_name)
             except Exception as e:  # noqa: BLE001
                 raise steam_error(e)
             if appid is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="App not found")
             try:
-                steam = cast(SteamDetails | None, await service_manager.steam.create_task(appid=appid))
+                steam = await steam_core.get_core_details(appid)
                 if steam is None:
                     raise Exception("Failed to get steam details")
             except Exception as e:  # noqa: BLE001
@@ -129,7 +129,7 @@ async def details(appid_or_name: str, use_cache: bool = True):
                 continue
 
             # Check if already in cache
-            if cast(ServiceDetails, services["steam"])["data"]["appid"] == steam.appid:
+            if cast(ServiceDetails, services["steam_core"])["data"]["appid"] == steam.appid:
                 if use_cache:
                     logger.debug(f"Using cache for app {steam.appid}")
                     return Details(
@@ -144,12 +144,14 @@ async def details(appid_or_name: str, use_cache: bool = True):
         if steam.released:
 
             services: dict[str, ServiceDetails | ServiceError] = {
-                "steam": {
+                "steam_core": {
                     "success": True,
                     "data": steam.model_dump()
                 }
             }
-            task_services: dict[str, Service] = {}
+            task_services: dict[str, Service] = {
+                "steam_extension": service_manager.steam_extension
+            }
 
             # Steam historical low
             if steam.price is None:
@@ -194,7 +196,7 @@ async def details(appid_or_name: str, use_cache: bool = True):
             # Create JSON tasks
             json_tasks: dict[str, CoroutineType[Any, Any, ServiceDetails | ServiceError]] = {}
             for name, service in task_services.items():
-                json_tasks[name] = get_json_from_task(service.create_task(steam=steam), service)
+                json_tasks[name] = get_dict_from_task(service.create_task(steam=steam), service)
 
             # Run tasks
             results = await asyncio.gather(*json_tasks.values())
@@ -210,9 +212,13 @@ async def details(appid_or_name: str, use_cache: bool = True):
 
             details = Details(
                 services={
-                    "steam": {
+                    "steam_core": {
                         "success": True,
                         "data": steam.model_dump()
+                    },
+                    "steam_extension": {
+                        "success": True,
+                        "data": None
                     },
                     "steam_historical_low": {
                         "success": True,

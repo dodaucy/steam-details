@@ -1,10 +1,10 @@
+import logging
 from datetime import datetime
 from typing import cast
 
 from pydantic import BaseModel
 
-from ..service import Service
-from ..utils import http_client
+from .utils import ANSICodes, http_client
 
 
 class ReleaseDate(BaseModel):
@@ -12,13 +12,7 @@ class ReleaseDate(BaseModel):
     iso_date: str | None
 
 
-class OverallReviews(BaseModel):
-    desc: str
-    score: int
-    total_reviews: int
-
-
-class SteamDetails(BaseModel):
+class SteamCoreDetails(BaseModel):
     appid: int
     name: str
     images: list[str]
@@ -29,16 +23,14 @@ class SteamDetails(BaseModel):
     discount: int | None
 
     release_date: ReleaseDate | None
-    overall_reviews: OverallReviews
     achievement_count: int
     native_linux_support: bool
 
 
-class Steam(Service):
-    def __init__(self, name: str, log_name: str) -> None:
-        super().__init__(name, log_name, "https://store.steampowered.com/{appid}")
-
+class SteamCore:
+    def __init__(self) -> None:
         self.app_list: dict[str, int] | None = None
+        self.logger = logging.getLogger(f"{ANSICodes.CYAN}steam_core{ANSICodes.RESET}")
 
     async def load(self) -> None:
         """Get the steam app list."""
@@ -56,8 +48,8 @@ class Steam(Service):
 
         self.logger.info("App list ready")
 
-    async def get_game_details(self, appid: int) -> SteamDetails | None:
-        """Get details from steam for the given app id."""
+    async def get_core_details(self, appid: int) -> SteamCoreDetails | None:
+        """Get steam core details for the given app id."""
         self.logger.info(f"Getting steam details for {appid}")
 
         r = await http_client.get(
@@ -112,40 +104,13 @@ class Steam(Service):
                 iso_date=iso_date
             )
 
-        # Get reviews
-        self.logger.info(f"Getting reviews for {appid}")
-        r = await http_client.get(
-            f"https://store.steampowered.com/appreviews/{appid}",
-            params={
-                "json": 1,
-                "num_per_page": 0,
-                "l": "english",
-                "language": "all",
-                "review_type": "all",
-                "purchase_type": "all"
-            }
-        )
-        self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
-        self.logger.debug(f"Response: (all): {r.text}")
-        r.raise_for_status()
-        review_data = r.json()["query_summary"]
-        if review_data["total_reviews"] > 0:
-            score = round(review_data["total_positive"] / review_data["total_reviews"] * 100)
-        else:
-            score = 0
-        overall_reviews = OverallReviews(
-            desc=review_data["review_score_desc"],
-            score=score,
-            total_reviews=review_data["total_reviews"]
-        )
-
         # Achievement count
         if "achievements" in steam_data:
             achievement_count = steam_data["achievements"]["total"]
         else:
             achievement_count = 0
 
-        return SteamDetails(
+        return SteamCoreDetails(
             appid=appid,
             name=steam_data["name"],
             images=images,
@@ -156,21 +121,18 @@ class Steam(Service):
             discount=discount,
 
             release_date=release_date,
-            overall_reviews=overall_reviews,
             achievement_count=achievement_count,
             native_linux_support=steam_data["platforms"]["linux"]
         )
 
-    async def get_app(self, name: str) -> int | None:
+    async def get_app_id_by_name(self, name: str) -> int | None:
         """Get the app id for the given name using the steam app list."""
         self.logger.debug(f"Getting app id for {repr(name)}")
-        await self.load_check()
         return cast(dict[str, int], self.app_list).get(name.lower())
 
     async def get_wishlist_data(self, profile_name_or_id: str) -> list[int] | None:
         """Get the wishlist data for the given profile id."""
         self.logger.info(f"Getting wishlist data for {repr(profile_name_or_id)}")
-        await self.load_check()
         r = await http_client.get(
             f"https://store.steampowered.com/wishlist/profiles/{profile_name_or_id}/wishlistdata/",
             params={
@@ -202,3 +164,6 @@ class Steam(Service):
                 sorted_items.append(int(appid))
         sorted_items.sort(key=lambda x: j[str(x)]["priority"])
         return sorted_items + unsorted_items
+
+
+steam_core = SteamCore()

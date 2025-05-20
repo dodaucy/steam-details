@@ -6,8 +6,9 @@ from .service import Service
 from .services.how_long_to_beat import HowLongToBeat
 from .services.keyforsteam import KeyForSteam
 from .services.protondb import ProtonDB
-from .services.steam import Steam
+from .services.steam_extension import SteamExtension
 from .services.steamdb import SteamDB
+from .steam_core import steam_core
 from .utils import ANSICodes
 
 
@@ -15,36 +16,32 @@ class ServiceManager:
     def __init__(self):
         self._logger = logging.getLogger(f"{ANSICodes.MAGENTA}service_manager{ANSICodes.RESET}")
 
-        self.steam = Steam("Steam", f"{ANSICodes.CYAN}steam{ANSICodes.RESET}")
-        self.steamdb = SteamDB("SteamDB", f"{ANSICodes.BLUE}steamdb{ANSICodes.RESET}")
-        self.protondb = ProtonDB("ProtonDB", f"{ANSICodes.GREEN}protondb{ANSICodes.RESET}")
-        self.keyforsteam = KeyForSteam("KeyForSteam", f"{ANSICodes.YELLOW}keyforsteam{ANSICodes.RESET}")
-        self.how_long_to_beat = HowLongToBeat("HowLongToBeat", f"{ANSICodes.RED}howlongtobeat{ANSICodes.RESET}")
+        self.steam_extension = SteamExtension("SteamExtension", logging.getLogger(f"{ANSICodes.CYAN}steam_extension{ANSICodes.RESET}"))
+        self.steamdb = SteamDB("SteamDB", logging.getLogger(f"{ANSICodes.BLUE}steamdb{ANSICodes.RESET}"))
+        self.protondb = ProtonDB("ProtonDB", logging.getLogger(f"{ANSICodes.GREEN}protondb{ANSICodes.RESET}"))
+        self.keyforsteam = KeyForSteam("KeyForSteam", logging.getLogger(f"{ANSICodes.YELLOW}keyforsteam{ANSICodes.RESET}"))
+        self.how_long_to_beat = HowLongToBeat("HowLongToBeat", logging.getLogger(f"{ANSICodes.RED}howlongtobeat{ANSICodes.RESET}"))
 
         self._services: list[Service] = [
-            self.steam,
+            self.steam_extension,
             self.steamdb,
             self.protondb,
             self.keyforsteam,
             self.how_long_to_beat
         ]
 
-    async def load_services(self) -> None:
-        """Load all services by calling their load method."""
+    async def start(self) -> None:
+        """Load the steam core and all services by calling their load method."""
+        # TODO: https://github.com/dodaucy/steam-details/issues/25
+        self._logger.info("Loading steam core")
+        await steam_core.load()
+        self._logger.info("Steam core loaded")
         self._logger.info("Loading all services")
         for service in self._services:
             self._logger.debug(f"Loading {service.name}")
             await service.load_service()
             self._logger.debug(f"Loaded {service.name}")
         self._logger.info("All services loaded")
-
-    async def get_appid_from_name(self, name: str) -> int | None:
-        """Get the app id for the given name using the steam app list."""
-        return await self.steam.get_app(name)
-
-    async def get_wishlist(self, profile_name_or_id: str) -> list[int] | None:
-        """Get the wishlist data for the given profile name or id."""
-        return await self.steam.get_wishlist_data(profile_name_or_id)
 
     async def analyze_services(self) -> Analytics | None:
         """

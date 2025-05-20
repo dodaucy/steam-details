@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 import unicodedata
 from datetime import datetime
@@ -9,8 +10,9 @@ from pydantic import BaseModel
 from typing_extensions import TypedDict
 
 from ..service import Service
-from ..services.steam import SteamDetails
-from ..utils import http_client, price_string_to_float, roman_string_to_int_string
+from ..steam_core import SteamCoreDetails
+from ..utils import (http_client, price_string_to_float,
+                     roman_string_to_int_string)
 
 PLATFORMS = [
     "PlayStation 4",
@@ -248,8 +250,8 @@ class KeyForSteamDetails(BaseModel):
 
 
 class KeyForSteam(Service):
-    def __init__(self, name: str, log_name: str) -> None:
-        super().__init__(name, log_name, "https://www.keyforsteam.de")
+    def __init__(self, name: str, logger: logging.Logger) -> None:
+        super().__init__(name, logger, "https://www.keyforsteam.de")
 
         # Get full ignored word list
         self._ignored_word_list = IGNORED_WORDS + PLATFORMS
@@ -330,7 +332,7 @@ class KeyForSteam(Service):
 
     async def _get_product(
         self,
-        steam: SteamDetails,
+        steam: SteamCoreDetails,
         internal_id: int,
         internal_name: str,
         keyforsteam_game_url: str
@@ -438,7 +440,7 @@ class KeyForSteam(Service):
             keyforsteam_game_url=keyforsteam_game_url
         )
 
-    async def get_game_details(self, steam: SteamDetails) -> KeyForSteamDetails | None:
+    async def get_game_details(self, steam: SteamCoreDetails) -> KeyForSteamDetails | None:
         """Get cheapest offer and historical low price from KeyForSteam."""
         self.logger.info(f"Getting KeyForSteam data for {repr(steam.name)} ({steam.appid})")
 

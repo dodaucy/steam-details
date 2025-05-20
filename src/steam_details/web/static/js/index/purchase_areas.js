@@ -2,8 +2,8 @@ function createPurchaseAreas(game, lowest_price, lowest_price_color_class) {
     const purchaseAreaContainerDiv = document.createElement("div");
     purchaseAreaContainerDiv.className = "purchase-area-container";
 
-    if (game.services.steam.data.released) {
-        if (game.services.steam.data.price === null) {
+    if (game.services.steam_core.data.released) {
+        if (game.services.steam_core.data.price === null) {
             const purchaseAreaDiv = document.createElement("div");
             purchaseAreaDiv.className = "purchase-area";
 
@@ -51,12 +51,12 @@ function createPurchaseAreas(game, lowest_price, lowest_price_color_class) {
 
                 priceError: null,
                 priceErrorURL: null,
-                price: game.services.steam.data.price,
-                priceTitle: `Discount: ${game.services.steam.data.discount}%`,
+                price: game.services.steam_core.data.price,
+                priceTitle: `Discount: ${game.services.steam_core.data.discount}%`,
 
                 buttonText: "Buy on Steam",
                 buttonClass: "steam-button",
-                buttonURL: game.services.steam.data.external_url
+                buttonURL: game.services.steam_core.data.external_url
             }];
 
             // Key and gift sellers price

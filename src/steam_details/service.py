@@ -10,9 +10,9 @@ from pydantic import BaseModel
 class Service:
     """Base class for all services."""
 
-    def __init__(self, name: str, log_name: str, default_error_url: str) -> None:
+    def __init__(self, name: str, logger: logging.Logger, default_error_url: str) -> None:
         # Logging
-        self.logger = logging.getLogger(log_name)
+        self.logger = logger
         self.name = name
 
         # Error handling
@@ -43,7 +43,6 @@ class Service:
             start_time = time.time()
             self.error_url = self.default_error_url.format(**kwargs)
             try:
-                await self.load_check()
                 response = await self.get_game_details(**kwargs)
             except ReadTimeout as e:
                 self.timeout_count += 1
@@ -75,14 +74,6 @@ class Service:
         else:
             self.load_time = time.time() - start_time
             self.logger.debug(f"Loaded {self.name} in {self.load_time:.2f}s")
-
-    async def load_check(self) -> None:
-        """Check if the service is loaded and try to load it if not."""
-        if self.load_time is None:
-            self.logger.debug(f"Trying to load {self.name}")
-            await self.load_service()
-            if self.load_time is None:
-                raise RuntimeError("Service failed to load")
 
     def create_task(self, **kwargs) -> asyncio.Task[BaseModel | None]:
         """Create a task for the service to get the details of the game."""

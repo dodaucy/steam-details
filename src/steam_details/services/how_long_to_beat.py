@@ -1,4 +1,5 @@
 import json
+import logging
 import string
 from collections.abc import Iterator
 from urllib.parse import quote
@@ -8,7 +9,7 @@ from httpx import Response
 from pydantic import BaseModel
 
 from ..service import Service
-from ..services.steam import SteamDetails
+from ..steam_core import SteamCoreDetails
 from ..utils import http_client
 
 
@@ -20,8 +21,8 @@ class HowLongToBeatDetails(BaseModel):
 
 
 class HowLongToBeat(Service):
-    def __init__(self, name: str, log_name: str) -> None:
-        super().__init__(name, log_name, "https://howlongtobeat.com")
+    def __init__(self, name: str, logger: logging.Logger) -> None:
+        super().__init__(name, logger, "https://howlongtobeat.com")
 
         # Cache
         self._search_endpoint: str | None = None
@@ -200,7 +201,7 @@ class HowLongToBeat(Service):
 
                     break
 
-    async def _parse_search_results(self, steam: SteamDetails, search_results: dict) -> HowLongToBeatDetails | None:
+    async def _parse_search_results(self, steam: SteamCoreDetails, search_results: dict) -> HowLongToBeatDetails | None:
         for game_data in search_results["data"]:
 
             if "profile_steam" in game_data:  # Was available in the past (might be removed in the future, it's still here for stability)
@@ -224,7 +225,7 @@ class HowLongToBeat(Service):
 
         self.logger.info(f"Could not find {repr(steam.name)}")
 
-    async def _get_game_props(self, internal_game_id: int, steam: SteamDetails, *, allow_wrong_build_id: bool = True) -> dict:
+    async def _get_game_props(self, internal_game_id: int, steam: SteamCoreDetails, *, allow_wrong_build_id: bool = True) -> dict:
         r = await http_client.get(
             f"https://howlongtobeat.com/_next/data/{self._build_id}/game/{internal_game_id}.json",
             params={
@@ -251,7 +252,7 @@ class HowLongToBeat(Service):
         r.raise_for_status()
         return r.json()
 
-    async def get_game_details(self, steam: SteamDetails) -> HowLongToBeatDetails | None:
+    async def get_game_details(self, steam: SteamCoreDetails) -> HowLongToBeatDetails | None:
         """Get playtime stats from HowLongToBeat."""
         self.logger.info(f"Getting how long to beat for {repr(steam.name)} ({steam.appid})")
 
