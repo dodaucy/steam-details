@@ -8,9 +8,9 @@ from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 from typing_extensions import TypedDict
 
+from ..manager import service_manager
 from ..network_module import ModuleResponse
 from ..service import Service
-from ..service_manager import service_manager
 from ..steam_core import SteamCoreDetails, steam_core
 from ..utils import ANSICodes
 

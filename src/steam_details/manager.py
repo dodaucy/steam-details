@@ -14,7 +14,7 @@ from .steam_core import steam_core
 from .utils import ANSICodes
 
 
-class ServiceManager:
+class Manager:
     def __init__(self):
         self._logger = logging.getLogger(f"{ANSICodes.MAGENTA}service_manager{ANSICodes.RESET}")
 
@@ -91,4 +91,4 @@ class ServiceManager:
         )
 
 
-service_manager = ServiceManager()
+service_manager = Manager()
