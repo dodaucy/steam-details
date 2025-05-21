@@ -1,7 +1,6 @@
 import asyncio  # noqa: I001
 import logging
 import tempfile
-from typing import TypedDict
 
 import matplotlib
 matplotlib.use("Agg")  # Prevents matplotlib from displaying
@@ -9,6 +8,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 from pydantic import BaseModel
+from typing_extensions import TypedDict
 
 from .utils import ANSICodes
 
