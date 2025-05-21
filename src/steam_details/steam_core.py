@@ -4,6 +4,7 @@ from typing import cast
 
 from pydantic import BaseModel
 
+from .network_module import NetworkFunction, NetworkModule
 from .utils import ANSICodes, http_client
 
 
@@ -27,10 +28,16 @@ class SteamCoreDetails(BaseModel):
     native_linux_support: bool
 
 
-class SteamCore:
+class SteamCore(NetworkModule):
     def __init__(self) -> None:
+        super().__init__("steam_core", logging.getLogger(f"{ANSICodes.CYAN}steam_core{ANSICodes.RESET}"))
+
+        # Cache
         self.app_list: dict[str, int] | None = None
-        self.logger = logging.getLogger(f"{ANSICodes.CYAN}steam_core{ANSICodes.RESET}")
+
+        # Network functions
+        self.net_get_core_details = NetworkFunction(self._get_core_details, self.logger)
+        self.net_get_wishlist_data = NetworkFunction(self._get_wishlist_data, self.logger)
 
     async def load(self) -> None:
         """Get the steam app list."""
@@ -46,9 +53,14 @@ class SteamCore:
         for app in j["applist"]["apps"]:
             self.app_list[app["name"].lower()] = app["appid"]
 
-        self.logger.info("App list ready")
+        self.logger.info(f"App list ready with {len(self.app_list)} games")
 
-    async def get_core_details(self, appid: int) -> SteamCoreDetails | None:
+    def get_app_id_by_name(self, name: str) -> int | None:
+        """Get the app id for the given name using the steam app list."""
+        self.logger.debug(f"Getting app id for {repr(name)}")
+        return cast(dict[str, int], self.app_list).get(name.lower())
+
+    async def _get_core_details(self, appid: int) -> SteamCoreDetails | None:
         """Get steam core details for the given app id."""
         self.logger.info(f"Getting steam details for {appid}")
 
@@ -125,12 +137,7 @@ class SteamCore:
             native_linux_support=steam_data["platforms"]["linux"]
         )
 
-    async def get_app_id_by_name(self, name: str) -> int | None:
-        """Get the app id for the given name using the steam app list."""
-        self.logger.debug(f"Getting app id for {repr(name)}")
-        return cast(dict[str, int], self.app_list).get(name.lower())
-
-    async def get_wishlist_data(self, profile_name_or_id: str) -> list[int] | None:
+    async def _get_wishlist_data(self, profile_name_or_id: str) -> list[int] | None:
         """Get the wishlist data for the given profile id."""
         self.logger.info(f"Getting wishlist data for {repr(profile_name_or_id)}")
         r = await http_client.get(

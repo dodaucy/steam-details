@@ -1,8 +1,10 @@
 import base64
 import logging
+from typing import Sequence
 
 from .analytics import Analytics, AnalyticsService, render_speed_box_plot
-from .service import Service
+from .cache import Cache
+from .service import NetworkModule, Service
 from .services.how_long_to_beat import HowLongToBeat
 from .services.keyforsteam import KeyForSteam
 from .services.protondb import ProtonDB
@@ -30,18 +32,24 @@ class ServiceManager:
             self.how_long_to_beat
         ]
 
+        self._network_modules: Sequence[NetworkModule] = [steam_core] + self._services
+
+    def clear_cache(self) -> None:  # TODO: Give user access to this
+        """Clear the cache."""
+        self._logger.info("Clearing cache")
+        for cache in Cache.instances:
+            cache.clear()
+        self._logger.info("Cache cleared")
+
     async def start(self) -> None:
-        """Load the steam core and all services by calling their load method."""
+        """Load all network modules by calling their load method."""
         # TODO: https://github.com/dodaucy/steam-details/issues/25
-        self._logger.info("Loading steam core")
-        await steam_core.load()
-        self._logger.info("Steam core loaded")
-        self._logger.info("Loading all services")
-        for service in self._services:
-            self._logger.debug(f"Loading {service.name}")
-            await service.load_service()
-            self._logger.debug(f"Loaded {service.name}")
-        self._logger.info("All services loaded")
+        self._logger.info("Loading all network modules")
+        for network_module in self._network_modules:
+            self._logger.debug(f"Loading {network_module.name}")
+            await network_module.load_module()
+            self._logger.debug(f"Loaded {network_module.name}")
+        self._logger.info("All network modules loaded")
 
     async def analyze_services(self) -> Analytics | None:
         """
@@ -60,10 +68,10 @@ class ServiceManager:
             services.append(AnalyticsService(
                 name=service.name,
                 load_time=load_time,
-                timeout_count=service.timeout_count,
-                error_count=service.error_count
+                timeout_count=service.net_get_game_details.timeout_count,
+                error_count=service.net_get_game_details.error_count
             ))
-            speed_histories[service.name] = service.speed_history
+            speed_histories[service.name] = service.net_get_game_details.speed_history
 
         # Return if no data
         if not services:

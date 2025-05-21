@@ -27,7 +27,7 @@ function createResultItem(appendToTop) {
 
 async function fetchDetails(resultItem, appidOrName) {
     resultItem.innerText = `Getting details for '${appidOrName}'...`;
-    addGame(await getRequest("details?use_cache=false&appid_or_name=" + encodeURIComponent(appidOrName)), resultItem);
+    addGame(await getRequest("details?appid_or_name=" + encodeURIComponent(appidOrName)), resultItem);
 }
 
 
@@ -81,15 +81,17 @@ async function search(mode, searchValue, progress) {
             // Update progress
             progress.value = ((i + 1) / wishlist.length) * 100;
 
-            // Wait a bit
+            // Wait if not cached
             if (i < wishlist.length - 1) {
-                if (details.from_cache) {
+                let all_from_cache = true;
+                for (const module in details.modules) {
+                    if (!details.modules[module].from_cache) {
+                        all_from_cache = false;
+                        break;
+                    }
+                }
 
-                    progressText.innerText = `Waiting only 0.5 seconds due to cache...`;
-                    await new Promise(resolve => setTimeout(resolve, 500));
-
-                } else {
-
+                if (!all_from_cache) {
                     let wait_for_seconds = parseInt(localStorage.getItem("wait_for_seconds"));
                     if (isNaN(wait_for_seconds)) {
                         wait_for_seconds = 3;
@@ -100,7 +102,6 @@ async function search(mode, searchValue, progress) {
 
                     progressText.innerHTML = `Waiting for <span id="wait_for_seconds" onclick="changeWaitForSeconds();">${wait_for_seconds}</span> seconds...`;
                     await new Promise(resolve => setTimeout(resolve, wait_for_seconds * 1000));
-
                 }
             }
         }

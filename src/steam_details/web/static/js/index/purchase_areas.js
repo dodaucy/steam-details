@@ -2,8 +2,8 @@ function createPurchaseAreas(game, lowest_price, lowest_price_color_class) {
     const purchaseAreaContainerDiv = document.createElement("div");
     purchaseAreaContainerDiv.className = "purchase-area-container";
 
-    if (game.services.steam_core.data.released) {
-        if (game.services.steam_core.data.price === null) {
+    if (game.modules.steam_core.data.released) {
+        if (game.modules.steam_core.data.price === null) {
             const purchaseAreaDiv = document.createElement("div");
             purchaseAreaDiv.className = "purchase-area";
 
@@ -21,26 +21,26 @@ function createPurchaseAreas(game, lowest_price, lowest_price_color_class) {
             let historicalLowPrice = null;
             let historicalLowTitle = null;
             let historicalLowURL = null;
-            if (game.services.steam_historical_low.success) {
-                if (game.services.steam_historical_low.data !== null) {
-                    historicalLowPrice = game.services.steam_historical_low.data.price;
+            if (game.modules.steam_historical_low.success) {
+                if (game.modules.steam_historical_low.data !== null) {
+                    historicalLowPrice = game.modules.steam_historical_low.data.price;
 
-                    if (game.services.steam_historical_low.data.iso_date === null) {
+                    if (game.modules.steam_historical_low.data.iso_date === null) {
                         var date = "Today";
                     } else {
-                        var date = display_date(game.services.steam_historical_low.data.iso_date);
+                        var date = display_date(game.modules.steam_historical_low.data.iso_date);
                     }
 
-                    historicalLowTitle = `At Discount: ${game.services.steam_historical_low.data.discount}%\nDate: ${date}`;
+                    historicalLowTitle = `At Discount: ${game.modules.steam_historical_low.data.discount}%\nDate: ${date}`;
 
-                    if (game.services.steam_historical_low.data.external_url !== null) {
+                    if (game.modules.steam_historical_low.data.external_url !== null) {
                         historicalLowTitle += `\n\nFrom: steamdb.info\nClick to visit site`;
-                        historicalLowURL = game.services.steam_historical_low.data.external_url;
+                        historicalLowURL = game.modules.steam_historical_low.data.external_url;
                     }
                 }
             } else {
-                historicalLowError = game.services.steam_historical_low.error;
-                historicalLowErrorURL = game.services.steam_historical_low.url;
+                historicalLowError = game.modules.steam_historical_low.error;
+                historicalLowErrorURL = game.modules.steam_historical_low.url;
             }
             let purchaseData = [{
                 historicalLowError: historicalLowError,
@@ -51,50 +51,50 @@ function createPurchaseAreas(game, lowest_price, lowest_price_color_class) {
 
                 priceError: null,
                 priceErrorURL: null,
-                price: game.services.steam_core.data.price,
-                priceTitle: `Discount: ${game.services.steam_core.data.discount}%`,
+                price: game.modules.steam_core.data.price,
+                priceTitle: `Discount: ${game.modules.steam_core.data.discount}%`,
 
                 buttonText: "Buy on Steam",
                 buttonClass: "steam-button",
-                buttonURL: game.services.steam_core.data.external_url
+                buttonURL: game.modules.steam_core.data.external_url
             }];
 
             // Key and gift sellers price
-            if (game.services.key_and_gift_sellers.success) {
-                if (game.services.key_and_gift_sellers.data !== null) {
-                    let historicalLowTitle = `Date: ${game.services.key_and_gift_sellers.data.historical_low.iso_date === null ? "Today": display_date(game.services.key_and_gift_sellers.data.historical_low.iso_date)}\nSeller: ${game.services.key_and_gift_sellers.data.historical_low.seller}`;
-                    let priceTitle = `Form: ${game.services.key_and_gift_sellers.data.cheapest_offer.form}\nSeller: ${game.services.key_and_gift_sellers.data.cheapest_offer.seller}\nEdition: ${game.services.key_and_gift_sellers.data.cheapest_offer.edition}`;
-                    if (!game.services.key_and_gift_sellers.data.id_verified) {
+            if (game.modules.key_and_gift_sellers.success) {
+                if (game.modules.key_and_gift_sellers.data !== null) {
+                    let historicalLowTitle = `Date: ${game.modules.key_and_gift_sellers.data.historical_low.iso_date === null ? "Today": display_date(game.modules.key_and_gift_sellers.data.historical_low.iso_date)}\nSeller: ${game.modules.key_and_gift_sellers.data.historical_low.seller}`;
+                    let priceTitle = `Form: ${game.modules.key_and_gift_sellers.data.cheapest_offer.form}\nSeller: ${game.modules.key_and_gift_sellers.data.cheapest_offer.seller}\nEdition: ${game.modules.key_and_gift_sellers.data.cheapest_offer.edition}`;
+                    if (!game.modules.key_and_gift_sellers.data.id_verified) {
                         historicalLowTitle += "\n\nThe steam id of the key or gift wasn't verified:\nThe key or gift price could be wrong!!";
                         priceTitle += "\n\nThe steam id of the key or gift wasn't verified:\nThe key or gift price could be wrong!!";
                     }
                     purchaseData.push({
                         historicalLowError: null,
                         historicalLowErrorURL: null,
-                        historicalLowPrice: game.services.key_and_gift_sellers.data.historical_low.price,
+                        historicalLowPrice: game.modules.key_and_gift_sellers.data.historical_low.price,
                         historicalLowTitle: historicalLowTitle,
                         historicalLowURL: null,
 
                         priceError: null,
                         priceErrorURL: null,
-                        price: game.services.key_and_gift_sellers.data.cheapest_offer.price,
+                        price: game.modules.key_and_gift_sellers.data.cheapest_offer.price,
                         priceTitle: priceTitle,
 
                         buttonText: "Buy Key or Gift",
                         buttonClass: "keyforsteam-button",
-                        buttonURL: game.services.key_and_gift_sellers.data.external_url
+                        buttonURL: game.modules.key_and_gift_sellers.data.external_url
                     })
                 }
             } else {
                 purchaseData.push({
-                    historicalLowError: game.services.key_and_gift_sellers.error,
-                    historicalLowErrorURL: game.services.key_and_gift_sellers.url,
+                    historicalLowError: game.modules.key_and_gift_sellers.error,
+                    historicalLowErrorURL: game.modules.key_and_gift_sellers.url,
                     historicalLowPrice: null,
                     historicalLowTitle: null,
                     historicalLowURL: null,
 
-                    priceError: game.services.key_and_gift_sellers.error,
-                    priceErrorURL: game.services.key_and_gift_sellers.url,
+                    priceError: game.modules.key_and_gift_sellers.error,
+                    priceErrorURL: game.modules.key_and_gift_sellers.url,
                     price: null,
                     priceTitle: null,
 
