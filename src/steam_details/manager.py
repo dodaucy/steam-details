@@ -82,7 +82,7 @@ class Manager:
                 ))
                 modules.append(AnalyticsModule(
                     name=f"{module.name} (Wishlist)",
-                    load_time=load_time,
+                    load_time=0,
                     timeout_count=module.net_get_wishlist_data.timeout_count,
                     error_count=module.net_get_wishlist_data.error_count
                 ))
