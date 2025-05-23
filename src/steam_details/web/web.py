@@ -5,10 +5,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from ..manager import service_manager
+from ..manager import manager
 from .api import app as api_app
 
-app = FastAPI(openapi_url=None, on_startup=[service_manager.start])
+app = FastAPI(openapi_url=None, on_startup=[manager.start])
 
 app.mount("/api", api_app)
 

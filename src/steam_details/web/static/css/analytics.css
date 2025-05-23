@@ -10,8 +10,9 @@
 
 #module-stats {
     display: flex;
+    flex-wrap: wrap;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: space-around;
     align-items: center;
 
     width: 100%;
@@ -21,7 +22,7 @@
 }
 
 #module-stats > * {
-    flex: 1;
+    min-width: 200px;
 }
 
 #module-stats > * > * {

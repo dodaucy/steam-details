@@ -37,7 +37,7 @@ class SteamCoreDetails(BaseModel):
 
 class SteamCore(NetworkModule):
     def __init__(self) -> None:
-        super().__init__("steam_core", logging.getLogger(f"{ANSICodes.CYAN}steam_core{ANSICodes.RESET}"))
+        super().__init__("Steam Core", logging.getLogger(f"{ANSICodes.CYAN}steam_core{ANSICodes.RESET}"))
 
         # Cache
         self.app_list: dict[str, int] | None = None

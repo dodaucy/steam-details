@@ -2,7 +2,7 @@ import base64
 import logging
 from typing import Sequence
 
-from .analytics import Analytics, AnalyticsService, render_speed_box_plot
+from .analytics import Analytics, AnalyticsModule, render_speed_box_plot
 from .cache import Cache
 from .service import NetworkModule, Service
 from .services.how_long_to_beat import HowLongToBeat
@@ -10,7 +10,7 @@ from .services.keyforsteam import KeyForSteam
 from .services.protondb import ProtonDB
 from .services.steam_extension import SteamExtension
 from .services.steamdb import SteamDB
-from .steam_core import steam_core
+from .steam_core import SteamCore, steam_core
 from .utils import ANSICodes
 
 
@@ -18,7 +18,7 @@ class Manager:
     def __init__(self):
         self._logger = logging.getLogger(f"{ANSICodes.MAGENTA}service_manager{ANSICodes.RESET}")
 
-        self.steam_extension = SteamExtension("SteamExtension", logging.getLogger(f"{ANSICodes.CYAN}steam_extension{ANSICodes.RESET}"))
+        self.steam_extension = SteamExtension("Steam Extension", logging.getLogger(f"{ANSICodes.CYAN}steam_extension{ANSICodes.RESET}"))
         self.steamdb = SteamDB("SteamDB", logging.getLogger(f"{ANSICodes.BLUE}steamdb{ANSICodes.RESET}"))
         self.protondb = ProtonDB("ProtonDB", logging.getLogger(f"{ANSICodes.GREEN}protondb{ANSICodes.RESET}"))
         self.keyforsteam = KeyForSteam("KeyForSteam", logging.getLogger(f"{ANSICodes.YELLOW}keyforsteam{ANSICodes.RESET}"))
@@ -51,30 +51,48 @@ class Manager:
             self._logger.debug(f"Loaded {network_module.name}")
         self._logger.info("All network modules loaded")
 
-    async def analyze_services(self) -> Analytics | None:
+    async def analyze_modules(self) -> Analytics | None:
         """
-        Analyze all services and return their data.
+        Analyze all modules and return their data.
 
         Return None if no data is available.
         """
         # Collect data
-        services: list[AnalyticsService] = []
+        modules: list[AnalyticsModule] = []
         speed_histories: dict[str, list[float]] = {}
-        for service in self._services:
-            if service.load_time is None:
+        for module in self._network_modules:
+            if module.load_time is None:
                 load_time = None
             else:
-                load_time = round(service.load_time, 3)
-            services.append(AnalyticsService(
-                name=service.name,
-                load_time=load_time,
-                timeout_count=service.net_get_game_details.timeout_count,
-                error_count=service.net_get_game_details.error_count
-            ))
-            speed_histories[service.name] = service.net_get_game_details.speed_history
+                load_time = round(module.load_time, 3)
+            if isinstance(module, Service):
+                modules.append(AnalyticsModule(
+                    name=module.name,
+                    load_time=load_time,
+                    timeout_count=module.net_get_game_details.timeout_count,
+                    error_count=module.net_get_game_details.error_count
+                ))
+                speed_histories[module.name] = module.net_get_game_details.speed_history
+            elif isinstance(module, SteamCore):
+                modules.append(AnalyticsModule(
+                    name=f"{module.name} (Game)",
+                    load_time=load_time,
+                    timeout_count=module.net_get_core_details.timeout_count,
+                    error_count=module.net_get_core_details.error_count
+                ))
+                modules.append(AnalyticsModule(
+                    name=f"{module.name} (Wishlist)",
+                    load_time=load_time,
+                    timeout_count=module.net_get_wishlist_data.timeout_count,
+                    error_count=module.net_get_wishlist_data.error_count
+                ))
+                speed_histories.update({
+                    f"{module.name} (Game)": module.net_get_core_details.speed_history,
+                    f"{module.name} (Wishlist)": module.net_get_wishlist_data.speed_history
+                })
 
         # Return if no data
-        if not services:
+        if not modules:
             return
 
         # Render box plot
@@ -86,9 +104,9 @@ class Manager:
 
         # Return data
         return Analytics(
-            services=services,
+            modules=modules,
             speed_box_plot=speed_box_plot_base64
         )
 
 
-service_manager = Manager()
+manager = Manager()

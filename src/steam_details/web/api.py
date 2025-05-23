@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 from typing_extensions import TypedDict
 
-from ..manager import service_manager
+from ..manager import manager
 from ..network_module import ModuleResponse
 from ..service import Service
 from ..steam_core import SteamCoreDetails, steam_core
@@ -141,7 +141,7 @@ async def details(appid_or_name: str):
                 }
             }
             task_services: dict[str, Service] = {
-                "steam_extension": service_manager.steam_extension
+                "steam_extension": manager.steam_extension
             }
 
             # Steam historical low
@@ -152,7 +152,7 @@ async def details(appid_or_name: str):
                     "data": None
                 }
             elif steam_data.price > 0:
-                task_services["steam_historical_low"] = service_manager.steamdb
+                task_services["steam_historical_low"] = manager.steamdb
             else:
                 modules["steam_historical_low"] = {
                     "success": True,
@@ -167,7 +167,7 @@ async def details(appid_or_name: str):
 
             # Key and gift sellers
             if steam_data.price is not None and steam_data.price > 0:
-                task_services["key_and_gift_sellers"] = service_manager.keyforsteam
+                task_services["key_and_gift_sellers"] = manager.keyforsteam
             else:
                 modules["key_and_gift_sellers"] = {
                     "success": True,
@@ -176,7 +176,7 @@ async def details(appid_or_name: str):
                 }
 
             # Game length
-            task_services["game_length"] = service_manager.how_long_to_beat
+            task_services["game_length"] = manager.how_long_to_beat
 
             # Linux support
             if steam_data.native_linux_support:
@@ -186,7 +186,7 @@ async def details(appid_or_name: str):
                     "data": None
                 }
             else:
-                task_services["linux_support"] = service_manager.protondb
+                task_services["linux_support"] = manager.protondb
 
             # Create JSON tasks
             json_tasks: dict[str, CoroutineType[Any, Any, ServiceDetails | ServiceError]] = {}
@@ -249,7 +249,7 @@ async def details(appid_or_name: str):
 @app.get("/analyze")
 async def analyze():
     """Analyze all services and return their data."""
-    data = await service_manager.analyze_services()
+    data = await manager.analyze_modules()
     if data is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No data available")
     return data.model_dump()
