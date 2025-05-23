@@ -30,8 +30,8 @@ function addGame(game, resultItem) {
     }
 
     // Retry Button
-    for (const service in game.services) {
-        if (!game.services[service].success) {
+    for (const module in game.modules) {
+        if (!game.modules[module].success) {
             addRetryButton("Retry", game.modules.steam_core.data.appid, resultItem);
             break;
         }

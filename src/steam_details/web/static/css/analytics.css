@@ -8,7 +8,7 @@
 }
 
 
-#service-stats {
+#module-stats {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -20,11 +20,11 @@
     background-color: var(--secondary-background-color);
 }
 
-#service-stats > * {
+#module-stats > * {
     flex: 1;
 }
 
-#service-stats > * > * {
+#module-stats > * > * {
     margin: 5px;
     padding: 5px;
 
