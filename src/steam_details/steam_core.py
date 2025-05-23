@@ -1,11 +1,18 @@
+import json
 import logging
 from datetime import datetime
 from typing import cast
 
+from bs4 import BeautifulSoup
 from pydantic import BaseModel
 
 from .network_module import NetworkFunction, NetworkModule
-from .utils import ANSICodes, http_client
+from .utils import ANSICodes, http_client, read_js_variables
+
+
+class _WishlistItem(BaseModel):
+    appid: int
+    priority: int
 
 
 class ReleaseDate(BaseModel):
@@ -138,39 +145,73 @@ class SteamCore(NetworkModule):
         )
 
     async def _get_wishlist_data(self, profile_name_or_id: str) -> list[int] | None:
-        """Get the wishlist data for the given profile id."""
+        """Get the wishlist data for the given profile name or id."""
         self.logger.info(f"Getting wishlist data for {repr(profile_name_or_id)}")
+        if profile_name_or_id.isdigit() and len(bin(int(profile_name_or_id))[2:]) <= 64:
+            self.logger.info(f"It seems like {repr(profile_name_or_id)} is a valid steamID64, trying with it")
+            wishlist = await self._scrape_wishlist_url(f"https://store.steampowered.com/wishlist/profiles/{profile_name_or_id}/")
+            if wishlist is not None:
+                return wishlist
+            self.logger.info(f"Seems {repr(profile_name_or_id)} is not a user per id, trying with profile name anyway")
+        else:
+            self.logger.info(f"Seems like {repr(profile_name_or_id)} is not a valid id, trying with profile name")
+        return await self._scrape_wishlist_url(f"https://store.steampowered.com/wishlist/id/{profile_name_or_id}/")
+
+    async def _scrape_wishlist_url(self, wishlist_url: str) -> list[int] | None:
+        # Get page
         r = await http_client.get(
-            f"https://store.steampowered.com/wishlist/profiles/{profile_name_or_id}/wishlistdata/",
+            wishlist_url,
             params={
                 "l": "english"
             }
         )
         self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
         self.logger.debug(f"Response: (all): {r.text}")
-        if r.status_code != 200:
-            self.logger.info(f"It seems the profile id {repr(profile_name_or_id)} is not a valid id, trying with profile name")
-            r = await http_client.get(
-                f"https://store.steampowered.com/wishlist/id/{profile_name_or_id}/wishlistdata/",
-                params={
-                    "l": "english"
-                }
-            )
-            self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
-            self.logger.debug(f"Response: (all): {r.text}")
-            if r.status_code != 200:
-                return None
         r.raise_for_status()
-        j = r.json()
-        sorted_items: list[int] = []
-        unsorted_items: list[int] = []
-        for appid, data in j.items():
-            if data["priority"] == 0:
-                unsorted_items.append(int(appid))
-            else:
-                sorted_items.append(int(appid))
-        sorted_items.sort(key=lambda x: j[str(x)]["priority"])
-        return sorted_items + unsorted_items
+
+        # Parse page
+        soup = BeautifulSoup(r.text, "html.parser")
+        for script_tag in soup.find_all("script"):
+            self.logger.debug(f"Found script tag: {repr(script_tag.text)}")
+            variables = read_js_variables(script_tag.text)
+            self.logger.debug(f"Variables: {repr(variables)}")
+
+            if "window.SSR.loaderData" in variables:
+                self.logger.debug(f"Found window.SSR.loaderData: {repr(variables['window.SSR.loaderData'])}")
+                for data_item in variables["window.SSR.loaderData"]:
+                    data = json.loads(data_item)
+                    if "error" in data:
+                        if data["error"] == "ProfileNotFound":
+                            return None
+                        raise Exception(f"Steam error: {repr(data['error'])}")
+
+            if "window.SSR.renderContext" in variables:
+                self.logger.debug(f"Found window.SSR.renderContext: {repr(variables['window.SSR.renderContext'])}")
+                for query in json.loads(variables["window.SSR.renderContext"]["queryData"])["queries"]:
+                    if "WishlistSortedFiltered" in query["queryKey"]:
+                        # Check for errors
+                        if query["state"]["error"] is not None:
+                            raise Exception(f"Steam error: {repr(query['state']['error'])}")
+
+                        # Sort wishlist
+                        sorted_items: list[_WishlistItem] = []
+                        unsorted_items: list[int] = []
+                        for item in query["state"]["data"]["items"]:
+                            if item["priority"] == 0:
+                                unsorted_items.append(item["appid"])
+                            else:
+                                sorted_items.append(
+                                    _WishlistItem(
+                                        appid=item["appid"],
+                                        priority=item["priority"]
+                                    )
+                                )
+
+                        return [item.appid for item in sorted(sorted_items, key=lambda x: x.priority)] + unsorted_items
+                else:
+                    self.logger.warning("Could not find WishlistSortedFiltered query")
+        else:
+            raise Exception("Could not find (all) needed script tag/s")
 
 
 steam_core = SteamCore()

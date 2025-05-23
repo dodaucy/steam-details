@@ -1,3 +1,6 @@
+from typing import Any
+
+import esprima
 import httpx
 
 http_client = httpx.AsyncClient(timeout=15)
@@ -94,3 +97,40 @@ def roman_string_to_int_string(string_with_roman: str) -> str:
         else:
             name_list.append(str(int_word))
     return " ".join(name_list)
+
+
+def read_js_variables(script_content: str) -> dict[str, Any]:
+    """Read JavaScript variables from a string."""
+
+    def read_name(object) -> str | None:
+        if object.type == "Identifier":
+            return object.name
+        elif object.type == "MemberExpression":
+            end = object.property.name
+            start = read_name(object.object)
+            if start is not None:
+                return f"{start}.{end}"
+
+    def read_content(object):
+        if object.type == "Literal":
+            return object.value
+        elif object.type == "ArrayExpression":
+            return [read_content(element) for element in object.elements]
+        elif object.type == "ObjectExpression":
+            return {read_content(property.key): read_content(property.value) for property in object.properties}
+
+    ast = esprima.parseScript(script_content)
+    vars: dict[str, Any] = {}
+    for node in ast.body:
+        if node.type == "VariableDeclaration":
+            for decl in node.declarations:
+                vars[decl.id.name] = read_content(decl.init)
+        elif all((
+            node.type == "ExpressionStatement",
+            node.expression.type == "AssignmentExpression",
+            node.expression.operator == "="
+        )):
+            name = read_name(node.expression.left)
+            if name is not None:
+                vars[name] = read_content(node.expression.right)
+    return vars
