@@ -24,7 +24,7 @@ class ProtonDB(Service):
 
         r = await http_client.get(f"https://www.protondb.com/api/v1/reports/summaries/{steam.appid}.json")
         self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
-        self.logger.debug(f"Response: (all): {r.text}")
+        self.logger.debug(f"Response: (all): {repr(r.text)}")
 
         if r.status_code == 404:
             return

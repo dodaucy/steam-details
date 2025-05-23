@@ -56,7 +56,7 @@ class HowLongToBeat(Service):
             }
         )
         self.logger.info(f"Response (100 chars): {repr(index_response.text[:100])}")
-        self.logger.debug(f"Response: (all): {index_response.text}")
+        self.logger.debug(f"Response: (all): {repr(index_response.text)}")
         index_response.raise_for_status()
 
         # Parse index page
@@ -92,7 +92,7 @@ class HowLongToBeat(Service):
                         }
                     )
                     self.logger.info(f"Response (100 chars): {repr(js_response.text[:100])}")
-                    self.logger.debug(f"Response: (all): {js_response.text}")
+                    self.logger.debug(f"Response: (all): {repr(js_response.text)}")
                     js_response.raise_for_status()
 
                     for url in self._parse_fetch_urls_from_js(js_response.text):
@@ -160,7 +160,7 @@ class HowLongToBeat(Service):
             }
         )
         self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
-        self.logger.debug(f"Response: (all): {r.text}")
+        self.logger.debug(f"Response: (all): {repr(r.text)}")
 
         return r
 
@@ -241,7 +241,7 @@ class HowLongToBeat(Service):
             }
         )
         self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
-        self.logger.debug(f"Response: (all): {r.text}")
+        self.logger.debug(f"Response: (all): {repr(r.text)}")
 
         # Allow updating the build id if it's wrong
         if allow_wrong_build_id and r.status_code == 404:

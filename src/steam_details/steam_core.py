@@ -51,7 +51,7 @@ class SteamCore(NetworkModule):
         self.logger.info("Downloading app list")
         r = await http_client.get("https://api.steampowered.com/ISteamApps/GetAppList/v2/", timeout=30)
         self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
-        self.logger.debug(f"Response: (all): {r.text}")
+        self.logger.debug(f"Response: (all): {repr(r.text)}")
         r.raise_for_status()
 
         self.logger.info("Processing app list")
@@ -80,7 +80,7 @@ class SteamCore(NetworkModule):
             }
         )
         self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
-        self.logger.debug(f"Response: (all): {r.text}")
+        self.logger.debug(f"Response: (all): {repr(r.text)}")
         if r.status_code == 404:
             return
         r.raise_for_status()
@@ -166,7 +166,7 @@ class SteamCore(NetworkModule):
             }
         )
         self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
-        self.logger.debug(f"Response: (all): {r.text}")
+        self.logger.debug(f"Response: (all): {repr(r.text)}")
         r.raise_for_status()
 
         # Parse page
