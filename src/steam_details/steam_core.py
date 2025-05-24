@@ -164,6 +164,12 @@ class SteamCore(NetworkModule):
             wishlist_url,
             params={
                 "l": "english"
+            },
+            headers={
+                "Referer": "https://store.steampowered.com/",
+                "Sec-Fetch-Dest": "document",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-Site": "same-origin"
             }
         )
         self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
