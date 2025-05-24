@@ -1,5 +1,7 @@
+import asyncio
 import base64
 import logging
+import time
 from typing import Sequence
 
 from .analytics import Analytics, AnalyticsModule, render_speed_box_plot
@@ -43,13 +45,14 @@ class Manager:
 
     async def start(self) -> None:
         """Load all network modules by calling their load method."""
-        # TODO: https://github.com/dodaucy/steam-details/issues/25
         self._logger.info("Loading all network modules")
+        start = time.time()
+        tasks: list[asyncio.Task] = []
         for network_module in self._network_modules:
             self._logger.debug(f"Loading {network_module.name}")
-            await network_module.load_module(raise_error=False)
-            self._logger.debug(f"Loaded {network_module.name}")
-        self._logger.info("All network modules loaded")
+            tasks.append(asyncio.create_task(network_module.load_module(raise_error=False)))
+        await asyncio.gather(*tasks)
+        self._logger.info(f"All network modules loaded in {time.time() - start:.2f}s")
 
     async def analyze_modules(self) -> Analytics | None:
         """
