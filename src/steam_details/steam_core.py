@@ -62,8 +62,9 @@ class SteamCore(NetworkModule):
 
         self.logger.info(f"App list ready with {len(self.app_list)} games")
 
-    def get_app_id_by_name(self, name: str) -> int | None:
+    async def get_app_id_by_name(self, name: str) -> int | None:
         """Get the app id for the given name using the steam app list."""
+        await self.load_module()  # Ensure the module is loaded
         self.logger.debug(f"Getting app id for {repr(name)}")
         return cast(dict[str, int], self.app_list).get(name.lower())
 

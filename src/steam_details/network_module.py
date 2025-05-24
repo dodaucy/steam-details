@@ -69,16 +69,20 @@ class NetworkModule:
 
         self.logger.debug(f"Initialized {self.name}")
 
+    @property
+    def loaded(self) -> bool:
+        return self.load_time is not None
+
     async def load(self) -> None:
         """Load the service. You can overwrite this."""
         self.logger.debug("Nothing to load")
 
-    async def load_module(self, raise_error: bool = True) -> None:
+    async def load_module(self, *, raise_error: bool = True) -> None:
         """Load the network module."""
-        if self.load_time is not None:  # Already loaded
+        if self.loaded:  # Already loaded
             return
 
-        self.logger.debug(f"Loading {self.name}")
+        self.logger.info(f"Loading {self.name}")
         start_time = time.time()
 
         try:
@@ -91,4 +95,4 @@ class NetworkModule:
                 traceback.print_exc()
         else:
             self.load_time = time.time() - start_time
-            self.logger.debug(f"Loaded {self.name} in {self.load_time:.2f}s")
+            self.logger.info(f"Loaded {self.name} in {self.load_time:.2f}s")

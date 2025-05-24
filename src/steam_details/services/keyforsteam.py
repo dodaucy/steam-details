@@ -427,8 +427,6 @@ class KeyForSteam(Service):
         purged_name = self._purge_name(steam.name)
         self.logger.info(f"Searching for {repr(purged_name)}")
 
-        # TODO: verify if loaded again (in all services)
-
         # Search for game
         r = await http_client.get(
             "https://www.allkeyshop.com/api/latest/vaks.php",

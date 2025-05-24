@@ -25,4 +25,5 @@ class Service(NetworkModule):
     async def _wrapped_get_game_details(self, steam: SteamCoreDetails) -> BaseModel | None:
         """Get the details of the game."""
         self.error_url = self.default_error_url.format(steam=steam)
+        await self.load_module()  # Ensure the module is loaded
         return await self.get_game_details(steam)

@@ -47,7 +47,7 @@ class Manager:
         self._logger.info("Loading all network modules")
         for network_module in self._network_modules:
             self._logger.debug(f"Loading {network_module.name}")
-            await network_module.load_module()
+            await network_module.load_module(raise_error=False)
             self._logger.debug(f"Loaded {network_module.name}")
         self._logger.info("All network modules loaded")
 

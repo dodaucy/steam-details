@@ -115,7 +115,7 @@ async def details(appid_or_name: str):
                 raise steam_error(e)
         if steam is None or cast(SteamCoreDetails | None, steam.data) is None:
             try:
-                appid = steam_core.get_app_id_by_name(appid_or_name)
+                appid = await steam_core.get_app_id_by_name(appid_or_name)
             except Exception as e:  # noqa: BLE001
                 raise steam_error(e)
             if appid is None:
