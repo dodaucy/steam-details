@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 import esprima
 import httpx
@@ -103,35 +103,33 @@ def roman_string_to_int_string(string_with_roman: str) -> str:
 def read_js_variables(script_content: str) -> dict[str, Any]:
     """Read JavaScript variables from a string."""
 
-    def read_name(object) -> str | None:
-        if object.type == "Identifier":
-            return object.name
-        elif object.type == "MemberExpression":
-            end = object.property.name
-            start = read_name(object.object)
+    def read_obj(obj):
+        if obj.type == "Identifier":
+            return obj.name
+        elif obj.type == "MemberExpression":
+            end = obj.property.name
+            start = read_obj(obj.object)
             if start is not None:
                 return f"{start}.{end}"
-
-    def read_content(object):
-        if object.type == "Literal":
-            return object.value
-        elif object.type == "ArrayExpression":
-            return [read_content(element) for element in object.elements]
-        elif object.type == "ObjectExpression":
-            return {read_content(property.key): read_content(property.value) for property in object.properties}
+        elif obj.type == "Literal":
+            return obj.value
+        elif obj.type == "ArrayExpression":
+            return [read_obj(element) for element in obj.elements]
+        elif obj.type == "ObjectExpression":
+            return {read_obj(property.key): read_obj(property.value) for property in obj.properties}
 
     ast = esprima.parseScript(script_content)
     vars: dict[str, Any] = {}
     for node in ast.body:
         if node.type == "VariableDeclaration":
             for decl in node.declarations:
-                vars[decl.id.name] = read_content(decl.init)
+                vars[decl.id.name] = read_obj(decl.init)
         elif all((
             node.type == "ExpressionStatement",
             node.expression.type == "AssignmentExpression",
             node.expression.operator == "="
         )):
-            name = read_name(node.expression.left)
+            name = cast(str, read_obj(node.expression.left))
             if name is not None:
-                vars[name] = read_content(node.expression.right)
+                vars[name] = read_obj(node.expression.right)
     return vars
