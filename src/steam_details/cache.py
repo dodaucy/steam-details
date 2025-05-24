@@ -71,7 +71,6 @@ class Cache:
 
     def __contains__(self, key: Any) -> bool:
         """Check if a key is in the cache with checking timeouts."""
-        self.check_timeout()
         return self.get(key) is not None
 
     def __len__(self) -> int:
