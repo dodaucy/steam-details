@@ -48,6 +48,10 @@
     --rainbow-purchase-area-5: rgba(250, 94, 255, 0.2);
 
     /* Buttons */
+    --general-button-background: linear-gradient( to right, #303E4C 5%, #3b304c 95%);
+    --general-button-background-hover: linear-gradient( to right, #3b304c 5%, #41304c 95%);
+    --general-button-color: rgb(255, 255, 255);
+
     --steam-button-background: linear-gradient( to right, #75b022 5%, #588a1b 95%);
     --steam-button-background-hover: linear-gradient( to right, #8ed629 5%, #6aa621 95%);
     --steam-button-color: rgb(210, 239, 169);
@@ -183,4 +187,47 @@ button {
     60% { color: var(--rainbow-color-4); }
     80% { color: var(--rainbow-color-5); }
     100% { color: var(--rainbow-color-1); }
+}
+
+
+
+/* Buttons */
+.general-button, .steam-button, .keyforsteam-button, .error-button {
+    width: 150px;
+    text-align: center;
+    margin-left: 0;
+    padding: 7px 15px;
+    border-radius: 2px;
+}
+
+.general-button {
+    color: var(--general-button-color);
+    background: var(--general-button-background);
+}
+.general-button:hover {
+    background: var(--general-button-background-hover);
+}
+
+.steam-button {
+    color: var(--steam-button-color);
+    background: var(--steam-button-background);
+}
+.steam-button:hover {
+    background: var(--steam-button-background-hover);
+}
+
+.keyforsteam-button {
+    color: var(--keyforsteam-button-color);
+    background: var(--keyforsteam-button-background);
+}
+.keyforsteam-button:hover {
+    background: var(--keyforsteam-button-background-hover);
+}
+
+.error-button {
+    color: var(--error-button-color);
+    background: var(--error-button-background);
+}
+.error-button:hover {
+    background: var(--error-button-background-hover);
 }

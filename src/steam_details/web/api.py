@@ -253,3 +253,10 @@ async def analyze():
     if data is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No data available")
     return data.model_dump()
+
+
+@app.post("/clear_cache")
+async def clear_cache():
+    """Clear the cache."""
+    manager.clear_cache()
+    return {"message": "Cache cleared"}

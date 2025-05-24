@@ -75,6 +75,7 @@ class Cache:
 
     def __len__(self) -> int:
         """Get the length of the cache."""
+        self.check_timeout()
         return len(self._cache)
 
     def clear(self) -> None:

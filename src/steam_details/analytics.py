@@ -23,6 +23,7 @@ class AnalyticsModule(TypedDict):
 class Analytics(BaseModel):
     modules: list[AnalyticsModule]
     speed_box_plot: str | None  # base64 encoded png
+    cache_entries: int
 
 
 sns.set_theme(

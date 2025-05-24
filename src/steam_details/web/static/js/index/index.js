@@ -27,7 +27,7 @@ function createResultItem(appendToTop) {
 
 async function fetchDetails(resultItem, appidOrName) {
     resultItem.innerText = `Getting details for '${appidOrName}'...`;
-    addGame(await getRequest("details?appid_or_name=" + encodeURIComponent(appidOrName)), resultItem);
+    addGame(await request("GET", "details?appid_or_name=" + encodeURIComponent(appidOrName)), resultItem);
 }
 
 
@@ -47,7 +47,7 @@ async function search(mode, searchValue, progress) {
 
         // Get details
         progressText.innerText = `Getting details for '${appidOrName}'...`;
-        addGame(await getRequest("details?appid_or_name=" + encodeURIComponent(appidOrName)), createResultItem(true));
+        addGame(await request("GET", "details?appid_or_name=" + encodeURIComponent(appidOrName)), createResultItem(true));
 
     } else if (mode === "wishlist") {
 
@@ -63,7 +63,7 @@ async function search(mode, searchValue, progress) {
 
         // Get wishlist
         progressText.innerText = `Getting wishlist for '${profile_name_or_id}'...`;
-        const wishlist = await await getRequest("wishlist?profile_name_or_id=" + encodeURIComponent(profile_name_or_id));
+        const wishlist = await await request("GET", "wishlist?profile_name_or_id=" + encodeURIComponent(profile_name_or_id));
 
         // Set progress bar to use percentage
         progress.value = 0;
@@ -75,7 +75,7 @@ async function search(mode, searchValue, progress) {
 
             // Get details
             progressText.innerText = `Getting details for '${appid}'...`;
-            const details = await getRequest("details?appid_or_name=" + encodeURIComponent(appid));
+            const details = await request("GET", "details?appid_or_name=" + encodeURIComponent(appid));
             addGame(details, createResultItem(false));
 
             // Update progress

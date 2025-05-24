@@ -13,7 +13,7 @@ async function analyze() {
     const elements = [];
 
     try {
-        data = await getRequest("analyze");
+        data = await request("GET", "analyze");
     } catch (error) {
         console.error(error);
         // Display error
@@ -24,6 +24,33 @@ async function analyze() {
     }
 
     if (elements.length == 0) {  // No error
+        // Display cache stats
+        const cacheStats = document.createElement("div");
+        cacheStats.id = "cache-stats";
+
+        // Cache entries
+        const cacheDisplay = document.createElement("div");
+        cacheDisplay.innerText = `Cache entries: ${data.cache_entries}`;
+        cacheStats.appendChild(cacheDisplay);
+
+        // Clear cache button
+        const clearCacheButton = document.createElement("a");
+        clearCacheButton.href = "javascript:void(0)";
+        clearCacheButton.innerText = "Clear cache";
+        clearCacheButton.className = "general-button";
+        clearCacheButton.onclick = async () => {
+            try {
+                alert((await request("POST", "clear_cache")).message);
+                location.reload();
+            } catch (error) {
+                console.error(error);
+                alert(error.message);
+            }
+        }
+        cacheStats.appendChild(clearCacheButton);
+
+        elements.push(cacheStats);
+
         // Display module stats
         const moduleStats = document.createElement("div");
         moduleStats.id = "module-stats";

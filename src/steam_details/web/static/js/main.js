@@ -1,9 +1,13 @@
-async function getRequest(url) {
+async function request(method, url) {
+    let headers = {
+        "Accept": "application/json",
+    };
+    if (method == "POST") {
+        headers["Content-Type"] = "application/json";
+    }
     const response = await fetch(`/api/${url}`, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json"
-        }
+        method: method,
+        headers: headers,
     })
     if (response.status !== 200) {
         try {

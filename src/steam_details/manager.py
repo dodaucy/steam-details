@@ -105,10 +105,16 @@ class Manager:
         else:
             speed_box_plot_base64 = base64.b64encode(speed_box_plot).decode()
 
+        # Get cache size
+        cache_entries = 0
+        for cache in Cache.instances:
+            cache_entries += len(cache)
+
         # Return data
         return Analytics(
             modules=modules,
-            speed_box_plot=speed_box_plot_base64
+            speed_box_plot=speed_box_plot_base64,
+            cache_entries=cache_entries
         )
 
 
