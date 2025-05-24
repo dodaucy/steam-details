@@ -41,6 +41,7 @@ class SteamExtension(Service):
         self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
         self.logger.debug(f"Response: (all): {repr(r.text)}")
         r.raise_for_status()
+
         review_data = r.json()["query_summary"]
         if review_data["total_reviews"] > 0:
             score = round(review_data["total_positive"] / review_data["total_reviews"] * 100)
