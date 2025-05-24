@@ -36,7 +36,7 @@ class Manager:
 
         self._network_modules: Sequence[NetworkModule] = [steam_core] + self._services
 
-    def clear_cache(self) -> None:  # TODO: Give user access to this
+    def clear_cache(self) -> None:
         """Clear the cache."""
         self._logger.info("Clearing cache")
         for cache in Cache.instances:
