@@ -1,7 +1,9 @@
+import logging
+
 from pydantic import BaseModel
 
 from ..service import Service
-from ..services.steam import SteamDetails
+from ..steam_core import SteamCoreDetails
 from ..utils import http_client
 
 
@@ -13,16 +15,16 @@ class ProtonDBDetails(BaseModel):
 
 
 class ProtonDB(Service):
-    def __init__(self, name: str, log_name: str) -> None:
-        super().__init__(name, log_name, "https://www.protondb.com/app/{steam.appid}")
+    def __init__(self, name: str, logger: logging.Logger) -> None:
+        super().__init__(name, logger, "https://www.protondb.com/app/{steam.appid}")
 
-    async def get_game_details(self, steam: SteamDetails) -> ProtonDBDetails | None:
+    async def get_game_details(self, steam: SteamCoreDetails) -> ProtonDBDetails | None:
         """Get linux support state from ProtonDB."""
         self.logger.info(f"Getting linux support state for {repr(steam.name)} ({steam.appid})")
 
         r = await http_client.get(f"https://www.protondb.com/api/v1/reports/summaries/{steam.appid}.json")
         self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
-        self.logger.debug(f"Response: (all): {r.text}")
+        self.logger.debug(f"Response: (all): {repr(r.text)}")
 
         if r.status_code == 404:
             return

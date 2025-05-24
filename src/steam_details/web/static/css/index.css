@@ -195,36 +195,3 @@
 .price {
     padding: 5px;
 }
-
-/* Buttons */
-.steam-button, .keyforsteam-button, .error-button {
-    width: 150px;
-    text-align: center;
-    margin-left: 0;
-    padding: 7px 15px;
-    border-radius: 2px;
-}
-
-.steam-button {
-    color: var(--steam-button-color);
-    background: var(--steam-button-background);
-}
-.steam-button:hover {
-    background: var(--steam-button-background-hover);
-}
-
-.keyforsteam-button {
-    color: var(--keyforsteam-button-color);
-    background: var(--keyforsteam-button-background);
-}
-.keyforsteam-button:hover {
-    background: var(--keyforsteam-button-background-hover);
-}
-
-.error-button {
-    color: var(--error-button-color);
-    background: var(--error-button-background);
-}
-.error-button:hover {
-    background: var(--error-button-background-hover);
-}

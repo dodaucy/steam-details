@@ -1,4 +1,5 @@
 import json
+import logging
 import string
 from collections.abc import Iterator
 from urllib.parse import quote
@@ -8,7 +9,7 @@ from httpx import Response
 from pydantic import BaseModel
 
 from ..service import Service
-from ..services.steam import SteamDetails
+from ..steam_core import SteamCoreDetails
 from ..utils import http_client
 
 
@@ -20,8 +21,8 @@ class HowLongToBeatDetails(BaseModel):
 
 
 class HowLongToBeat(Service):
-    def __init__(self, name: str, log_name: str) -> None:
-        super().__init__(name, log_name, "https://howlongtobeat.com")
+    def __init__(self, name: str, logger: logging.Logger) -> None:
+        super().__init__(name, logger, "https://howlongtobeat.com")
 
         # Cache
         self._search_endpoint: str | None = None
@@ -55,7 +56,7 @@ class HowLongToBeat(Service):
             }
         )
         self.logger.info(f"Response (100 chars): {repr(index_response.text[:100])}")
-        self.logger.debug(f"Response: (all): {index_response.text}")
+        self.logger.debug(f"Response: (all): {repr(index_response.text)}")
         index_response.raise_for_status()
 
         # Parse index page
@@ -91,11 +92,11 @@ class HowLongToBeat(Service):
                         }
                     )
                     self.logger.info(f"Response (100 chars): {repr(js_response.text[:100])}")
-                    self.logger.debug(f"Response: (all): {js_response.text}")
+                    self.logger.debug(f"Response: (all): {repr(js_response.text)}")
                     js_response.raise_for_status()
 
                     for url in self._parse_fetch_urls_from_js(js_response.text):
-                        if url.startswith("/api/search") or url.startswith("/api/find"):
+                        if url.startswith("/api/search") or url.startswith("/api/find") or url.startswith("/api/seek"):
                             url = "https://howlongtobeat.com" + url
                             self.logger.info(f"Found howlongtobeat search endpoint: {repr(url)}")
                             new_search_endpoint = url
@@ -120,6 +121,8 @@ class HowLongToBeat(Service):
 
         # Search
         self.logger.info(f"Searching for {repr(search_terms)}")
+        if self._search_endpoint is None:
+            raise Exception("Load service first")
         r = await http_client.post(
             self._search_endpoint,
             headers={
@@ -143,7 +146,7 @@ class HowLongToBeat(Service):
                         "sortCategory": "name",
                         "rangeCategory": "main",
                         "rangeTime": {"min": None, "max": None},
-                        "gameplay": {"perspective": "", "flow": "", "genre": ""},
+                        "gameplay": {"perspective": "", "flow": "", "genre": "", "difficulty": ""},
                         "rangeYear": {"min": "", "max": ""},
                         "modifier": ""
                     },
@@ -157,7 +160,7 @@ class HowLongToBeat(Service):
             }
         )
         self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
-        self.logger.debug(f"Response: (all): {r.text}")
+        self.logger.debug(f"Response: (all): {repr(r.text)}")
 
         return r
 
@@ -184,8 +187,11 @@ class HowLongToBeat(Service):
 
                     if len(splitted_url) == 3 and splitted_url[0] == "" and splitted_url[2] == "":  # "..."
                         real_url = splitted_url[1]
-                    elif len(splitted_url) == 5 and splitted_url[0] == "" and splitted_url[2] == ".concat(" and splitted_url[4] == ")":  # "...".concat("...")
-                        real_url = splitted_url = splitted_url[1] + splitted_url[3]
+                    elif len(splitted_url) >= 5 and len(splitted_url) % 2 == 1 and splitted_url[0] == "" and splitted_url[-1] == ")":  # "...".concat("...").concat("...") ...
+                        real_url = splitted_url[1]
+                        for i in range(3, len(splitted_url), 2):
+                            if splitted_url[i - 1] == ".concat(" or splitted_url[i - 1] == ").concat(":
+                                real_url += splitted_url[i]
 
                     if real_url is None:
                         self.logger.debug(f"Could not parse fetch url: {repr(raw_url)}")
@@ -195,7 +201,7 @@ class HowLongToBeat(Service):
 
                     break
 
-    async def _parse_search_results(self, steam: SteamDetails, search_results: dict) -> HowLongToBeatDetails | None:
+    async def _parse_search_results(self, steam: SteamCoreDetails, search_results: dict) -> HowLongToBeatDetails | None:
         for game_data in search_results["data"]:
 
             if "profile_steam" in game_data:  # Was available in the past (might be removed in the future, it's still here for stability)
@@ -219,7 +225,7 @@ class HowLongToBeat(Service):
 
         self.logger.info(f"Could not find {repr(steam.name)}")
 
-    async def _get_game_props(self, internal_game_id: int, steam: SteamDetails, *, allow_wrong_build_id: bool = True) -> dict:
+    async def _get_game_props(self, internal_game_id: int, steam: SteamCoreDetails, *, allow_wrong_build_id: bool = True) -> dict:
         r = await http_client.get(
             f"https://howlongtobeat.com/_next/data/{self._build_id}/game/{internal_game_id}.json",
             params={
@@ -235,18 +241,18 @@ class HowLongToBeat(Service):
             }
         )
         self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
-        self.logger.debug(f"Response: (all): {r.text}")
+        self.logger.debug(f"Response: (all): {repr(r.text)}")
 
         # Allow updating the build id if it's wrong
         if allow_wrong_build_id and r.status_code == 404:
             self.logger.info(f"The howlongtobeat build id ({repr(self._build_id)}) is deprecated")
-            self._update_search_endpoint_and_build_id()
+            await self._update_search_endpoint_and_build_id()
             return await self._get_game_props(internal_game_id, steam, allow_wrong_build_id=False)
 
         r.raise_for_status()
         return r.json()
 
-    async def get_game_details(self, steam: SteamDetails) -> HowLongToBeatDetails | None:
+    async def get_game_details(self, steam: SteamCoreDetails) -> HowLongToBeatDetails | None:
         """Get playtime stats from HowLongToBeat."""
         self.logger.info(f"Getting how long to beat for {repr(steam.name)} ({steam.appid})")
 
@@ -258,7 +264,7 @@ class HowLongToBeat(Service):
         r = await self._search(purged_name)
         if r.status_code == 404:
             self.logger.info(f"The howlongtobeat search endpoint ({repr(self._search_endpoint)}) is not available")
-            self._update_search_endpoint_and_build_id()
+            await self._update_search_endpoint_and_build_id()
             r = await self._search(purged_name)
 
         r.raise_for_status()

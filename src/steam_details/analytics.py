@@ -1,19 +1,19 @@
 import asyncio  # noqa: I001
 import logging
 import tempfile
-from typing import TypedDict
 
 import matplotlib
-matplotlib.use("Agg")  # Prevents matplotlib from displayin
+matplotlib.use("Agg")  # Prevents matplotlib from displaying
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 from pydantic import BaseModel
+from typing_extensions import TypedDict
 
 from .utils import ANSICodes
 
 
-class AnalyticsService(TypedDict):
+class AnalyticsModule(TypedDict):
     name: str
     load_time: float | None
     timeout_count: int
@@ -21,8 +21,9 @@ class AnalyticsService(TypedDict):
 
 
 class Analytics(BaseModel):
-    services: list[AnalyticsService]
+    modules: list[AnalyticsModule]
     speed_box_plot: str | None  # base64 encoded png
+    cache_entries: int
 
 
 sns.set_theme(
@@ -68,7 +69,7 @@ def _render_speed_box_plot(data: dict[str, list[int | float]]) -> bytes | None:
     ax.set(
         title=f"Speed Box Plot ({len(df)} entries)",
         xlabel="Time in seconds",
-        ylabel="Services"
+        ylabel="Modules"
     )
 
     # Box plot
@@ -102,7 +103,7 @@ def _render_speed_box_plot(data: dict[str, list[int | float]]) -> bytes | None:
 
 
 async def render_speed_box_plot(data: dict[str, list[int | float]]) -> bytes | None:
-    """Render a box plot of the speed of the services."""
+    """Render a box plot of the speed of the modules."""
     async with _lock:
         logger.debug("Starting box plot thread")
         response = await asyncio.to_thread(_render_speed_box_plot, data)

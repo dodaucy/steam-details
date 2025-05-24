@@ -8,23 +8,29 @@
 }
 
 
-#service-stats {
+#module-stats, #cache-stats {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: space-around;
     align-items: center;
 
     width: 100%;
     padding: 10px;
+    margin-bottom: 10px;
 
     background-color: var(--secondary-background-color);
 }
 
-#service-stats > * {
-    flex: 1;
+
+#module-stats {
+    flex-wrap: wrap;
 }
 
-#service-stats > * > * {
+#module-stats > * {
+    min-width: 200px;
+}
+
+#module-stats > * > * {
     margin: 5px;
     padding: 5px;
 
@@ -35,5 +41,4 @@
 
 #speed-box-plot {
     width: 100%;
-    margin: 10px 0px;
 }

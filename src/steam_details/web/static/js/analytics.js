@@ -13,7 +13,7 @@ async function analyze() {
     const elements = [];
 
     try {
-        data = await getRequest("analyze");
+        data = await request("GET", "analyze");
     } catch (error) {
         console.error(error);
         // Display error
@@ -24,95 +24,122 @@ async function analyze() {
     }
 
     if (elements.length == 0) {  // No error
-        // Display service stats
-        const serviceStats = document.createElement("div");
-        serviceStats.id = "service-stats";
-        serviceStats.className = "center-text";
+        // Display cache stats
+        const cacheStats = document.createElement("div");
+        cacheStats.id = "cache-stats";
 
-        for (const service of data.services) {
-            const serviceElement = document.createElement("div");
+        // Cache entries
+        const cacheDisplay = document.createElement("div");
+        cacheDisplay.innerText = `Cache entries: ${data.cache_entries}`;
+        cacheStats.appendChild(cacheDisplay);
+
+        // Clear cache button
+        const clearCacheButton = document.createElement("a");
+        clearCacheButton.href = "javascript:void(0)";
+        clearCacheButton.innerText = "Clear cache";
+        clearCacheButton.className = "general-button";
+        clearCacheButton.onclick = async () => {
+            try {
+                alert((await request("POST", "clear_cache")).message);
+                location.reload();
+            } catch (error) {
+                console.error(error);
+                alert(error.message);
+            }
+        }
+        cacheStats.appendChild(clearCacheButton);
+
+        elements.push(cacheStats);
+
+        // Display module stats
+        const moduleStats = document.createElement("div");
+        moduleStats.id = "module-stats";
+        moduleStats.className = "center-text";
+
+        for (const module of data.modules) {
+            const moduleElement = document.createElement("div");
 
             // Title
-            const serviceTitle = document.createElement("div");
-            serviceTitle.innerText = service.name;
-            serviceTitle.className = "title";
-            serviceElement.appendChild(serviceTitle);
+            const moduleTitle = document.createElement("div");
+            moduleTitle.innerText = module.name;
+            moduleTitle.className = "title";
+            moduleElement.appendChild(moduleTitle);
 
             // Load time
-            const serviceLoadTime = document.createElement("div");
+            const moduleLoadTime = document.createElement("div");
 
-            const serviceLoadTimeTitle = document.createElement("div");
-            serviceLoadTimeTitle.innerText = "Load Time";
-            serviceLoadTime.appendChild(serviceLoadTimeTitle);
+            const moduleLoadTimeTitle = document.createElement("div");
+            moduleLoadTimeTitle.innerText = "Load Time";
+            moduleLoadTime.appendChild(moduleLoadTimeTitle);
 
-            const serviceLoadTimeValue = document.createElement("div");
-            if (service.load_time === null) {
-                serviceLoadTimeValue.innerText = "Not loaded";
-                serviceLoadTimeValue.className = "error-text";
+            const moduleLoadTimeValue = document.createElement("div");
+            if (module.load_time === null) {
+                moduleLoadTimeValue.innerText = "Not loaded";
+                moduleLoadTimeValue.className = "error-text";
             } else {
-                serviceLoadTimeValue.innerText = service.load_time + "s";
-                if (service.load_time > 10) {  // Very high load time
-                    serviceLoadTimeValue.className = "red-text";
-                } else if (service.load_time > 5) {  // High load time
-                    serviceLoadTimeValue.className = "orange-text";
-                } else if (service.load_time > 3) {  // Medium load time
-                    serviceLoadTimeValue.className = "yellow-text";
+                moduleLoadTimeValue.innerText = module.load_time + "s";
+                if (module.load_time > 10) {  // Very high load time
+                    moduleLoadTimeValue.className = "red-text";
+                } else if (module.load_time > 5) {  // High load time
+                    moduleLoadTimeValue.className = "orange-text";
+                } else if (module.load_time > 3) {  // Medium load time
+                    moduleLoadTimeValue.className = "yellow-text";
                 } else {  // Low load time
-                    serviceLoadTimeValue.className = "green-text";
+                    moduleLoadTimeValue.className = "green-text";
                 }
             }
 
-            serviceLoadTime.appendChild(serviceLoadTimeValue);
+            moduleLoadTime.appendChild(moduleLoadTimeValue);
 
-            serviceElement.appendChild(serviceLoadTime);
+            moduleElement.appendChild(moduleLoadTime);
 
             // Timeout count
-            const serviceTimeoutCount = document.createElement("div");
+            const moduleTimeoutCount = document.createElement("div");
 
-            const serviceTimeoutCountTitle = document.createElement("div");
-            serviceTimeoutCountTitle.innerText = "Timeout Count";
-            serviceTimeoutCount.appendChild(serviceTimeoutCountTitle);
+            const moduleTimeoutCountTitle = document.createElement("div");
+            moduleTimeoutCountTitle.innerText = "Timeout Count";
+            moduleTimeoutCount.appendChild(moduleTimeoutCountTitle);
 
-            const serviceTimeoutCountValue = document.createElement("div");
-            serviceTimeoutCountValue.innerText = service.timeout_count;
-            serviceTimeoutCount.appendChild(serviceTimeoutCountValue);
+            const moduleTimeoutCountValue = document.createElement("div");
+            moduleTimeoutCountValue.innerText = module.timeout_count;
+            moduleTimeoutCount.appendChild(moduleTimeoutCountValue);
 
-            if (service.timeout_count >= 3) {  // Many timeouts
-                serviceTimeoutCountValue.className = "red-text";
-            } else if (service.timeout_count > 0) {  // Timeouts
-                serviceTimeoutCountValue.className = "orange-text";
+            if (module.timeout_count >= 3) {  // Many timeouts
+                moduleTimeoutCountValue.className = "red-text";
+            } else if (module.timeout_count > 0) {  // Timeouts
+                moduleTimeoutCountValue.className = "orange-text";
             } else {  // No timeouts
-                serviceTimeoutCountValue.className = "green-text";
+                moduleTimeoutCountValue.className = "green-text";
             }
 
-            serviceElement.appendChild(serviceTimeoutCount);
+            moduleElement.appendChild(moduleTimeoutCount);
 
             // Error count
-            const serviceErrorCount = document.createElement("div");
+            const moduleErrorCount = document.createElement("div");
 
-            const serviceErrorCountTitle = document.createElement("div");
-            serviceErrorCountTitle.innerText = "Error Count";
-            serviceErrorCount.appendChild(serviceErrorCountTitle);
+            const moduleErrorCountTitle = document.createElement("div");
+            moduleErrorCountTitle.innerText = "Error Count";
+            moduleErrorCount.appendChild(moduleErrorCountTitle);
 
-            const serviceErrorCountValue = document.createElement("div");
-            serviceErrorCountValue.innerText = service.error_count;
-            serviceErrorCount.appendChild(serviceErrorCountValue);
+            const moduleErrorCountValue = document.createElement("div");
+            moduleErrorCountValue.innerText = module.error_count;
+            moduleErrorCount.appendChild(moduleErrorCountValue);
 
-            if (service.error_count >= 3) {  // Many errors
-                serviceErrorCountValue.className = "red-text";
-            } else if (service.error_count > 0) {  // Errors
-                serviceErrorCountValue.className = "orange-text";
+            if (module.error_count >= 3) {  // Many errors
+                moduleErrorCountValue.className = "red-text";
+            } else if (module.error_count > 0) {  // Errors
+                moduleErrorCountValue.className = "orange-text";
             } else {  // No errors
-                serviceErrorCountValue.className = "green-text";
+                moduleErrorCountValue.className = "green-text";
             }
 
-            serviceElement.appendChild(serviceErrorCount);
+            moduleElement.appendChild(moduleErrorCount);
 
             // Add to list
-            serviceStats.appendChild(serviceElement);
+            moduleStats.appendChild(moduleElement);
         }
 
-        elements.push(serviceStats);
+        elements.push(moduleStats);
 
         // Display speed box plot
         if (data.speed_box_plot != null) {
