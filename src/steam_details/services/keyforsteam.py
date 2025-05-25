@@ -477,6 +477,11 @@ class KeyForSteam(Service):
                 continue
 
             if product_data["id"] not in self._product_cache:
+                # Skip if no historical low
+                if product_data["best_historical_offer"] is None:
+                    self.logger.debug(f"No historical low for internal id {repr(product_data['id'])}")
+                    continue
+
                 # Get historical low
                 historical_low = HistoricalLow(
                     price=product_data["best_historical_offer"]["price"],
