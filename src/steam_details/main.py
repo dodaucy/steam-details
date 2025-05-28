@@ -1,8 +1,8 @@
 import logging
-from argparse import ArgumentParser
 
 import uvicorn
 
+from .cli import args
 from .utils import ANSICodes
 from .web.web import app
 
@@ -24,7 +24,7 @@ class ColorFormatter(logging.Formatter):
         )
 
 
-def main() -> int:
+def main() -> None:
     """Display some details for a steam app or a whole wishlist."""
     # Logging
     logging.basicConfig(
@@ -38,18 +38,5 @@ def main() -> int:
         f"%(asctime)s {{LEVEL_COLOR}}{ANSICodes.BOLD}[%(levelname)s]{ANSICodes.RESET} %(name)s ({ANSICodes.BLUE}%(filename)s:%(lineno)d{ANSICodes.RESET}) %(message)s"  # noqa
     ))
 
-    parser = ArgumentParser()
-    parser.add_argument(
-        "-v", "--version", action="store_true", help="Show the version and exit."
-    )
-
-    args = parser.parse_args()
-
-    if args.version:
-        from . import __version__
-        print(f"Steam Details {__version__}")
-        return 0
-
+    # Start the web server
     uvicorn.run(app, host="127.0.0.1", port=8000)
-
-    return 0

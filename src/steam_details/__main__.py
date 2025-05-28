@@ -1,8 +1,11 @@
 """Displays some details for a steam app or a whole wishlist."""
 
-import sys
-
-from .main import main
+from .cli import args
 
 if __name__ == "__main__":
-    sys.exit(main())
+    if args.version:
+        from . import __version__
+        print(f"Steam Details {__version__}")
+    else:
+        from .main import main
+        main()
