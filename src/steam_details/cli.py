@@ -12,7 +12,7 @@ parser.add_argument(
 )
 
 # Logging
-logging_group = parser.add_argument_group(title="Logging")
+logging_group = parser.add_argument_group(title="logging")
 logging_group.add_argument(
     "-l",
     "--log-level",
@@ -28,7 +28,7 @@ logging_group.add_argument(
 )
 
 # Hosting
-hosting_group = parser.add_argument_group(title="Hosting")
+hosting_group = parser.add_argument_group(title="hosting")
 hosting_group.add_argument(
     "--host",
     type=str,
@@ -44,7 +44,7 @@ hosting_group.add_argument(
 )
 
 # Other
-other_group = parser.add_argument_group(title="Other")
+other_group = parser.add_argument_group(title="other")
 other_group.add_argument(
     "--cache-timeout",
     type=int,
