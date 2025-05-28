@@ -260,7 +260,7 @@ class KeyForSteam(Service):
                 self._ignored_word_list.append(f"{adjective} {platform}")
 
         # Product cache
-        self._product_cache = Cache("products", self.logger, 60 * 60)
+        self._product_cache = Cache("products", self.logger)
 
     def _normalize_string(self, input_str: str) -> str:
         return (

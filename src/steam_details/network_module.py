@@ -29,7 +29,7 @@ class NetworkFunction:
         self.error_count: int = 0
 
         # Cache
-        self._cache = Cache(self.name, logger, 60 * 60)
+        self._cache = Cache(self.name, logger)
 
         self.logger.debug(f"Initialized network function {self.name}")
 

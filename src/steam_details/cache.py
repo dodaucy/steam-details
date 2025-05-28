@@ -4,6 +4,8 @@ from typing import Any, Hashable
 
 from pydantic import BaseModel
 
+from .cli import args
+
 
 class CacheItem(BaseModel):
     timestamp: float
@@ -14,7 +16,7 @@ class CacheItem(BaseModel):
 class Cache:
     instances: list["Cache"] = []
 
-    def __init__(self, name: str, logger: logging.Logger, timeout: float) -> None:
+    def __init__(self, name: str, logger: logging.Logger) -> None:
         """
         Cache for storing game details.
 
@@ -24,7 +26,7 @@ class Cache:
         """
         self.name = name
         self._logger = logger
-        self._timeout = timeout
+        self._timeout = args.cache_timeout
         self._cache: list[CacheItem] = []
 
         self.instances.append(self)

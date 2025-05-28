@@ -43,5 +43,14 @@ hosting_group.add_argument(
     help="The port to listen on."
 )
 
+# Other
+other_group = parser.add_argument_group(title="Other")
+other_group.add_argument(
+    "--cache-timeout",
+    type=int,
+    default=60 * 60,
+    help="The timeout in seconds for the cache."
+)
+
 
 args = parser.parse_args()
