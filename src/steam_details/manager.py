@@ -13,18 +13,18 @@ from .services.protondb import ProtonDB
 from .services.steam_extension import SteamExtension
 from .services.steamdb import SteamDB
 from .steam_core import SteamCore, steam_core
-from .utils import ANSICodes
+from .utils import ANSICodes, get_colored_logger
 
 
 class Manager:
     def __init__(self):
-        self._logger = logging.getLogger(f"{ANSICodes.MAGENTA}service_manager{ANSICodes.RESET}")
+        self._logger = get_colored_logger("service_manager", ANSICodes.MAGENTA)
 
-        self.steam_extension = SteamExtension("Steam Extension", logging.getLogger(f"{ANSICodes.CYAN}steam_extension{ANSICodes.RESET}"))
-        self.steamdb = SteamDB("SteamDB", logging.getLogger(f"{ANSICodes.BLUE}steamdb{ANSICodes.RESET}"))
-        self.protondb = ProtonDB("ProtonDB", logging.getLogger(f"{ANSICodes.GREEN}protondb{ANSICodes.RESET}"))
-        self.keyforsteam = KeyForSteam("KeyForSteam", logging.getLogger(f"{ANSICodes.YELLOW}keyforsteam{ANSICodes.RESET}"))
-        self.how_long_to_beat = HowLongToBeat("HowLongToBeat", logging.getLogger(f"{ANSICodes.RED}howlongtobeat{ANSICodes.RESET}"))
+        self.steam_extension = SteamExtension("Steam Extension", get_colored_logger("steam_extension", ANSICodes.CYAN))
+        self.steamdb = SteamDB("SteamDB", get_colored_logger("steamdb", ANSICodes.BLUE))
+        self.protondb = ProtonDB("ProtonDB", get_colored_logger("protondb", ANSICodes.GREEN))
+        self.keyforsteam = KeyForSteam("KeyForSteam", get_colored_logger("keyforsteam", ANSICodes.YELLOW))
+        self.how_long_to_beat = HowLongToBeat("HowLongToBeat", get_colored_logger("howlongtobeat", ANSICodes.RED))
 
         self._services: list[Service] = [
             self.steam_extension,

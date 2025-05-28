@@ -1,7 +1,10 @@
+import logging
 from typing import Any, cast
 
 import esprima
 import httpx
+
+from .cli import args
 
 http_client = httpx.AsyncClient(timeout=15)
 http_client.headers["User-Agent"] = "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0"
@@ -32,6 +35,14 @@ class ANSICodes:
     BLUE = "\033[34m"
     MAGENTA = "\033[35m"
     CYAN = "\033[36m"
+
+
+def get_colored_logger(name: str, color: str) -> logging.Logger:
+    """Get a logger with a specific color."""
+    if args.no_colors:
+        return logging.getLogger(name)
+    else:
+        return logging.getLogger(f"{color}{name}{ANSICodes.RESET}")
 
 
 def price_string_to_float(price_string: str) -> float:

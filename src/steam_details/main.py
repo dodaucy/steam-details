@@ -27,16 +27,18 @@ class ColorFormatter(logging.Formatter):
 def main() -> None:
     """Display some details for a steam app or a whole wishlist."""
     # Logging
+    log_level = (["DEBUG", "INFO", "WARNING", "ERROR"].index(args.log_level) + 1) * 10
     logging.basicConfig(
-        level=logging.INFO,
+        level=log_level,
         format="%(asctime)s [%(levelname)s] %(name)s (%(filename)s:%(lineno)d) %(message)s",
         handlers=[
             logging.StreamHandler()
         ]
     )
-    logging.getLogger().handlers[0].setFormatter(ColorFormatter(
-        f"%(asctime)s {{LEVEL_COLOR}}{ANSICodes.BOLD}[%(levelname)s]{ANSICodes.RESET} %(name)s ({ANSICodes.BLUE}%(filename)s:%(lineno)d{ANSICodes.RESET}) %(message)s"  # noqa
-    ))
+    if not args.no_colors:
+        logging.getLogger().handlers[0].setFormatter(ColorFormatter(
+            f"%(asctime)s {{LEVEL_COLOR}}{ANSICodes.BOLD}[%(levelname)s]{ANSICodes.RESET} %(name)s ({ANSICodes.BLUE}%(filename)s:%(lineno)d{ANSICodes.RESET}) %(message)s"  # noqa
+        ))
 
     # Start the web server
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000, log_level=log_level, use_colors=not args.no_colors)

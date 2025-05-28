@@ -7,7 +7,8 @@ from bs4 import BeautifulSoup
 from pydantic import BaseModel
 
 from .network_module import NetworkFunction, NetworkModule
-from .utils import ANSICodes, http_client, read_js_variables
+from .utils import (ANSICodes, get_colored_logger, http_client,
+                    read_js_variables)
 
 
 class _WishlistItem(BaseModel):
@@ -37,7 +38,7 @@ class SteamCoreDetails(BaseModel):
 
 class SteamCore(NetworkModule):
     def __init__(self) -> None:
-        super().__init__("Steam Core", logging.getLogger(f"{ANSICodes.CYAN}steam_core{ANSICodes.RESET}"))
+        super().__init__("Steam Core", get_colored_logger("steam_core", ANSICodes.CYAN))
 
         # Cache
         self.app_list: dict[str, int] | None = None

@@ -10,7 +10,7 @@ import seaborn as sns
 from pydantic import BaseModel
 from typing_extensions import TypedDict
 
-from .utils import ANSICodes
+from .utils import ANSICodes, get_colored_logger
 
 
 class AnalyticsModule(TypedDict):
@@ -35,7 +35,7 @@ sns.set_theme(
     }
 )
 
-logger = logging.getLogger(f"{ANSICodes.MAGENTA}analytics{ANSICodes.RESET}")
+logger = get_colored_logger("analytics", ANSICodes.MAGENTA)
 
 _lock = asyncio.Lock()
 

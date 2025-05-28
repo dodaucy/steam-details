@@ -12,7 +12,7 @@ from ..manager import manager
 from ..network_module import ModuleResponse
 from ..service import Service
 from ..steam_core import SteamCoreDetails, steam_core
-from ..utils import ANSICodes
+from ..utils import ANSICodes, get_colored_logger
 
 
 class ServiceDetails(TypedDict):
@@ -74,7 +74,7 @@ app = FastAPI(openapi_url=None)
 
 details_lock = asyncio.Lock()
 
-logger = logging.getLogger(f"{ANSICodes.MAGENTA}api{ANSICodes.RESET}")
+logger = get_colored_logger("api", ANSICodes.MAGENTA)
 
 
 @app.get("/wishlist")
