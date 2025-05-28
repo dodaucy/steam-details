@@ -27,5 +27,21 @@ logging_group.add_argument(
     help="Disable colors in the logging output."
 )
 
+# Hosting
+hosting_group = parser.add_argument_group(title="Hosting")
+hosting_group.add_argument(
+    "--host",
+    type=str,
+    default="127.0.0.1",
+    help="The host to listen on. DO NOT MAKE THIS PUBLIC."
+)
+hosting_group.add_argument(
+    "-p",
+    "--port",
+    type=int,
+    default=8000,
+    help="The port to listen on."
+)
+
 
 args = parser.parse_args()

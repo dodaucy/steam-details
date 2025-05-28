@@ -41,4 +41,4 @@ def main() -> None:
         ))
 
     # Start the web server
-    uvicorn.run(app, host="127.0.0.1", port=8000, log_level=log_level, use_colors=not args.no_colors)
+    uvicorn.run(app, host=args.host, port=args.port, log_level=log_level, use_colors=not args.no_colors)
