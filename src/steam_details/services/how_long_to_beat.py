@@ -96,7 +96,7 @@ class HowLongToBeat(Service):
                     js_response.raise_for_status()
 
                     for url in self._parse_fetch_urls_from_js(js_response.text):
-                        if url.startswith("/api/search") or url.startswith("/api/find") or url.startswith("/api/seek"):
+                        if url.startswith("/api/search") or url.startswith("/api/find") or url.startswith("/api/seek") or url.startswith("/api/locate"):
                             url = "https://howlongtobeat.com" + url
                             self.logger.info(f"Found howlongtobeat search endpoint: {repr(url)}")
                             new_search_endpoint = url
