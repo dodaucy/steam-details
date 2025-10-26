@@ -213,8 +213,6 @@ IGNORED_CHARS = [":", "™", "-", "(", ")", "[", "]", "{", "}", "/", ",", "©", 
 
 class Offer(BaseModel):
     id: int
-    is_available: bool
-
     price: float
     form: str
     seller: str
@@ -309,48 +307,43 @@ class KeyForSteam(Service):
     ) -> Product:
         """Return product details for the given internal ID."""
 
-        # Get offers
+        # Get page
         self.logger.info(f"Getting offers for internal id {internal_id}")
-        r = await http_client.get(
-            "https://www.keyforsteam.de/wp-admin/admin-ajax.php",
-            params={
-                "action": "get_offers",
-                "product": internal_id,
-                "currency": "eur",
-                "locale": "de-DE"
-            }
-        )
+        r = await http_client.get(keyforsteam_game_url)
         self.logger.info(f"Response (100 chars): {repr(r.text[:100])}")
         self.logger.debug(f"Response: (all): {repr(r.text)}")
         r.raise_for_status()
-        offers_data = r.json()
 
-        # Display warnings
-        if "warnings" in offers_data and isinstance(offers_data["warnings"], list):
-            for warning in offers_data["warnings"]:
-                self.logger.warning(f"KeyForSteam warning: {repr(warning)}")
-
-        # Check for errors
-        if "errors" in offers_data and isinstance(offers_data["errors"], list) and len(offers_data["errors"]) > 0:
-            for error in offers_data["errors"]:
-                self.logger.error(f"KeyForSteam error: {repr(error)}")
-            raise Exception(f"KeyForSteam errors: {repr(offers_data['errors'])}")
-
-        if offers_data["success"] is not True:
-            raise Exception("KeyForSteam API error")
+        # Get offers
+        soup = BeautifulSoup(r.text, "html.parser")
+        offers_data_tag = soup.find("script", {"id": "aks-offers-js-extra"})
+        if offers_data_tag is None:
+            raise Exception("Could not find offers data tag")
+        lines: list[str] = []
+        for line in offers_data_tag.text.split("\n"):
+            line = line.strip()
+            if line.startswith("//") or (line.startswith("/*") and line.endswith("*/")) or line == "":
+                continue
+            lines.append(line)
+        if len(lines) != 1:
+            raise Exception(f"Found {len(lines)} lines instead of 1")
+        offers_line = lines[0]
+        _, offers_data_value = offers_line.split("=", 1)
+        offers_data_value = offers_data_value.strip()
+        if offers_data_value.endswith(";"):
+            offers_data_value = offers_data_value[:-1]
+        offers_data = json.loads(offers_data_value)
 
         # Evaluate offers
         steam_offer: Offer | None = None
         cheapest_offer: Offer | None = None
-        for offer_data in offers_data["offers"]:
+        for price_data in offers_data["prices"]:
             offer = Offer(
-                id=offer_data["id"],
-                is_available=offer_data["isActive"] and offer_data["stock"] == "InStock",
-
-                price=round(offer_data["price"]["eur"]["priceCard"], 2),
-                form=offers_data["regions"][offer_data["region"]]["name"],
-                seller=offers_data["merchants"][str(offer_data["merchant"])]["name"],
-                edition=offers_data["editions"][offer_data["edition"]]["name"]
+                id=price_data["id"],
+                price=round(price_data["priceCard"], 2),
+                form=offers_data["regions"][price_data["region"]]["region_name"],
+                seller=offers_data["merchants"][str(price_data["merchant"])]["name"],
+                edition=offers_data["editions"][price_data["edition"]]["name"]
             )
             self.logger.debug(f"Offer: {offer}")
 
@@ -359,7 +352,6 @@ class KeyForSteam(Service):
                 steam_offer = offer
 
             elif all((  # Get cheapest offer
-                offer.is_available,
                 "ACCOUNT" not in offer.form,
                 "KONTO" not in offer.form,
                 "ONLY" not in offer.form,
@@ -439,7 +431,7 @@ class KeyForSteam(Service):
                 "type": "game",
                 "locale": "de_DE",
                 "price_mode": "price_card",
-                "currency": "eur",
+                "currency": "EUR",
                 "apiKey": "vaks_extension",
                 "operating_systems": "pc",
                 "search_name": purged_name
@@ -490,7 +482,7 @@ class KeyForSteam(Service):
                 )
 
                 # Get product
-                product = await self._get_product(
+                product: Product = await self._get_product(
                     internal_id=product_data["id"],
                     keyforsteam_game_url=product_data["link"],
                     historical_low=historical_low
